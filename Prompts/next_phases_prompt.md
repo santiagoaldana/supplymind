@@ -223,15 +223,27 @@ Build:
 2. Teach as you build. Santiago is a senior CTO who has not coded in a while.
    Use clear analogies. Explain the WHY before the HOW. Connect every new
    concept back to what is already built.
-3. Security: flag loopholes inline as they arise during the build, then
+3. Before building each phase, explain any new protocols, frameworks, or
+   tools that will be introduced. Santiago may not be familiar with them.
+   Do not assume prior knowledge of: DNSid, AP2 v0.2.0 mandate structures,
+   ACP, Visa TAP, Mastercard Agent Pay, AWS AgentCore, or any of the
+   competing approaches (AgentPass, Mission-bound OAuth, AAuth, MCP Auth,
+   XAA + ID-JAG). Explain what each is, who built it, what problem it solves,
+   and how it connects to what is already built in SupplyMind before writing
+   any code.
+4. Clerk's four auth questions (Identity, Scoping, Approvals, Enforcement)
+   are the security evaluation lens used throughout. Explain this framework
+   at the start of Phase 8 and reference it in every subsequent phase.
+   Santiago is not yet familiar with it.
+5. Security: flag loopholes inline as they arise during the build, then
    deliver a dedicated security audit summary at the end of each phase.
-   Cover authentication gaps, authorization gaps, and trust assumption failures.
-   Explain how each loophole can be solved, and whether SupplyMind currently
-   solves it or leaves it open.
-4. At the end of each phase: summarize what was built, what it unlocks
+   Tag each loophole to the relevant Clerk question. Explain how each
+   loophole can be solved, and whether SupplyMind currently solves it
+   or leaves it open.
+6. At the end of each phase: summarize what was built, what it unlocks
    for downstream phases, and one open design question worth attention.
-5. Pause and confirm before moving to the next phase.
-6. Do not add comments explaining what the code does. Only add comments
+7. Pause and confirm before moving to the next phase.
+8. Do not add comments explaining what the code does. Only add comments
    for non-obvious constraints or workarounds. No em dashes in any output.
 
 Begin with Phase 8.
