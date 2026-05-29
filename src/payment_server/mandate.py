@@ -24,6 +24,7 @@ the agent operates within it indefinitely.
 
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 
 MANDATES: dict[str, dict] = {}
 
@@ -75,9 +76,10 @@ def get_mandate(mandate_id: str) -> dict:
 
 
 def check_mandate(
-    mandate_id: str,
-    amount_usd: float,
-    seller_id:  str,
+    mandate_id:  str,
+    amount_usd:  float,
+    seller_id:   str,
+    buyer_dnsid: Optional[str] = None,
 ) -> dict:
     """
     AP2 + ACF: Check whether a payment is permitted under the Mandate.
@@ -97,6 +99,20 @@ def check_mandate(
         return {"decision": "block", "reason": f"Mandate {mandate_id} not found"}
     if not mandate["active"]:
         return {"decision": "block", "reason": "Mandate is inactive"}
+
+    if buyer_dnsid is not None:
+        from src.identity.dnsid import resolve_dnsid
+        dnsid_record = resolve_dnsid(buyer_dnsid)
+        if dnsid_record.get("status") == "revoked":
+            return {
+                "decision": "block",
+                "reason":   f"Buyer DNSid {buyer_dnsid} is revoked",
+                "dnsid_status": "revoked",
+            }
+        dnsid_verified = dnsid_record.get("status") == "active"
+    else:
+        dnsid_verified = False
+
     if seller_id not in mandate["approved_sellers"] and "*" not in mandate["approved_sellers"]:
         return {"decision": "block", "reason": f"Seller {seller_id} not in approved list"}
     if amount_usd > mandate["max_per_tx_usd"]:
@@ -135,6 +151,7 @@ def check_mandate(
         "mandate_id":      mandate_id,
         "spent_so_far":    mandate["spent_total_usd"],
         "remaining_limit": round(mandate["max_total_usd"] - mandate["spent_total_usd"], 2),
+        "buyer_dnsid_verified": dnsid_verified,
     }
 
 

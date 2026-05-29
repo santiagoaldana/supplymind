@@ -54,6 +54,8 @@ import uvicorn
 from src.inventory_server.db import init_db, get_connection
 from src.seller_agent.generate_ucp import generate_ucp_catalog
 from src.seller_agent.ucp_profile import generate_ucp_profile
+from src.identity.dnsid import resolve_dnsid
+from src.identity.dnsid_registry_seed import seed as seed_dnsid_registry
 
 # CLI args: --port, --well-known-dir, --name
 # Defaults match Phase 3 behavior so all existing tests still work.
@@ -74,6 +76,7 @@ KYA_PATH        = WELL_KNOWN / "kya.json"
 AGENT_CARD_PATH = WELL_KNOWN / "agent-card.json"
 
 init_db()
+seed_dnsid_registry()
 
 app = FastAPI(
     title="SupplyMind Seller Agent",
@@ -87,9 +90,10 @@ TASKS: dict[str, dict] = {}
 # Simulated x402 payment receipts (token -> paid status)
 PAID_QUOTES: set[str] = set()
 
-X402_QUOTE_FEE_USD   = 0.10
-X402_THRESHOLD_USD   = 500.00
-SELLER_WALLET        = "0xSUPPLYMIND_SELLER_WALLET_PLACEHOLDER"
+X402_QUOTE_FEE_USD            = 0.10
+X402_THRESHOLD_USD            = 500.00
+X402_THRESHOLD_VERIFIED_USD   = 1000.00
+SELLER_WALLET                 = "0xSUPPLYMIND_SELLER_WALLET_PLACEHOLDER"
 
 
 # ── Well-known endpoints (Phase 2, still active) ──────────────────────────────
@@ -189,19 +193,31 @@ def _process_order(order_lines: list[OrderLine]) -> tuple[list[dict], float, lis
 # ── A2A Task Endpoints ────────────────────────────────────────────────────────
 
 @app.post("/tasks/send", status_code=201)
-async def send_task(task_req: PurchaseTaskRequest):
+async def send_task(
+    task_req: PurchaseTaskRequest,
+    x_agent_dnsid: Optional[str] = Header(default=None, alias="X-Agent-DNSid"),
+):
     """
     A2A Protocol: receive a purchase task from a Buyer Agent.
 
-    A2A Task Lifecycle:
-      The Buyer sends a structured task payload.
-      The Seller assigns a unique task_id and processes the order synchronously
-      (Phase 5 will make this async with webhook callbacks).
-      Status transitions: submitted -> completed | failed
+    DNSid Gate (Phase 8, default-off policy):
+      If X-Agent-DNSid header is present: resolve the handle.
+        - Revoked: reject with 403 before processing any order.
+        - Active:  proceed, mark buyer_dnsid_verified=True in result.
+      If header is absent: proceed normally (most buyer agents have no DNSid today).
 
     Returns the full task record including status, line items, and total cost.
-    Phase 4 will add a payment_instruction field pointing to the AP2 Mandate.
     """
+    buyer_dnsid_verified = False
+    if x_agent_dnsid:
+        dnsid_record = resolve_dnsid(x_agent_dnsid)
+        if dnsid_record.get("status") == "revoked":
+            raise HTTPException(
+                status_code=403,
+                detail=f"Buyer DNSid {x_agent_dnsid} is revoked. Purchase rejected.",
+            )
+        buyer_dnsid_verified = dnsid_record.get("status") == "active"
+
     task_id = str(uuid.uuid4())
     created_at = _now()
 
@@ -240,6 +256,7 @@ async def send_task(task_req: PurchaseTaskRequest):
             "Phase 4: AP2 Mandate will authorize USDC settlement "
             "to each product's wallet_address listed above."
         ),
+        "buyer_dnsid_verified": buyer_dnsid_verified,
     }
 
     TASKS[task_id] = task
@@ -265,7 +282,8 @@ async def get_task(task_id: str):
 async def get_quote(
     sku: str,
     quantity: int = 1,
-    x_payment: Optional[str] = Header(default=None, alias="X-Payment"),
+    x_payment:     Optional[str] = Header(default=None, alias="X-Payment"),
+    x_agent_dnsid: Optional[str] = Header(default=None, alias="X-Agent-DNSid"),
 ):
     """
     x402 Protocol: return a bulk quote for a SKU.
@@ -294,23 +312,43 @@ async def get_quote(
 
     order_value = round(row["unit_price"] * quantity, 2)
 
-    if order_value > X402_THRESHOLD_USD and not x_payment:
+    buyer_dnsid_verified = False
+    if x_agent_dnsid:
+        dnsid_record = resolve_dnsid(x_agent_dnsid)
+        if dnsid_record.get("status") == "revoked":
+            raise HTTPException(
+                status_code=403,
+                detail=f"Buyer DNSid {x_agent_dnsid} is revoked. Quote rejected.",
+            )
+        buyer_dnsid_verified = dnsid_record.get("status") == "active"
+
+    effective_threshold = X402_THRESHOLD_VERIFIED_USD if buyer_dnsid_verified else X402_THRESHOLD_USD
+
+    if order_value > effective_threshold and not x_payment:
         # x402: return 402 Payment Required
         # The response body follows the x402 specification:
         # amount, currency, payTo address, and a description of what the payment unlocks.
+        threshold_hint = (
+            f"${X402_THRESHOLD_VERIFIED_USD:.0f} for DNSid-verified buyers"
+            if not buyer_dnsid_verified
+            else f"${X402_THRESHOLD_VERIFIED_USD:.0f} (you are DNSid-verified)"
+        )
         payment_challenge = {
-            "x402_version": "1",
-            "error":        "Payment required to access bulk quote",
-            "amount":       str(X402_QUOTE_FEE_USD),
-            "currency":     "USDC",
-            "network":      "Ethereum Sepolia testnet",
-            "payTo":        SELLER_WALLET,
-            "description":  (
+            "x402_version":        "1",
+            "error":               "Payment required to access bulk quote",
+            "amount":              str(X402_QUOTE_FEE_USD),
+            "currency":            "USDC",
+            "network":             "Ethereum Sepolia testnet",
+            "payTo":               SELLER_WALLET,
+            "free_quote_threshold": threshold_hint,
+            "description": (
                 f"Pay {X402_QUOTE_FEE_USD} USDC to {SELLER_WALLET} to receive "
                 f"the bulk quote for {quantity}x {row['name']}. "
-                f"Retry this request with the transaction hash in the X-Payment header."
+                f"Retry this request with the transaction hash in the X-Payment header. "
+                f"Tip: present a valid X-Agent-DNSid header to raise the free-quote threshold to "
+                f"${X402_THRESHOLD_VERIFIED_USD:.0f}."
             ),
-            "retry_url":    f"http://localhost:{SERVER_PORT}/quotes/{sku}?quantity={quantity}",
+            "retry_url": f"http://localhost:{SERVER_PORT}/quotes/{sku}?quantity={quantity}",
         }
         return JSONResponse(content=payment_challenge, status_code=402)
 
@@ -337,8 +375,9 @@ async def get_quote(
         "currency":           "USD",
         "wallet_address":     row["wallet_address"],
         "quote_valid_until":  "2026-05-12T00:00:00Z",
-        "x402_paid":          x_payment is not None,
-        "payment_note":       (
+        "x402_paid":              x_payment is not None,
+        "buyer_dnsid_verified":   buyer_dnsid_verified,
+        "payment_note":           (
             "Phase 4: AP2 Mandate will authorize USDC settlement to wallet_address above."
         ),
     }

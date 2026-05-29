@@ -7,7 +7,9 @@
 
   "identity": {
     "did": "did:web:localhost:8090",
-    "kya_url": "http://localhost:8090/.well-known/kya.json"
+    "kya_url": "http://localhost:8090/.well-known/kya.json",
+    "dnsid": "dnsid://supplymind.localhost/agents/procurement-001",
+    "owner_verified": true
   },
 
   "capabilities": [
