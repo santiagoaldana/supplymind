@@ -1,0 +1,74 @@
+# Maritime Deployment Config -- Phase 6
+#
+# Maritime (maritime.sh) is cloud hosting purpose-built for AI agents.
+# Deployment: push this file + your code, Maritime handles everything else.
+#
+# ACCESS: Private beta -- use code EMTECH26 at maritime.sh
+#
+# WHAT THIS DOES:
+#   Tells Maritime how to run the SupplyMind Seller Agent:
+#     - Which Python file to start
+#     - Which port to listen on
+#     - Which secrets to inject as environment variables
+#     - Where the health check endpoint is
+#
+# WHY MARITIME FOR SUPPLYMIND:
+#   Maritime gives SupplyMind a real public HTTPS URL
+#   (e.g. https://supplymind.maritime.sh) which is required for:
+#     - NANDA registration (NANDA rejects localhost HTTP)
+#     - Real DID resolution (did:web requires HTTPS)
+#     - Production x402 micro-payments
+#     - Circle USDC testnet settlement (Phase 8)
+#
+# HOW TO DEPLOY (once you have Maritime access):
+#   1. Install Maritime CLI: pip install maritime-cli
+#   2. Login: maritime login
+#   3. Deploy: maritime deploy --config config/maritime.yml
+#   4. Set secrets: maritime secrets set STRIPE_TEST_KEY=sk_test_...
+#   5. Register on NANDA:
+#      python src/seller_agent/nanda_facts.py --register \
+#        --base-url https://supplymind.maritime.sh
+
+service:
+  name: supplymind-seller
+  description: "SupplyMind Seller Agent -- Autonomous B2B office supplies agent"
+
+runtime:
+  language: python
+  version: "3.11"
+  entrypoint: src/seller_agent/server.py
+  port: 8080
+
+health_check:
+  path: /.well-known/agent-card.json
+  interval_seconds: 30
+  timeout_seconds: 5
+
+resources:
+  plan: smart-agent       # $1/month -- 1,000 invocations
+  # plan: extended        # $5/month -- 10,000 invocations + webhooks
+  # plan: always-on       # $10/month -- unlimited, always running
+
+secrets:
+  # Injected at runtime as environment variables.
+  # Set via: maritime secrets set KEY=value
+  - ANTHROPIC_API_KEY       # Claude API (if seller agent makes LLM calls)
+  - STRIPE_TEST_KEY         # Stripe test mode payment processing
+  - STRIPE_PUBLISHABLE_KEY  # Stripe publishable key for UCP payment handlers
+
+volumes:
+  # Persistent storage for the private key (survives redeploys)
+  - name: keys
+    mount: .keys/
+    size_mb: 1
+
+static_files:
+  # Serve well_known files directly -- no Python overhead
+  - path: src/seller_agent/well_known/
+    url_prefix: /.well-known/
+
+environment:
+  # Non-secret config vars
+  SELLER_NAME: "SupplyMind Seller"
+  SELLER_PORT: "8080"
+  LOG_LEVEL: "info"

@@ -1,0 +1,35 @@
+{
+  "schema_version": "0.1",
+
+  "name": "SupplyMind Buyer Agent",
+  "description": "Autonomous B2B buyer agent for office supplies. Discovers sellers via A2A agent cards, reads UCP catalogs, sends purchase tasks, and handles x402 micro-payment challenges for premium quotes.",
+  "version": "3.0.0",
+
+  "identity": {
+    "did": "did:web:localhost:8090",
+    "kya_url": "http://localhost:8090/.well-known/kya.json"
+  },
+
+  "capabilities": [
+    {
+      "id": "a2a:task/send",
+      "description": "Sends purchase order tasks to seller agents"
+    },
+    {
+      "id": "x402:pay",
+      "description": "Handles HTTP 402 Payment Required challenges by simulating USDC micro-payments"
+    },
+    {
+      "id": "ucp:read",
+      "description": "Reads and parses UCP-compliant JSON-LD product catalogs"
+    }
+  ],
+
+  "payment": {
+    "protocol":  "x402",
+    "currency":  "USDC",
+    "network":   "Ethereum Sepolia testnet",
+    "wallet":    "0xBUYER_WALLET_PLACEHOLDER",
+    "note":      "Phase 4 activates real USDC spending via Circle Programmable Wallets with AP2 Mandate guardrails"
+  }
+}

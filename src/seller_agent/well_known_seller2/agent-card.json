@@ -1,0 +1,40 @@
+{
+  "schema_version": "0.1",
+
+  "name": "QuickSupply Co. Agent",
+  "description": "Autonomous B2B seller agent for office supplies. Competitive pricing on pens, paper, and toner.",
+  "version": "1.0.0",
+
+  "identity": {
+    "did": "did:web:localhost:8081",
+    "kya_url": "http://localhost:8081/.well-known/kya.json"
+  },
+
+  "capabilities": [
+    {
+      "id": "ucp:catalog",
+      "description": "Serves a machine-readable JSON-LD product catalog",
+      "endpoint": "http://localhost:8081/.well-known/ucp.json"
+    },
+    {
+      "id": "a2a:task/purchase",
+      "description": "Accepts purchase order tasks and returns confirmation with total cost",
+      "endpoint": "http://localhost:8081/tasks/send"
+    },
+    {
+      "id": "x402:quote",
+      "description": "Returns custom bulk quotes. Orders over $500 require a $0.10 USDC micro-payment via x402.",
+      "endpoint": "http://localhost:8081/quotes/{sku}"
+    }
+  ],
+
+  "task_endpoint":    "http://localhost:8081/tasks/send",
+  "catalog_endpoint": "http://localhost:8081/.well-known/ucp.json",
+
+  "payment": {
+    "protocol": "x402",
+    "currency": "USDC",
+    "network":  "Ethereum Sepolia testnet",
+    "note":     "Phase 4 activates real USDC settlement via Circle Programmable Wallets"
+  }
+}

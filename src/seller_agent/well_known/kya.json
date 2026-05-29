@@ -1,0 +1,46 @@
+{
+  "@context": [
+    "https://schema.org",
+    "https://kya.agentprotocol.xyz/v1"
+  ],
+  "@type": "AgentIdentity",
+  "id": "did:web:localhost:8080",
+  "name": "SupplyMind Seller",
+  "version": "2.0.0",
+  "description": "Autonomous B2B seller agent for office supplies. Exposes a UCP-compliant product catalog, accepts purchase requests via A2A and Google UCP protocols, and settles payments via AP2 mandate.",
+  "owner": {
+    "@type": "Person",
+    "name": "SupplyMind Operator",
+    "role": "Agent Operator",
+    "contact": "supplymind@localhost"
+  },
+  "wallet": {
+    "@type": "ProgrammableWallet",
+    "provider": "Circle",
+    "network": "USDC on Ethereum Sepolia testnet",
+    "address": "0x6403eb8e8f797ce28720edcb0c4c58b1844e448b",
+    "note": "Phase 8 replaces this with a real Circle testnet wallet."
+  },
+  "capabilities": [
+    "ucp:catalog",
+    "google-ucp:v2026-04-08",
+    "a2a:task/send",
+    "a2a:task/get",
+    "mcp:inventory",
+    "mcp:shipping"
+  ],
+  "endpoints": {
+    "catalog": "http://localhost:8080/.well-known/ucp.json",
+    "ucp_profile": "http://localhost:8080/.well-known/ucp",
+    "identity": "http://localhost:8080/.well-known/kya.json",
+    "a2a_tasks": "http://localhost:8080/tasks/send"
+  },
+  "proof": {
+    "type": "secp256k1",
+    "public_key": "04ead615c63239c76ac19f78e03aad530fe92403f8de4f649e1ab48d684dbc4f4b5ee1b09635ecbe65278c844f7bd5ce61be5a02845316c52d01939dd3e89e1b6f",
+    "wallet": "0x6403eb8e8f797ce28720edcb0c4c58b1844e448b",
+    "algorithm": "SHA-256 + ECDSA/secp256k1",
+    "signature": "3045022026140aa86c8bb2ac0eee1d4f23552e8ad269415345b372dc430fb0cebfe695250221009797d844d9b1e06b96265b88c1ec969bd98e9dd6bad17fb9466e205909043f28",
+    "signed_at": "2026-05-13T22:22:19.702028+00:00"
+  }
+}

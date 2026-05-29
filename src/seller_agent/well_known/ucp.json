@@ -1,0 +1,540 @@
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "SupplyMind Product Catalog",
+  "description": "UCP-compliant catalog for autonomous B2B procurement. Machine-readable via JSON-LD.",
+  "url": "http://localhost:8080/.well-known/ucp.json",
+  "numberOfItems": 15,
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/DSK-001",
+        "sku": "DSK-001",
+        "name": "Desk Organizer Set",
+        "category": "desk",
+        "description": "5-piece set: pen cup, paper tray, file sorter, clip dish, drawer",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 34.99,
+          "unitCode": "each",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 80,
+            "unitText": "each"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0x38d616e911200090761cce1666455e65dee56db5"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/DSK-002",
+        "sku": "DSK-002",
+        "name": "Whiteboard Markers (Set of 8)",
+        "category": "desk",
+        "description": "Dry-erase, chisel tip, assorted colors, with eraser",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 12.99,
+          "unitCode": "set",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 300,
+            "unitText": "set"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0x52a2ed7379d2afa7b19838b08d37ad71d111cc80"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/DSK-003",
+        "sku": "DSK-003",
+        "name": "Tape Dispenser + 6 Rolls",
+        "category": "desk",
+        "description": "Heavy-duty dispenser with 6 rolls of 3/4in clear tape",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 16.49,
+          "unitCode": "set",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 200,
+            "unitText": "set"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0xeb273cef52bbdf4a7500d4cf921baeb6ec742d8f"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/PPR-001",
+        "sku": "PPR-001",
+        "name": "Copy Paper (Case, 10 reams)",
+        "category": "paper",
+        "description": "Standard 8.5x11 copy paper, 20lb bond, 500 sheets/ream",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 45.99,
+          "unitCode": "case",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 200,
+            "unitText": "case"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0xd2a6ec97d84309851883b1342f16293be2e97b8f"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 5,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/PPR-002",
+        "sku": "PPR-002",
+        "name": "Legal Pads (12-pack)",
+        "category": "paper",
+        "description": "Yellow ruled legal pads, 8.5x14, 50 sheets each",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 18.5,
+          "unitCode": "pack",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 150,
+            "unitText": "pack"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0x10c2bb1fae608f4904f9ea87eda505a5f5ed8a7e"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 6,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/PPR-003",
+        "sku": "PPR-003",
+        "name": "Sticky Notes (24-pack)",
+        "category": "paper",
+        "description": "3x3 inch repositionable notes, assorted colors",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 22.0,
+          "unitCode": "pack",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 300,
+            "unitText": "pack"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0x584684ac050264cdee016e9009f76edadc36552b"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 7,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/PEN-001",
+        "sku": "PEN-001",
+        "name": "Ballpoint Pens (Box of 50)",
+        "category": "pens",
+        "description": "Medium point blue ink, retractable",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 14.99,
+          "unitCode": "box",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 500,
+            "unitText": "box"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0x1ec25c9f845f4d7babf8d527096b06821ac8d6e7"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 8,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/PEN-002",
+        "sku": "PEN-002",
+        "name": "Fine-tip Markers (Box of 24)",
+        "category": "pens",
+        "description": "Permanent ink, fine point, assorted colors",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 19.99,
+          "unitCode": "box",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 200,
+            "unitText": "box"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0x15dc6eafc51a2d5f8467bcd14b058f24a8eabca9"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 9,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/PEN-003",
+        "sku": "PEN-003",
+        "name": "Highlighters (Box of 36)",
+        "category": "pens",
+        "description": "Chisel tip, assorted fluorescent colors",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 24.99,
+          "unitCode": "box",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 180,
+            "unitText": "box"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0x748e3dec289b3376373e99add0674c864ee567b7"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 10,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/STG-001",
+        "sku": "STG-001",
+        "name": "Staples (5000-count box)",
+        "category": "stationery",
+        "description": "Standard 26/6 staples for desktop staplers",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 8.99,
+          "unitCode": "box",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 400,
+            "unitText": "box"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0x413ae4d88640cd1e5d87b981bf63902ac34f0e91"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 11,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/STG-002",
+        "sku": "STG-002",
+        "name": "Binder Clips (Box of 100)",
+        "category": "stationery",
+        "description": "Assorted sizes: small, medium, large",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 6.49,
+          "unitCode": "box",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 600,
+            "unitText": "box"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0x6fc8f10473b6865d407333539971e635d64164f6"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 12,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/STG-003",
+        "sku": "STG-003",
+        "name": "Manila Folders (Box of 100)",
+        "category": "stationery",
+        "description": "Letter size, 1/3 cut tabs, kraft manila",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 21.99,
+          "unitCode": "box",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 250,
+            "unitText": "box"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0xafa5385bcb2bf06d2b681b8e69da26108f2d8426"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 13,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/STG-004",
+        "sku": "STG-004",
+        "name": "3-Ring Binders 1in (Box of 12)",
+        "category": "stationery",
+        "description": "1-inch D-ring binders, assorted colors",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 31.99,
+          "unitCode": "box",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 100,
+            "unitText": "box"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0x2151a9ff4b5ee48cbf0f0a8080cef4daca6b5fa7"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 14,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/TNR-001",
+        "sku": "TNR-001",
+        "name": "Laser Toner Cartridge (Black)",
+        "category": "toner",
+        "description": "High-yield black toner, compatible with HP LaserJet series",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 89.99,
+          "unitCode": "each",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 75,
+            "unitText": "each"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0xec896e5758243da5a265d7d26438d80edea862b7"
+          }
+        }
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 15,
+      "item": {
+        "@type": "Product",
+        "@id": "http://localhost:8080/products/TNR-002",
+        "sku": "TNR-002",
+        "name": "Inkjet Cartridge Set (CMYK)",
+        "category": "toner",
+        "description": "Cyan, Magenta, Yellow, Black ink set for Epson WorkForce",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "USD",
+          "price": 54.99,
+          "unitCode": "set",
+          "availability": "https://schema.org/InStock",
+          "inventoryLevel": {
+            "@type": "QuantitativeValue",
+            "value": 120,
+            "unitText": "set"
+          },
+          "acceptedPaymentMethod": {
+            "@type": "PaymentMethod",
+            "name": "USDC",
+            "network": "Ethereum Sepolia testnet",
+            "note": "Circle Programmable Wallet. Phase 4 activates settlement."
+          },
+          "seller": {
+            "@type": "Organization",
+            "name": "SupplyMind Seller",
+            "walletAddress": "0xbe51207a7696f0d93438f91eb615cec93431eee5"
+          }
+        }
+      }
+    }
+  ],
+  "provider": {
+    "@type": "Organization",
+    "name": "SupplyMind Seller",
+    "url": "http://localhost:8080/.well-known/kya.json"
+  }
+}

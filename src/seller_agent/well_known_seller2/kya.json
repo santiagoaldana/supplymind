@@ -1,0 +1,49 @@
+{
+  "@context": [
+    "https://schema.org",
+    "https://kya.agentprotocol.xyz/v1"
+  ],
+  "@type": "AgentIdentity",
+
+  "id": "did:web:localhost:8081",
+
+  "name": "QuickSupply Co.",
+  "version": "1.0.0",
+  "description": "Autonomous B2B seller agent specializing in office supplies with competitive bulk pricing.",
+
+  "owner": {
+    "@type": "Person",
+    "name": "QuickSupply Co.",
+    "role": "Agent Operator",
+    "contact": "quicksupply@localhost"
+  },
+
+  "wallet": {
+    "@type": "ProgrammableWallet",
+    "provider": "Circle",
+    "network": "USDC on Ethereum Sepolia testnet",
+    "address": "0xQUICKSUPPLY_SELLER_WALLET_PLACEHOLDER",
+    "note": "Phase 4 replaces this placeholder with a real Circle testnet wallet address"
+  },
+
+  "capabilities": [
+    "ucp:catalog",
+    "a2a:task/send",
+    "a2a:task/get",
+    "mcp:inventory",
+    "mcp:shipping"
+  ],
+
+  "endpoints": {
+    "catalog":   "http://localhost:8081/.well-known/ucp.json",
+    "identity":  "http://localhost:8081/.well-known/kya.json",
+    "a2a_tasks": "http://localhost:8081/tasks/send"
+  },
+
+  "proof": {
+    "type": "placeholder",
+    "note": "Phase 5 replaces this with a secp256k1 signature.",
+    "signedAt": "2026-05-12T00:00:00Z",
+    "signature": "0xPLACEHOLDER"
+  }
+}
