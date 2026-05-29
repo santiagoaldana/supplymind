@@ -24,6 +24,49 @@ protocols.
 
 ---
 
+## The Correct Mental Model: Buyer Side vs. Merchant Side
+
+This distinction is critical for understanding where each company's product sits
+and where the value proposition lands.
+
+**LoginID operates on the buyer side.**
+LoginID's product authenticates the human who is delegating spending authority to
+a buyer agent -- the CFO, procurement manager, or consumer who says "this agent
+may purchase on my behalf." LoginID answers the question: is a verified human
+behind this agent?
+
+**Firmly operates on the merchant (seller) side.**
+Firmly's customer is the merchant. Firmly Connect is the infrastructure the
+merchant deploys to accept purchases from any buyer agent across any protocol.
+Firmly answers the question: can my merchant safely and efficiently transact with
+any incoming buyer agent?
+
+**The value flows across the boundary.**
+LoginID's buyer-side product creates value for Firmly's merchant customers.
+A merchant using Firmly Connect benefits when buyers show up with LoginID-verified
+identities -- reduced fraud, lower dispute liability, higher trust scores for
+autonomous transactions.
+
+**The 3D Secure analogy:**
+3D Secure is the closest existing model. The card issuer (buyer's bank) authenticates
+the cardholder during checkout. The merchant does not deploy 3D Secure -- the issuer
+does. But the merchant is the primary beneficiary: lower fraud rates, chargeback
+protection, regulatory coverage. LoginID is the issuer-side authenticator for the
+agentic commerce era. Firmly is the merchant-side acceptance infrastructure.
+
+**What this means for each phase analysis:**
+The LoginID column in each phase distinguishes two things:
+- **Buyer-side product**: what LoginID sells to buyer agent operators (enterprises,
+  consumers delegating to agents)
+- **Merchant-side value**: why Firmly's merchant customer cares that LoginID exists
+
+The joint product is the enforcement surface where both meet: LoginID-verified
+buyers get preferential treatment (lower friction, higher spending limits, faster
+checkout) at merchants using Firmly Connect. Unverified buyers face more friction
+or rejection. This is identical to how card network trust scores work today.
+
+---
+
 ## Evaluation Criteria
 
 1. **Differentiation** -- does this give LoginID or Firmly a capability no
@@ -107,27 +150,32 @@ Turns a UCP security gap into a Firmly Connect feature.
 | Regulatory tailwind | Low | Low |
 | Enterprise sales fit | Medium | Medium |
 
-**LoginID:** A2A v1.2 added signed Agent Cards but the signing infrastructure is
-not standardized. LoginID could offer Agent Card signing anchored to the human
-operator's FIDO2 credential -- the merchant or enterprise that deployed the agent
-signs the card with their biometric-backed key. Right now Agent Cards are
-self-asserted. LoginID's value proposition maps directly to this gap.
+**LoginID (buyer-side product):** A2A v1.2 added signed Agent Cards but the signing
+infrastructure is not standardized. LoginID could offer Agent Card signing for
+buyer agent operators -- the enterprise or consumer running a buyer agent signs
+their Agent Card with a FIDO2-backed credential, proving a verified human vouches
+for that agent. Right now buyer Agent Cards are self-asserted by whoever deployed
+the agent.
+
+**LoginID (merchant-side value):** A seller using Firmly Connect can require or
+prefer buyer agents whose Agent Cards are LoginID-signed. The x402 gate becomes
+trust-tiered: LoginID-verified buyers get the free quote threshold raised (less
+friction); unverified buyers hit the x402 wall sooner. The merchant sets this
+policy once in Firmly Connect; LoginID's credential does the discrimination.
 
 **Firmly:** x402 payment challenges have no signing requirement -- a man-in-the-middle
 can substitute their own wallet address. Firmly, sitting between merchant and agent,
-could sign x402 payment challenges on behalf of merchants. Also, Firmly Connect's
-merchant-of-record model makes it the natural place to enforce x402 gate policies
-consistently across all connected agents.
+signs x402 payment challenges on behalf of merchants. Firmly Connect's agent
+allowlist enforces which buyers can initiate payment flows, with LoginID verification
+as an optional trust tier.
 
-**Joint:** LoginID signs Agent Cards on behalf of merchants. Firmly enforces which
-agents are allowed to see x402 payment challenges. Together: only agents whose
-Agent Cards are verified by a LoginID-backed merchant credential can initiate
-payment flows through Firmly Connect. A differentiated trust stack for merchant
-onboarding.
+**Joint:** LoginID-verified buyer agents get a smoother x402 experience at any
+Firmly Connect merchant. Unverified buyers pay more friction or get blocked.
+The merchant controls the policy; LoginID provides the signal.
 
-**Roadmap recommendation:** LoginID -- Agent Card signing service tied to FIDO2
-merchant credential. Firmly -- x402 challenge signing and agent allowlist
-enforcement in Firmly Connect.
+**Roadmap recommendation:** LoginID -- Agent Card signing service for buyer agent
+operators. Firmly -- trust-tiered x402 policy in Firmly Connect (LoginID-verified
+buyers get higher free-quote threshold).
 
 ---
 
@@ -142,32 +190,36 @@ enforcement in Firmly Connect.
 | Regulatory tailwind | High | High |
 | Enterprise sales fit | Very high | Very high |
 
-**LoginID:** The AP2 mandate is currently unsigned and in-memory. The human who
-sets the mandate has no biometric proof attached to it. LoginID's most important
-play in the entire stack is here: bind the creation of an AP2 Intent Mandate to
-a FIDO2 biometric challenge. The human operator authenticates with their fingerprint
-or device biometric to sign the mandate. The mandate becomes not just policy -- it
-is a human-vouched, biometric-attested spending authorization. This closes the
-"mandate is unsigned" loophole and gives LoginID a clear enterprise narrative:
-"the human behind every autonomous agent payment."
+**LoginID (buyer-side product):** The AP2 mandate is set by the human who controls
+the buyer agent -- the CFO or procurement manager who says "my agent may spend up
+to $500 per transaction." LoginID's play is here: bind the creation of the AP2
+Intent Mandate to a FIDO2 biometric challenge on the buyer side. The human
+authenticates with their fingerprint or hardware key to sign the mandate. The mandate
+is now human-vouched and hardware-attested -- not just policy in code.
+
+**LoginID (merchant-side value):** When a buyer agent presents a Cart Mandate linked
+to a LoginID-attested Intent Mandate, the seller has cryptographic proof that a
+verified human set the spending bounds. This is the mandate provenance signal the
+merchant needs for high-value autonomous transactions. A buyer agent without this
+attestation gets treated as higher risk -- tighter ACF tiers, lower AUTO thresholds,
+or manual review.
 
 **Firmly:** ACF is Firmly's own standard. Firmly Connect is the enforcement surface.
-The gap is that ACF tiers are currently code constants -- they should be signed
-policy parameters inside the AP2 Intent Mandate. Firmly should position the Agent
-Control Center as the mandate management UI: merchants set ACF tiers visually,
-Firmly generates a signed AP2 Intent Mandate, LoginID biometrically attests the
-human who set it. This is the complete governance artifact for a CISO or CFO.
+Firmly should position the Agent Control Center as the mandate management UI for
+merchants: merchants set ACF tiers and vendor allowlists visually, Firmly generates
+signed AP2 mandates, and the dashboard shows which incoming buyer mandates are
+LoginID-attested vs. unattested. This is the complete governance artifact for a
+CISO or CFO.
 
-**Joint:** This is the flagship joint value proposition. LoginID authenticates the
-human. Firmly generates the mandate. The combination produces a biometric-attested,
-cryptographically signed spending policy for every autonomous agent -- the enterprise
-compliance artifact that no competitor currently offers as an integrated product.
+**Joint:** The mandate attestation ceremony is the joint product. LoginID handles
+the biometric signing on the buyer side. Firmly enforces the policy and surfaces
+attestation status on the merchant side. Neither can deliver the complete enterprise
+compliance story without the other.
 
 **Roadmap recommendation:** Highest priority joint initiative. LoginID + Firmly
-should co-develop a "Human Attestation for Agent Mandates" offering. Firmly Connect
-generates AP2 mandates; LoginID provides the biometric signing ceremony. The output
-is a mandate that proves a specific human, verified by hardware-backed biometric,
-set these exact spending bounds at this exact time.
+co-develop "Human Attestation for Agent Mandates." LoginID sells to buyer agent
+operators (enterprises running procurement agents). Firmly integrates LoginID
+attestation signals into the Agent Control Center merchant dashboard.
 
 ---
 
@@ -248,21 +300,28 @@ human credentials, now for agent credentials.
 | Regulatory tailwind | High | Medium |
 | Enterprise sales fit | High | High |
 
-**LoginID:** DNSid anchors agent ownership to DNS. LoginID could anchor it one
-layer deeper: to a biometric-verified human identity. DNSid says "this domain
-controls this agent." LoginID says "this verified human controls this domain and
-agent." The combination closes the full accountability chain from agent back to
-human. LoginID should pursue a partnership or integration with Identity Digital
-(DNSid) to become the human identity layer on top of DNSid.
+**LoginID (buyer-side product):** DNSid anchors buyer agent ownership to a DNS
+domain. LoginID anchors it one layer deeper: to a biometric-verified human identity.
+DNSid says "this domain controls this agent." LoginID says "this verified human
+controls this domain and this agent." LoginID should pursue integration with
+Identity Digital (DNSid) to become the human attestation layer on top of DNSid
+registration -- when a buyer agent operator registers on DNSid, LoginID provides
+the FIDO2 verification of the registrant.
 
-**Firmly:** Firmly Connect's agent allowlist should resolve DNSid handles before
-accepting any agent connection. Merchants should be able to see the DNSid ownership
-of every agent connecting through Firmly Connect -- turning the Agent Control Center
-into an ownership-aware registry, not just a protocol router.
+**LoginID (merchant-side value):** A buyer agent that presents a DNSid handle
+registered via LoginID gives the merchant a complete accountability chain: which
+human, verified by biometric, owns the agent making this purchase. This is the
+signal Firmly Connect surfaces in the Agent Control Center -- verified vs.
+unverified buyer agent ownership at a glance.
 
-**Roadmap recommendation:** LoginID -- DNSid + FIDO2 integration as the complete
-human-to-agent accountability chain. Firmly -- DNSid resolution in Firmly Connect
-agent registry.
+**Firmly:** Firmly Connect's agent allowlist should resolve buyer DNSid handles
+before accepting any agent connection. Merchants see ownership status for every
+connected buyer agent. The gate is configurable: default-off today (most buyer
+agents have no DNSid handle yet), turned on as the ecosystem matures.
+
+**Roadmap recommendation:** LoginID -- DNSid + FIDO2 registration integration.
+Firmly -- DNSid resolution in Firmly Connect agent registry with configurable
+trust-gating policy for merchants.
 
 ---
 
