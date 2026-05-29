@@ -2,13 +2,11 @@
 
 ## Project Purpose
 
-SupplyMind is a hands-on learning project to deeply understand how AI agents buy, sell, and transact — by building a working multi-agent B2B commerce system from scratch. It is also a portfolio artifact for Santiago Aldana's executive job search in Agentic AI / payments / BaaS.
+SupplyMind is a hands-on learning project to deeply understand how AI agents buy, sell, and transact — by building a working multi-agent B2B autonomous commerce system from scratch.
 
 **Owner:** Santiago Aldana — MIT Sloan MBA, 20+ yrs FinTech/AI/payments/LATAM leadership.
 
-**Dual purpose:**
-1. Technical depth: build real, working implementations of MCP, A2A, UCP, and Agentic Payments protocols.
-2. Job search signal: every milestone becomes a LinkedIn post, outreach hook, or talking point. Insights go into `../SHARED_CONTEXT.md`.
+**Goal:** Build real, working implementations of MCP, A2A, UCP, AP2, DNSid, and Agentic Payments protocols across 15 phases, with security analysis and protocol reflection at each layer.
 
 ## What We're Building
 
@@ -24,39 +22,60 @@ SupplyMind is a hands-on learning project to deeply understand how AI agents buy
 ```
 SupplyMind/
   CLAUDE.md                        # This file
-  README.md                        # Project overview
   requirements.txt
   .env                             # API keys (never commit)
   agentic-commerce-learning-plan.pdf
+  Prompts/
+    next_phases_prompt.md          # Session prompt for Phases 8-15
+  docs/
+    protocol_reflection.md         # Full 15-phase protocol + security analysis
   src/
     inventory_server/              # Phase 1: MCP server, SQLite-backed
     shipping_server/               # Phase 1: MCP server, stub responses
-    payment_server/                # Phase 4: MCP server, spending guardrails
+    payment_server/                # Phase 4: AP2 mandate engine, dual-rail MPP
     buyer_agent/                   # Phase 3+: Claude as buyer, A2A client
-    seller_agent/                  # Phase 3+: FastAPI + Claude, A2A server
+    seller_agent/                  # Phase 3+: FastAPI + Claude, A2A + UCP server
+    identity/                      # Phase 7: secp256k1, DID, KYA signing
+    governance/                    # Phase 10 (planned): audit dashboard
   data/                            # SQLite DBs, seed data
   logs/                            # Tool call traces, run logs
-  tests/                           # Phase test scripts
+  tests/                           # Phase test scripts (test_phase1 through test_phase10)
 ```
 
-## 5-Phase Build Plan
+## 15-Phase Build Plan
 
-| Phase | Focus | Protocols | Est. Time |
-|-------|-------|-----------|-----------|
-| 1 | MCP servers (inventory + shipping) + Claude as client | MCP | 2-3 days |
-| 2 | UCP-compliant product catalog + quote objects | UCP + MCP | 2-3 days |
-| 3 | A2A agent cards, task lifecycle, buyer/seller discovery | A2A + UCP + MCP | 3-4 days |
-| 4 | Agentic Payment MCP server, spending guardrails | API + A2A + MCP | 3-4 days |
-| 5 | Full demo, second seller, dashboard, protocol reflection doc | All | 2-3 days |
+| # | Name | Protocols / Frameworks | Status |
+|---|------|----------------------|--------|
+| 1 | MCP Servers | MCP (Anthropic) | Done |
+| 2 | UCP Catalog | UCP (Google), MCP | Done |
+| 3 | Agent Discovery + Micro-payment | A2A (Google), x402 | Done |
+| 4 | Procurement Loop | AP2, ACF, MPP | Done |
+| 5 | Protocol Reflection + Second Seller | A2A, UCP | Partial |
+| 6 | NANDA Discovery | NANDA, W3C VC | Done |
+| 7 | Cryptographic Identity | secp256k1, DID, KYA | Done |
+| 8 | DNSid Ownership Layer | DNSid, PKI, DNS | Next |
+| 9 | AP2 v0.2.0 Mandate Upgrade | AP2 v0.2.0, secp256k1 | Planned |
+| 10 | Governance Dashboard | DNSid, AP2, x402, NANDA | Planned |
+| 11 | Multi-Protocol Checkout | ACP (OpenAI/Stripe), UCP | Planned |
+| 12 | Agent Wallet Layer | Stripe Link, Coinbase/Base MCP | Planned |
+| 13 | Network Credential Layer | Visa TAP, Mastercard Agent Pay | Planned |
+| 14 | Fraud and Bot Detection | Stripe Radar, DNSid rate limiting | Planned |
+| 15 | Stablecoin Settlement | x402 (LF), AWS AgentCore, USDC/Base | Planned |
 
-**Current phase:** Phase 1
+**Current phase:** Phase 8 (DNSid)
 
 ## Key Protocols
 
-- **MCP (Model Context Protocol):** Anthropic standard. Tools, resources, prompts. stdio or SSE transport.
-- **A2A (Agent-to-Agent):** Google DeepMind. Agent Cards (agent.json), task lifecycle (POST /tasks/send, GET /tasks/{id}).
-- **UCP (Universal Commerce Protocol):** Semantic layer for machine-readable product catalogs, pricing tiers, quote objects.
-- **Agentic Payment Interface:** AI agents autonomously initiate/authorize payments with human-set guardrails.
+- **MCP:** Anthropic / Linux Foundation. Tools, resources, prompts. stdio or SSE transport.
+- **UCP:** Google + Shopify/Walmart coalition. Machine-readable product catalogs, checkout journey. google-ucp:v2026-04-08.
+- **A2A:** Google DeepMind / Linux Foundation. Agent Cards, task lifecycle (POST /tasks/send, GET /tasks/{id}).
+- **x402:** Coinbase / Linux Foundation. HTTP 402 pay-per-request micro-payment protocol. USDC on Base.
+- **AP2:** Google. Spending Mandate engine, tiered autonomy (ACF), Human Not Present payments (v0.2.0).
+- **NANDA:** Project NANDA. Decentralized agent registry, W3C Verifiable Credentials.
+- **DNSid:** Identity Digital Innovation Labs. DNS-anchored agent ownership registry, revocation.
+- **ACP:** OpenAI + Stripe. Agentic Commerce Protocol, B2C/B2B checkout.
+- **Visa TAP:** Visa. Trusted Agent Protocol, RFC 9421, cryptographic agent credential.
+- **Mastercard Agent Pay:** Mastercard. Agentic Tokens, Verifiable Intent, network-level agent authorization.
 
 ## Code Conventions
 
@@ -77,21 +96,18 @@ SupplyMind/
 
 Set in `.env` file (never commit).
 
-## Shared Context
+## Security Analysis
 
-The file `../SHARED_CONTEXT.md` is the bridge between this project and the Job Search project. The Job Search Claude session reads from it to draft LinkedIn posts and outreach hooks.
+Every phase in SupplyMind has an associated security analysis in
+`docs/protocol_reflection.md`. Each protocol entry covers:
+- Security loopholes tagged by Clerk's four auth questions (Identity, Scoping,
+  Approvals, Enforcement)
+- Alternatives considered and why the chosen protocol was selected
+- Dependencies and sequencing: what breaks if this phase is skipped
+- Maturity rating: production stable / maturing / experimental
 
-**When Santiago says "update shared context"**, append a new entry to the Milestone Log section of `../SHARED_CONTEXT.md` using this format:
-
-```
-### <Phase or topic> — <one-line description>
-**Date:** <today's date>
-**Built:** <what was implemented>
-**Surprising:** <what was non-obvious or counter-intuitive>
-**Quotable:** <one punchy sentence ready to use in a LinkedIn post or outreach>
-```
-
-Do not rewrite existing entries. Only append. Keep quotables first-person and concrete ("I learned that..." or "Building X revealed..."). No em dashes in any copy.
+When completing a phase, update `docs/protocol_reflection.md` with any
+findings that deviate from the planned analysis.
 
 ## Models
 
