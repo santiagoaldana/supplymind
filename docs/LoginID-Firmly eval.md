@@ -24,65 +24,101 @@ protocols.
 
 ---
 
-## The Correct Mental Model: Buyer Side vs. Merchant Side
+## The Correct Mental Model: Both Companies Sell to the Merchant
 
-This distinction is critical for understanding where each company's product sits
-and where the value proposition lands.
+**The shared customer is the merchant.**
 
-**LoginID operates on the buyer side.**
-LoginID's product authenticates the human who is delegating spending authority to
-a buyer agent -- the CFO, procurement manager, or consumer who says "this agent
-may purchase on my behalf." LoginID answers the question: is a verified human
-behind this agent?
+LoginID is a B2B company. Their current business is selling to enterprises --
+merchants, financial institutions, and SaaS platforms -- that deploy LoginID to
+authenticate their own users and customers. The "buyer-side operator" market
+(enterprises running procurement agents that need to credential those agents with
+LoginID) is largely theoretical in mid-2026. That market will exist as agentic
+commerce matures, but it cannot be the basis for a joint product roadmap today.
 
-**Firmly operates on the merchant (seller) side.**
-Firmly's customer is the merchant. Firmly Connect is the infrastructure the
-merchant deploys to accept purchases from any buyer agent across any protocol.
-Firmly answers the question: can my merchant safely and efficiently transact with
-any incoming buyer agent?
+**Firmly's customer is the merchant.** Firmly Connect is the infrastructure
+merchants deploy to accept purchases from any buyer agent across any protocol.
 
-**The value flows across the boundary.**
-LoginID's buyer-side product creates value for Firmly's merchant customers.
-A merchant using Firmly Connect benefits when buyers show up with LoginID-verified
-identities -- reduced fraud, lower dispute liability, higher trust scores for
-autonomous transactions.
+**LoginID's current customer is also the merchant** -- enterprises that want to
+protect their own systems, their own agent configurations, and their own liability
+exposure from unauthorized agentic activity.
 
-**The 3D Secure analogy:**
-3D Secure is the closest existing model. The card issuer (buyer's bank) authenticates
-the cardholder during checkout. The merchant does not deploy 3D Secure -- the issuer
-does. But the merchant is the primary beneficiary: lower fraud rates, chargeback
-protection, regulatory coverage. LoginID is the issuer-side authenticator for the
-agentic commerce era. Firmly is the merchant-side acceptance infrastructure.
+The joint product is therefore: what can LoginID and Firmly sell together to the
+same merchant, that neither can deliver alone?
+
+**What merchants pay for today:**
+- Fraud prevention with direct dollar ROI (chargeback reduction)
+- Compliance coverage (auditor artifacts, regulatory liability reduction)
+- Dispute protection on high-value transactions
+- Operational simplification (fewer integration points, less configuration surface)
+
+**Where Gmail authentication is not enough -- the key pricing question:**
+Gmail OAuth verifies "this human has access to this email account." It cannot
+prove "this human, with their physical body present, deliberately authorized
+this specific commercial action." There are three contexts where that gap has
+dollar value attached:
+
+1. **Liability transfer on large autonomous transactions.** When an agent places
+   a $50,000 order and the buyer later disputes it, the merchant needs a chain of
+   evidence that holds up legally. FIDO2 biometric provides hardware attestation --
+   the private key never leaves the device, the biometric was required to unlock it,
+   the timestamp is signed. Gmail provides none of this. The merchant pays for
+   dispute protection, not authentication.
+
+2. **Regulated industries where authorization trails are mandatory.** Credit
+   unions, government suppliers, pharmaceutical distributors operate under compliance
+   frameworks (SOX, FedRAMP, procurement regulations) where every material financial
+   decision needs a signed authorization record. A Gmail login is an access event,
+   not an authorization event. LoginID's biometric sign-off is an authorization
+   event with cryptographic proof. The auditor accepts one and not the other.
+
+3. **Agentic transactions where "who approved this, right now" cannot be verified
+   by other means.** An agent presents credentials and claims to act within a human's
+   authorization. Gmail can prove a human set up an account once. It cannot prove
+   that authorization is current, within scope, and has not been revoked. FIDO2
+   provides a live, hardware-attested proof of intent at the moment of authorization.
 
 **What this means for each phase analysis:**
-The LoginID column in each phase distinguishes two things:
-- **Buyer-side product**: what LoginID sells to buyer agent operators (enterprises,
-  consumers delegating to agents)
-- **Merchant-side value**: why Firmly's merchant customer cares that LoginID exists
+The LoginID column evaluates: does this phase create a context where the merchant
+needs authorization-quality proof that Gmail cannot provide? The Firmly column
+evaluates: does this phase give Firmly a stronger merchant product when LoginID
+is integrated? The joint column identifies where both questions answer yes.
 
-The joint product is the enforcement surface where both meet: LoginID-verified
-buyers get preferential treatment (lower friction, higher spending limits, faster
-checkout) at merchants using Firmly Connect. Unverified buyers face more friction
-or rejection. This is identical to how card network trust scores work today.
+**Future evolution (as agentic commerce matures):**
+As enterprises begin deploying and credentialing their own buyer agents at scale,
+a second market opens: buyer-side operators who need to prove their agents are
+accountable. LoginID is well positioned for that market when it arrives. The joint
+products in that phase will serve the buyer operator rather than the merchant --
+but that is a 2027+ motion, not today's product roadmap.
 
 ---
 
 ## LoginID Merchant-Side Product Opportunities
 
-LoginID's natural motion is selling to buyer-side operators: enterprises and
-consumers who delegate spending authority to agents. But if that is the only
-product, LoginID depends on Firmly (or another merchant platform) to convert
-buyer-side adoption into merchant-side revenue. The question is: what can
-LoginID sell directly to merchants, that merchants will write a check for?
+LoginID's current customer is the merchant -- enterprises and platforms that
+deploy LoginID to protect their own systems. The question is: what specifically
+can LoginID sell to a merchant in the agentic commerce context, where the merchant
+is already paying Firmly for protocol infrastructure?
 
-The answer comes from understanding what merchants actually pay for: fraud
-prevention, compliance coverage, dispute protection, and conversion rate
-improvement. LoginID has a unique asset the merchant cannot get elsewhere --
-the original human authorization record. Four product ideas follow.
+LoginID's unique asset is the original authorization record -- a hardware-attested,
+biometrically-signed proof that a specific human approved a specific action. No
+other vendor holds this record. Every merchant-side product is a derivative of it.
 
 ---
 
-### Product 1: Non-Repudiation as a Service
+### Product 1 (Merchant Controls Their Own Agents -- Lower Priority)
+
+> *Note: A merchant deploying a seller agent needs that agent credentialed. LoginID
+> could offer the biometric authorization ceremony for agent deployment -- the CISO
+> or CTO signs off on the agent configuration with their hardware credential.
+> However, this may not be a strong standalone product: merchants today deploy
+> websites and APIs without identity ceremonies, and the incremental willingness
+> to pay for agent credentialing is unclear. The products below have clearer
+> dollar ROI for the merchant and are higher priority. This category may become
+> more relevant as regulatory requirements for agent deployment mature.*
+
+---
+
+### Product 2 (renamed from 1): Non-Repudiation as a Service
 
 **The merchant problem:** An autonomous agent places a $50,000 order. Six weeks
 later the buyer's company disputes it: "Our agent exceeded its mandate. We did
@@ -113,7 +149,7 @@ biometric (LoginID) -> mandate (AP2 v0.2.0) -> transaction (x402).
 
 ---
 
-### Product 2: Compliance Attestation Certificate
+### Product 3 (renamed from 2): Compliance Attestation Certificate
 
 **The merchant problem:** A credit union, government agency, or regulated
 retailer needs to prove to an auditor that every autonomous purchase in the
@@ -147,7 +183,7 @@ mandate ledger view. Firmly surfaces it; LoginID issues it.
 
 ---
 
-### Product 3: Agent Velocity Monitoring (Anomaly Signal Feed)
+### Product 4 (renamed from 3): Agent Velocity Monitoring (Anomaly Signal Feed)
 
 **The merchant problem:** A buyer agent is authorized to spend $500/month on
 office supplies. Three weeks in, it has placed 40 orders totaling $12,000.
@@ -178,7 +214,7 @@ signals converging on the same anomaly is the detection architecture.
 
 ---
 
-### Product 4: Verified Buyer Network (Access Fee Model)
+### Product 5 (renamed from 4): Verified Buyer Network (Access Fee Model -- Future)
 
 **The merchant problem:** Not all buyer agents are equal. Some represent
 Fortune 500 procurement departments with real mandates and real accountability.
@@ -219,20 +255,24 @@ behind it.
 
 ---
 
-### Summary: Four Merchant-Side Products for LoginID
+### Summary: Merchant-Side Products for LoginID
 
-| Product | What the merchant pays for | Analogy | Joint with Firmly? |
-|---------|---------------------------|---------|-------------------|
-| Non-Repudiation as a Service | Dispute protection on high-value agent orders | Stripe Radar fraud protection | Yes -- dispute artifacts flow through Firmly Connect |
-| Compliance Attestation Certificate | Auditor-grade proof of human authorization | SOC 2 report, PCI DSS attestation | Yes -- surfaces in Phase 10 dashboard |
-| Agent Velocity Monitoring | Fraud signal: agent exceeding authorized scope | Stripe Radar anomaly detection | Yes -- feeds into Phase 14 fraud layer |
-| Verified Buyer Network | Access to accountable, human-backed buyer agents | Visa/Mastercard interchange model | Yes -- Firmly is the distribution surface |
+| Priority | Product | What the merchant pays for | Analogy | Joint with Firmly? |
+|----------|---------|---------------------------|---------|-------------------|
+| High now | Non-Repudiation as a Service | Dispute protection on high-value agent orders | Stripe Radar fraud protection | Yes -- artifacts flow through Firmly Connect |
+| High now | Compliance Attestation Certificate | Auditor-grade proof of human authorization | SOC 2 report, PCI DSS attestation | Yes -- surfaces in Phase 10 dashboard |
+| High now | Agent Velocity Monitoring | Fraud signal: agent exceeding authorized scope | Stripe Radar anomaly detection | Yes -- feeds into Phase 14 fraud layer |
+| Future | Verified Buyer Network | Access to accountable, human-backed buyer agents | Visa/Mastercard interchange model | Yes -- Firmly is the distribution surface |
+| Lower priority | Agent Deployment Credentialing | Compliance ceremony for merchant's own agent setup | N/A -- no strong precedent | Yes -- Firmly Connect onboarding |
 
 The common thread: LoginID's moat is **holding the original authorization
-record** that no one else has. Every merchant-side product is a derivative
-of that record -- dispute protection, compliance proof, anomaly detection,
-or trust scoring. The buyer-side enrollment is the input; these four products
-are the output that merchants pay for.
+record** that no other vendor has. Every merchant-side product is a derivative
+of that record -- dispute protection, compliance proof, anomaly detection, or
+trust scoring. The products with the clearest merchant willingness to pay today
+are the ones with a direct liability or regulatory driver: Non-Repudiation and
+Compliance Attestation. The Verified Buyer Network becomes the highest-value
+product as the buyer-agent market matures -- it is the network-effect business,
+but it requires buyer-side adoption that does not yet exist at scale.
 
 ---
 
@@ -385,10 +425,11 @@ the biometric signing on the buyer side. Firmly enforces the policy and surfaces
 attestation status on the merchant side. Neither can deliver the complete enterprise
 compliance story without the other.
 
-**Roadmap recommendation:** Highest priority joint initiative. LoginID + Firmly
-co-develop "Human Attestation for Agent Mandates." LoginID sells to buyer agent
-operators (enterprises running procurement agents). Firmly integrates LoginID
-attestation signals into the Agent Control Center merchant dashboard.
+**Roadmap recommendation:** Highest priority joint initiative. The merchant is
+the shared customer. Firmly sells the mandate management UI and ACF governance;
+LoginID sells the authorization ceremony that makes mandates legally defensible.
+The product pitch to the merchant: "Firmly + LoginID gives you a mandate your
+lawyer can use in a dispute and your auditor can stamp."
 
 ---
 
@@ -398,29 +439,143 @@ No direct product relevance for either company. Skip.
 
 ---
 
-## Phase 6: NANDA Discovery
+## Phase 6: NANDA Discovery + Maritime Hosting
 
 | Criterion | LoginID | Firmly |
 |-----------|---------|--------|
-| Differentiation | Medium | None |
-| Gap addressed | NANDA registration is self-asserted | Already covered by Firmly Connect |
-| Standard clarity | Experimental | Experimental |
-| Joint leverage | Low | Low |
-| Regulatory tailwind | Low | Low |
-| Enterprise sales fit | Low | Low |
+| Differentiation | High | High -- underweighted in prior analysis |
+| Gap addressed | Registry self-assertion is a fraud surface; verified listings do not exist | No agentic commerce platform has a verified agent directory as a product |
+| Standard clarity | Experimental -- but NANDA is the only open W3C-VC registry | Experimental |
+| Joint leverage | Very high | Very high |
+| Regulatory tailwind | Medium | Medium |
+| Enterprise sales fit | High | High |
 
-**LoginID:** NANDA registrations are self-asserted -- any agent can claim any
-capability. LoginID could offer verified NANDA registration: a merchant proves
-their identity via FIDO2 before their agent is registered, and LoginID co-signs
-the AgentFacts document. Creates a two-tier NANDA registry: unverified listings
-and LoginID-verified listings. Buyer agents could filter to only discover verified
-sellers.
+**What NANDA is and why it matters more than previously scored:**
 
-**Firmly:** Firmly Connect's catalog distribution is a superset of NANDA.
-No specific roadmap item needed.
+NANDA (Project NANDA) is the decentralized agent registry where agents publish
+their capabilities as W3C Verifiable Credentials -- AgentFacts documents. It is
+the DNS of the agentic web: a buyer agent that doesn't know a seller's URL can
+search NANDA by capability tag and get a list of candidates. SupplyMind is
+registered on NANDA (HTTP 201 confirmed, Phase 6). The structure is
+production-ready; the only missing piece is a public HTTPS host.
 
-**Roadmap recommendation:** LoginID -- verified NANDA registration as a trust tier.
-Low urgency given experimental status of NANDA. Firmly -- already covered.
+The security problem with NANDA today: any agent can register claiming any
+capability. There is no verification layer. A malicious seller agent can
+register as "certified office supplies distributor" and appear in search results
+alongside legitimate sellers. Buyer agents have no way to distinguish a
+self-asserted claim from a verified one at discovery time.
+
+**What Maritime is:**
+
+Maritime.sh is a cloud hosting platform purpose-built for AI agents -- roughly
+$1/month per agent. It provides a public HTTPS endpoint (which NANDA requires),
+automatic agent card generation, and agent discovery services. It is the lowest
+friction path from "I have a local agent" to "my agent is live on the open
+agentic web." SupplyMind built a Maritime deployment manifest in Phase 6. One
+deploy command moves SupplyMind from localhost to a publicly reachable, NANDA-
+registered, HTTPS-hosted agent.
+
+Maritime is not just a hosting convenience -- it is a distribution mechanism.
+An agent hosted on Maritime is immediately discoverable on the open web. A
+merchant who deploys through Maritime gets NANDA registration as a side effect
+with zero additional configuration.
+
+**The joint opportunity: Firmly + LoginID as the trust layer on top of NANDA + Maritime**
+
+This is the most underweighted opportunity in the prior analysis. Here is why
+it matters:
+
+NANDA + Maritime solves the discoverability problem: any buyer agent anywhere
+can find any seller agent. But discoverability without trust is a fraud surface.
+The buyer agent that discovers a seller on NANDA has no way to know if that
+seller is legitimate, solvent, and accountable.
+
+**Firmly's play:** Firmly Connect should offer a verified merchant tier on NANDA.
+When a merchant onboards to Firmly Connect, Firmly registers their agent on
+NANDA and co-signs the AgentFacts document with Firmly's key. A buyer agent
+searching NANDA sees two tiers: unverified listings (self-asserted) and
+Firmly-verified listings (co-signed by a known commerce infrastructure provider).
+Buyer agent developers will filter to Firmly-verified by default, the same way
+developers filter API marketplaces by "verified publisher." This makes Firmly
+Connect the trust anchor for the entire NANDA discovery layer -- not just for
+merchants who deploy through Firmly, but for buyer agents everywhere that want
+to transact safely.
+
+The Maritime integration makes this zero-friction: merchant signs up for Firmly
+Connect, Firmly deploys their agent to Maritime, Maritime provides the HTTPS
+endpoint, Firmly co-signs the NANDA AgentFacts. The merchant did nothing except
+fill out the Firmly Connect onboarding form. This directly addresses the adoption
+friction problem: no code, no DNS configuration, no separate NANDA registration,
+no Maritime account. One form, fully deployed, verified, discoverable.
+
+**LoginID's play on NANDA:** LoginID co-signs the AgentFacts document at the
+human authorization layer. Where Firmly's signature says "this seller is a
+verified Firmly Connect merchant," LoginID's signature says "the human who
+registered this merchant was verified by FIDO2 biometric at registration time."
+Two co-signatures on a single AgentFacts document: commerce infrastructure
+trust (Firmly) plus human identity trust (LoginID). Together they answer both
+questions a buyer agent needs: is this a legitimate seller? and did a real,
+verified human register and authorize this agent?
+
+**Why this creates a two-company moat:**
+
+Neither Firmly nor LoginID can deliver both signatures alone. Firmly can verify
+that a merchant has a working commerce integration, but cannot prove a human
+authorized the deployment. LoginID can prove a human completed FIDO2 enrollment,
+but cannot verify the merchant's commerce infrastructure is legitimate. Only the
+joint co-signature delivers the complete trust signal. A buyer agent developer
+who writes code to check for both signatures is now dependent on both companies
+-- switching to a single-signature alternative means accepting a weaker trust
+model.
+
+**The Maritime deployment path as a product, not just infrastructure:**
+
+Maritime's $1/month price point is not the product. The product is: from a
+merchant's perspective, "I deployed my agent to Maritime and now I am verified
+and discoverable everywhere." If Firmly Connect's onboarding includes Maritime
+deployment + NANDA registration + LoginID co-signature as one automated step,
+Maritime becomes the delivery mechanism for a trust bundle that no other hosting
+platform offers. Maritime's current value is convenience. The joint value is
+trust-at-deployment.
+
+**Concrete implementation in SupplyMind terms:**
+
+The SupplyMind codebase already has the skeleton:
+- [src/seller_agent/nanda_facts.py](src/seller_agent/nanda_facts.py): generates the AgentFacts W3C VC
+- [src/identity/keys.py](src/identity/keys.py): signs documents with secp256k1
+- Maritime deployment manifest: built in Phase 6
+
+What is missing: a second signature field in the AgentFacts document for the
+Firmly co-signer key and the LoginID attestation record. Adding two fields to
+the AgentFacts schema and publishing the co-signer public keys is a one-sprint
+implementation for either company. The infrastructure already exists.
+
+**Roadmap recommendation:**
+
+- Firmly: "Verified on Firmly" tier for NANDA, automated via Maritime deployment
+  in the Firmly Connect onboarding flow. Zero merchant effort. Buyer agents
+  filter to Firmly-verified sellers by default. This is Firmly's distribution
+  moat on the open agentic web -- not just for merchants who know about Firmly,
+  but for every buyer agent that searches NANDA.
+
+- LoginID: co-sign the AgentFacts document with biometric attestation of the
+  registrant. Not the agent's credential -- the human who registered the
+  merchant. Positioning: "LoginID-registered sellers have a verified human owner
+  on record." This is the same Non-Repudiation product from the merchant section,
+  applied at discovery time rather than transaction time.
+
+- Joint: define the "Firmly + LoginID Verified Seller" co-signature standard.
+  Publish the public keys. Write the buyer-agent verification SDK (two function
+  calls: verify_firmly_signature, verify_loginid_attestation). Make it trivial
+  for any buyer agent developer to filter for trusted sellers. The standard
+  becomes infrastructure; the infrastructure creates lock-in.
+
+**Urgency note:** NANDA is experimental today, but it is the only open,
+decentralized, W3C-VC-based agent registry. The window to establish the
+trust standard before a dominant player does is open now. A closed directory
+(a single company's curated agent list) will emerge if the open registry does
+not develop a credible trust layer. Firmly and LoginID are better positioned
+than any other pair of companies to be that trust layer.
 
 ---
 
@@ -701,42 +856,57 @@ experimental to maturing.
 
 ## Joint Value Proposition Summary
 
-| Layer | LoginID | Firmly | Joint |
-|-------|---------|--------|-------|
-| Human attestation | FIDO2 biometric for mandate signing | Mandate generation UI | Biometric-attested AP2 Intent Mandate |
-| Agent identity | Hardware-backed agent keys | DNSid resolution in merchant registry | FIDO2-protected agent credential |
-| Spending governance | Biometric approval ceremony | ACF tiers + AP2 mandate engine | Human-vouched spending policy |
-| Audit trail | Human attestation log | Agent Control Center | CISO-grade compliance dashboard |
-| Network credentials | Biometric consumer consent for Visa TAP / MC Agent Pay | Network credential validation in Firmly Connect | Full chain from human to network token |
+Both companies sell to the same customer: the merchant. The joint product at each
+layer gives the merchant something neither company can deliver alone.
+
+| Layer | LoginID contribution | Firmly contribution | What the merchant gets |
+|-------|---------------------|--------------------|-----------------------|
+| Agent discovery | Co-signs AgentFacts with human attestation of registrant | Co-signs AgentFacts as verified commerce partner; deploys via Maritime | Discoverable on NANDA with two-company trust seal -- neither signature alone is sufficient |
+| Spending governance | Biometric authorization ceremony for mandate creation | ACF tiers + AP2 mandate engine + Agent Control Center UI | A mandate that is legally defensible in a dispute and auditable by a regulator |
+| Dispute protection | Non-Repudiation record: signed proof of who authorized the mandate | Transaction record linking mandate to order | Complete chain from human biometric to executed transaction |
+| Compliance audit trail | Human attestation log with hardware credential metadata | Mandate ledger + full Clerk 4-question coverage | CISO-grade artifact for annual audit or regulatory examination |
+| Network credentials | Biometric consent ceremony for Visa TAP / MC Agent Pay enrollment | Validates network credentials before accepting any agent purchase | Bank-grade agent authorization with human biometric provenance |
+| Fraud detection | Credential legitimacy score (hardware vs. software vs. none) | Traffic classifier fed by all Firmly Connect merchant data | Two independent signals converging on the same anomaly |
 
 ---
 
 ## Priority Matrix
 
-| Priority | Initiative | Owner | Phase |
-|----------|-----------|-------|-------|
-| 1 | Human Attestation for Agent Mandates (joint product) | LoginID + Firmly | 4, 9 |
-| 2 | CISO-grade enterprise governance dashboard | Firmly | 10 |
-| 3 | Visa TAP + Mastercard Agent Pay integration | Both | 13 |
-| 4 | Hardware-backed agent key management ("FIDO2 for agents") | LoginID | 7 |
-| 5 | Agent wallet KYC binding | LoginID | 12 |
-| 6 | DNSid + FIDO2 human accountability chain | LoginID | 8 |
-| 7 | Catalog document signing in Firmly Connect | Firmly | 2 |
-| 8 | Agent Card signing service | LoginID | 3 |
-| 9 | Verified NANDA registration tier | LoginID | 6 |
-| 10 | x402 / stablecoin settlement | Both | 15 |
+Priorities reflect: merchant willingness to pay today, joint leverage (neither
+alone delivers it), and the window before a competitor occupies the position.
+
+| Priority | Initiative | Owner | Phase | Rationale |
+|----------|-----------|-------|-------|-----------|
+| 1 | "Firmly + LoginID Verified Seller" co-signature on NANDA | Jointly | 6 | Establishes trust standard on the open agentic web before a closed directory does; Maritime makes it zero-friction for merchants; buyer agents have a strong reason to prefer verified sellers |
+| 2 | Human Attestation for Agent Mandates | Jointly | 4, 9 | Mandate becomes legally defensible; shared customer (merchant); clearest dollar ROI |
+| 3 | CISO-grade enterprise governance dashboard | Firmly | 10 | Most valuable single product for enterprise sales motion; LoginID feeds attestation data |
+| 4 | Visa TAP + Mastercard Agent Pay integration | Both | 13 | Highest regulatory urgency; financial services segment |
+| 5 | Non-Repudiation as a Service | LoginID | 4, 9 | Dispute protection product; direct dollar ROI for high-value merchant transactions |
+| 6 | Compliance Attestation Certificate | LoginID | 10 | Regulated industry segment; annual subscription model |
+| 7 | Hardware-backed agent key management ("FIDO2 for agents") | LoginID | 7 | Strong differentiation; no competitor has hardware-bound agent keys |
+| 8 | Agent wallet KYC binding | LoginID | 12 | Regulatory requirement incoming; ahead of mandate |
+| 9 | Agent Velocity Monitoring (anomaly signal) | LoginID | 14 | Fraud signal only LoginID can compute; feeds Firmly classifier |
+| 10 | Catalog document signing | Firmly | 2 | Real gap; Firmly's position enables it; lower urgency than discovery layer |
+| 11 | x402 / stablecoin settlement | Both | 15 | Monitor; revisit when x402 moves to maturing |
 
 ---
 
 ## The Single Framing Sentence
 
-LoginID proves the human behind the agent. Firmly governs what the agent can do.
-Together they are the only platform that can produce a biometric-attested,
-cryptographically signed, CISO-auditable record of every autonomous commercial
-action -- from the human who authorized it to the transaction that executed it.
+LoginID and Firmly are the trust layer for the open agentic web. Firmly verifies
+the merchant's commerce infrastructure; LoginID verifies the human who controls
+it. Together their co-signature on a NANDA AgentFacts document -- deliverable
+today via Maritime with zero merchant effort -- is the only signal that tells
+a buyer agent both "this seller is a legitimate commerce partner" and "a verified
+human is accountable for this agent." No single company can produce both halves.
+That is the enterprise wedge and the network moat.
 
-The gap no competitor currently addresses: Clerk's analysis identifies enforcement
-as the weakest layer across the entire industry in mid-2026. The joint LoginID +
-Firmly product is the closest thing currently achievable to a real enforcement
-engine -- not just policy in code, but policy attested by a human, signed
-cryptographically, and auditable by a regulator. That is the enterprise wedge.
+The deeper insight from Clerk's analysis: enforcement is the weakest layer across
+the entire agentic commerce industry in mid-2026. Every current system handles
+identity and approvals reasonably well, but no production system fully prevents
+a compromised agent from bypassing its own policy. The joint LoginID + Firmly
+product -- biometric-attested mandate, cryptographically signed, surfaced in a
+CISO dashboard -- is the closest thing currently achievable to a real enforcement
+engine. Not because it solves the runtime enforcement problem (no one has),
+but because it creates the audit trail that makes non-compliance provable after
+the fact. In regulated industries, that is sufficient for purchasing decisions.
