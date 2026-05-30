@@ -67,6 +67,175 @@ or rejection. This is identical to how card network trust scores work today.
 
 ---
 
+## LoginID Merchant-Side Product Opportunities
+
+LoginID's natural motion is selling to buyer-side operators: enterprises and
+consumers who delegate spending authority to agents. But if that is the only
+product, LoginID depends on Firmly (or another merchant platform) to convert
+buyer-side adoption into merchant-side revenue. The question is: what can
+LoginID sell directly to merchants, that merchants will write a check for?
+
+The answer comes from understanding what merchants actually pay for: fraud
+prevention, compliance coverage, dispute protection, and conversion rate
+improvement. LoginID has a unique asset the merchant cannot get elsewhere --
+the original human authorization record. Four product ideas follow.
+
+---
+
+### Product 1: Non-Repudiation as a Service
+
+**The merchant problem:** An autonomous agent places a $50,000 order. Six weeks
+later the buyer's company disputes it: "Our agent exceeded its mandate. We did
+not authorize that purchase." The merchant has no proof the transaction was
+authorized. They lose the dispute and the goods.
+
+**What LoginID can sell:** A signed, timestamped, hardware-attested record that
+a specific human -- verified by FIDO2 biometric -- authorized a specific agent
+mandate before the transaction ran. This record is the merchant's evidence in a
+dispute. "Your CFO touched their fingerprint to authorize this mandate at 2:14pm
+on Tuesday. Here is the cryptographic proof, signed by their hardware key."
+
+**Pricing model:** Per-transaction fee on high-value orders, or a monthly SaaS
+subscription per merchant above a volume threshold. Analogous to how Stripe
+charges for Radar -- a fee on top of the base payment processing that buys
+fraud protection.
+
+**Why LoginID and not anyone else:** No one else holds the original biometric
+authorization record. The buyer's ERP system might log the mandate, but it is
+software-generated and mutable. LoginID's FIDO2 attestation is hardware-bound
+and cannot be backdated or altered. That is the evidence quality a court or
+financial regulator accepts.
+
+**Where it shows in SupplyMind:** Phase 9 AP2 v0.2.0 Intent Mandates carry a
+`signed_by` field. If LoginID signs that field, every Cart Mandate downstream
+inherits the non-repudiation chain. The merchant receives the full chain:
+biometric (LoginID) -> mandate (AP2 v0.2.0) -> transaction (x402).
+
+---
+
+### Product 2: Compliance Attestation Certificate
+
+**The merchant problem:** A credit union, government agency, or regulated
+retailer needs to prove to an auditor that every autonomous purchase in the
+prior 12 months was authorized by a verified human with appropriate spending
+authority. Today there is no standard artifact for this. The auditor sees
+transactions but no authorization chain.
+
+**What LoginID can sell:** A per-mandate or per-period compliance certificate:
+"Human X (role: CFO, verified by FIDO2 hardware credential, LoginID credential
+ID: abc123) authorized Agent Y (DID: did:web:acme.com:procurement) to spend up
+to $Z per transaction in category W. Authorization event: ISO8601 timestamp.
+Certificate issued by: LoginID Inc."
+
+This is a **regulated product**, not just a technical feature. It is the
+agentic-commerce equivalent of a SOX control or a PCI DSS compliance report.
+It gives the merchant's CISO a printable artifact for the annual audit.
+
+**Pricing model:** Annual subscription per merchant, priced by audit volume
+(number of mandates certified per year). Higher price tier for financial
+services and government segments where the regulatory requirement is explicit.
+
+**Why this is defensible:** Compliance attestation requires being the authority
+that issued the credential. A third party cannot retroactively certify that
+a human authorized something -- only the authentication provider who ran the
+biometric challenge holds the original attestation record. LoginID's position
+as the issuer is the moat.
+
+**Where it shows in SupplyMind:** Phase 10 Governance Dashboard. The CISO
+artifact section would pull LoginID compliance certificates as part of the
+mandate ledger view. Firmly surfaces it; LoginID issues it.
+
+---
+
+### Product 3: Agent Velocity Monitoring (Anomaly Signal Feed)
+
+**The merchant problem:** A buyer agent is authorized to spend $500/month on
+office supplies. Three weeks in, it has placed 40 orders totaling $12,000.
+Either the mandate was misconfigured, or the agent was compromised, or someone
+changed the mandate without the original authorizing human's knowledge. The
+merchant sees the transactions but has no baseline to compare against.
+
+**What LoginID can sell:** A real-time anomaly signal: is this agent's
+transaction velocity consistent with what its human authorized? LoginID holds
+the original mandate authorization record -- the biometric event, the spending
+bounds, the approved vendor list. LoginID can compute: this agent is running at
+24x the authorized rate. That is an anomaly signal the merchant gets as an API
+call or a webhook before the next transaction clears.
+
+This is **the only fraud signal the merchant cannot build themselves**, because
+it requires comparing live transaction behavior against the original
+authorization event -- and only LoginID has that event.
+
+**Pricing model:** Per-merchant SaaS subscription, tiered by number of monitored
+agent mandates. Premium tier includes real-time webhook alerts; standard tier
+is a daily digest. Similar to how Stripe Radar is sold -- a fraud prevention
+layer on top of the payment infrastructure.
+
+**Where it shows in SupplyMind:** Phase 14 (Fraud and Bot Detection). The
+anomaly feed in the Governance Dashboard would include LoginID velocity signals
+alongside DNSid rate limiting and Stripe Radar signals. Three independent
+signals converging on the same anomaly is the detection architecture.
+
+---
+
+### Product 4: Verified Buyer Network (Access Fee Model)
+
+**The merchant problem:** Not all buyer agents are equal. Some represent
+Fortune 500 procurement departments with real mandates and real accountability.
+Others are scripts running with no human oversight. The merchant wants to give
+better terms -- lower prices, higher order limits, faster approval -- to the
+first category. But there is no way to tell them apart today.
+
+**What LoginID can sell:** Membership in a **Verified Buyer Network**: a
+directory of buyer agents whose human operators have completed LoginID FIDO2
+enrollment. Merchants pay a monthly access fee to query the network before
+processing a purchase. A buyer in the network gets a trust score; a buyer
+outside the network gets default (lower) trust.
+
+This is the **Visa/Mastercard model applied to agents**: the card network charges
+merchants an interchange fee because the network brings verified, solvent
+cardholders. LoginID charges merchants an access fee because the network brings
+verified, accountable agents.
+
+**Pricing model:** Monthly access fee per merchant, plus a per-query fee for
+real-time trust score lookups. Volume discounts for high-transaction merchants.
+This is a network-effect business: the more buyers enroll, the more valuable
+the network is to merchants, the more merchants pay the access fee, the more
+buyers have an incentive to enroll.
+
+**Why Firmly is the distribution partner, not the competitor:** Firmly Connect
+is the integration surface that makes the network lookup automatic for merchants.
+LoginID does not need to build a merchant portal -- they need to embed the
+network query into Firmly's purchase flow. Firmly gets a better product (trust
+scoring for every buyer); LoginID gets distribution to every Firmly merchant
+without a direct sales motion. This is the joint product that neither can
+build alone.
+
+**Where it shows in SupplyMind:** Phase 8 already has the gate architecture --
+the `X-Agent-DNSid` header and the `buyer_dnsid_verified` flag are the technical
+skeleton. The Verified Buyer Network is the business model that sits on top of
+that architecture: the flag is worth something because there is a paid network
+behind it.
+
+---
+
+### Summary: Four Merchant-Side Products for LoginID
+
+| Product | What the merchant pays for | Analogy | Joint with Firmly? |
+|---------|---------------------------|---------|-------------------|
+| Non-Repudiation as a Service | Dispute protection on high-value agent orders | Stripe Radar fraud protection | Yes -- dispute artifacts flow through Firmly Connect |
+| Compliance Attestation Certificate | Auditor-grade proof of human authorization | SOC 2 report, PCI DSS attestation | Yes -- surfaces in Phase 10 dashboard |
+| Agent Velocity Monitoring | Fraud signal: agent exceeding authorized scope | Stripe Radar anomaly detection | Yes -- feeds into Phase 14 fraud layer |
+| Verified Buyer Network | Access to accountable, human-backed buyer agents | Visa/Mastercard interchange model | Yes -- Firmly is the distribution surface |
+
+The common thread: LoginID's moat is **holding the original authorization
+record** that no one else has. Every merchant-side product is a derivative
+of that record -- dispute protection, compliance proof, anomaly detection,
+or trust scoring. The buyer-side enrollment is the input; these four products
+are the output that merchants pay for.
+
+---
+
 ## Evaluation Criteria
 
 1. **Differentiation** -- does this give LoginID or Firmly a capability no
