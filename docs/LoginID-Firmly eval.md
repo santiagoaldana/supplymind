@@ -685,7 +685,91 @@ Design the signing UX together now while the AP2 v0.2.0 spec is still experiment
 
 ---
 
-## Phase 10: Governance Dashboard
+## Phase 10: Seller Authorization Manifest
+
+| Criterion | LoginID | Firmly |
+|-----------|---------|--------|
+| Differentiation | Very high | Very high |
+| Gap addressed | HTTPS is gone -- nothing replaces the padlock in agentic commerce | No seller-side signed offer standard exists |
+| Standard clarity | No standard yet -- novel spec | No standard yet -- novel spec |
+| Joint leverage | Very high | Very high |
+| Regulatory tailwind | High | High |
+| Enterprise sales fit | Very high | Very high |
+
+**The problem this solves:**
+
+In browser commerce, HTTPS is the cryptographic attestation layer. The padlock in
+the URL bar tells the human buyer: "this server is operated by the entity named in
+the certificate, and the connection is encrypted." That signal is so trusted it is
+invisible -- users do not think about it, they just rely on it.
+
+Agentic commerce removes the browser. There is no URL bar, no padlock, no SSL
+certificate visible to the human. When a human buys from within Claude, ChatGPT,
+or a TikTok feed, the interface navigates to the seller on their behalf. The human
+has none of their normal "does this look sketchy" heuristics available.
+
+Two concrete use cases where this matters today -- before autonomous buyer agents
+exist at scale:
+
+1. **Chat-native commerce:** Human tells Claude "order 500 reams of paper." Claude
+   finds a seller, presents a quote, completes the purchase without leaving the chat.
+   The human needs to know: is this seller real, and is this price what their owner
+   actually authorized?
+
+2. **Social commerce (TikTok, Instagram):** Human sees a product in a feed, taps
+   buy, purchase completes inside the app. Merchant owns the customer relationship,
+   no redirect to a storefront. Same question: is this offer genuine and authorized?
+
+In both cases the interface (Claude, TikTok) needs a machine-readable trust signal
+it can verify and surface to the human: "this seller is verified." The same way
+Uber shows a driver rating before you get in the car.
+
+**What the Seller Authorization Manifest is:**
+
+A signed document created by the merchant's human operator before the selling agent
+goes live. It states: "this agent may sell these SKUs, at these price ranges, with
+these discount limits." The selling agent signs each quote against this manifest.
+The buyer agent -- or the chat interface acting on a human's behalf -- receives a
+signed offer and can verify: the merchant's human owner authorized this product at
+this price. Any deviation from the manifest (unauthorized SKU, price outside range,
+discount exceeding limit) fails verification before the human is asked to confirm.
+
+This is not AP2. AP2 is buyer-side governance by design -- it governs what a buyer
+agent can spend, not what a seller agent can offer. The Seller Authorization
+Manifest borrows AP2's cryptographic pattern (secp256k1-signed document, human
+operator key, agent execution key) and applies it to the seller side. No standard
+exists for this yet. It is a novel spec.
+
+**LoginID:** The merchant operator signing ceremony. When a merchant's head of
+e-commerce or ops manager creates the Seller Authorization Manifest in Firmly
+Connect, LoginID handles the signing step -- Touch ID, Face ID, or hardware key.
+The manifest becomes a hardware-attested artifact: this human, at this company,
+authorized this agent to sell these products at these prices. This is LoginID's
+most natural enterprise merchant product -- identical signing ceremony to the
+Intent Mandate but on the seller side.
+
+**Firmly:** Firmly Connect generates the Seller Authorization Manifest at merchant
+onboarding -- zero additional merchant action required. The manifest is stored in
+the Agent Control Center alongside the seller's DNSid registration. Buyer agents
+(and chat interfaces) can fetch and verify it via a standard endpoint. Firmly
+becomes the trust infrastructure that makes a seller verifiable without a browser.
+This is also a direct response to the Shopify question: Shopify merchants have
+HTTPS but no Seller Authorization Manifest. Firmly-connected merchants have both.
+
+**Joint:** LoginID signs the manifest (human attestation); Firmly generates,
+stores, and serves it (merchant infrastructure). The chat interface or social
+platform fetches the manifest from Firmly's endpoint, verifies the LoginID
+signature, and surfaces "verified seller" to the human buyer. Neither company
+can deliver the complete signal alone.
+
+**Roadmap recommendation:** Build alongside Phase 9 (AP2 v0.2.0) as the seller-side
+complement. Propose as a companion standard to AP2 -- Firmly leads the spec,
+LoginID leads the signing ceremony. The reference implementation in SupplyMind
+is the proof of concept for both companies.
+
+---
+
+## Phase 11: Governance Dashboard
 
 | Criterion | LoginID | Firmly |
 |-----------|---------|--------|
@@ -715,7 +799,7 @@ LoginID -- human attestation log as a data feed into the dashboard.
 
 ---
 
-## Phase 11: Multi-Protocol Checkout (ACP + UCP)
+## Phase 12: Multi-Protocol Checkout (ACP + UCP)
 
 | Criterion | LoginID | Firmly |
 |-----------|---------|--------|
@@ -738,7 +822,7 @@ to the mandate audit trail. LoginID -- no action needed.
 
 ---
 
-## Phase 12: Agent Wallet Layer
+## Phase 13: Agent Wallet Layer
 
 | Criterion | LoginID | Firmly |
 |-----------|---------|--------|
@@ -766,7 +850,7 @@ Firmly -- LoginID as required attestation step for wallet activation.
 
 ---
 
-## Phase 13: Network Credential Layer (Visa TAP + Mastercard Agent Pay)
+## Phase 14: Network Credential Layer (Visa TAP + Mastercard Agent Pay)
 
 | Criterion | LoginID | Firmly |
 |-----------|---------|--------|
@@ -801,7 +885,7 @@ services, banking, or regulated retail.
 
 ---
 
-## Phase 14: Fraud and Bot Detection
+## Phase 15: Fraud and Bot Detection
 
 | Criterion | LoginID | Firmly |
 |-----------|---------|--------|
@@ -831,7 +915,7 @@ Firmly's classifier.
 
 ---
 
-## Phase 15: Stablecoin Settlement (x402 + AWS AgentCore)
+## Phase 16: Stablecoin Settlement (x402 + AWS AgentCore)
 
 | Criterion | LoginID | Firmly |
 |-----------|---------|--------|
