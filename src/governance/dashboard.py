@@ -49,10 +49,25 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 import uvicorn
 
+import httpx
+
 from src.identity.dnsid import list_registry, _REGISTRY
 from src.identity.seller_manifest import SELLER_MANIFESTS, SIGNED_OFFERS
 from src.identity.signed_mandate import INTENT_MANDATES, CART_MANDATES
 from src.payment_server.mandate import MANDATES
+
+SELLER_SERVER_URL = "http://localhost:8080"
+
+
+def _fetch_tasks() -> list[dict]:
+    """Fetch tasks from seller server. Returns empty list if server unreachable."""
+    try:
+        r = httpx.get(f"{SELLER_SERVER_URL}/tasks", timeout=2.0)
+        if r.status_code == 200:
+            return r.json()
+    except Exception:
+        pass
+    return []
 
 app = FastAPI(
     title="SupplyMind Governance Dashboard",
@@ -213,6 +228,49 @@ async def get_signed_offers():
     })
 
 
+# ── Phase 12: Protocol-of-Record ─────────────────────────────────────────────
+
+@app.get("/governance/protocols")
+async def get_protocol_breakdown():
+    """
+    Phase 12: Protocol-of-record breakdown across all completed orders.
+    Shows which checkout protocol (acp / ucp) each transaction used.
+    Firmly's compliance-first differentiator: every transaction's protocol
+    is recorded alongside its mandate and DNSid verification status.
+    """
+    tasks     = _fetch_tasks()
+    completed = [t for t in tasks if t.get("status") == "completed"]
+
+    acp_tasks = [t for t in completed if t.get("protocol_of_record") == "acp"]
+    ucp_tasks = [t for t in completed if t.get("protocol_of_record") == "ucp"]
+    unknown   = [t for t in completed if not t.get("protocol_of_record")]
+
+    breakdown = []
+    for t in completed:
+        result = t.get("result", {}) or {}
+        breakdown.append({
+            "task_id":               t["task_id"],
+            "protocol_of_record":    t.get("protocol_of_record", "unknown"),
+            "buyer_id":              t.get("buyer_id"),
+            "products_subtotal":     result.get("products_subtotal"),
+            "buyer_dnsid_verified":  result.get("buyer_dnsid_verified"),
+            "cart_mandate_verified": result.get("cart_mandate_verified"),
+            "created_at":            t.get("created_at"),
+        })
+
+    return JSONResponse(content={
+        "clerk_question":  "Enforcement -- which protocol governed each transaction?",
+        "total_completed": len(completed),
+        "by_protocol": {
+            "acp":     len(acp_tasks),
+            "ucp":     len(ucp_tasks),
+            "unknown": len(unknown),
+        },
+        "transactions": breakdown,
+        "generated_at": _now(),
+    })
+
+
 # ── Summary: All Four Questions ───────────────────────────────────────────────
 
 @app.get("/governance/summary")
@@ -227,6 +285,7 @@ async def get_summary():
     carts     = list(CART_MANDATES.values())
     offers    = list(SIGNED_OFFERS.values())
     mandates  = list(MANDATES.values())
+    tasks     = _fetch_tasks()
 
     revoked_agents      = [a for a in agents if a["status"] == "revoked"]
     unsigned_manifests  = [m for m in manifests if "proof" not in m]
@@ -276,6 +335,7 @@ async def get_summary():
             "unsigned_carts":   len(unsigned_carts),
             "signed_offers":    len(offers),
             "unsigned_offers":  len(unsigned_offers),
+            "total_transactions": len([t for t in tasks if t.get("status") == "completed"]),
         },
         "enforcement": {
             "clerk_question":         "Is there a mechanism preventing violations?",

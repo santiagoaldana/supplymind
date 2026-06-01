@@ -63,6 +63,7 @@ from src.identity.seller_manifest import (
     SELLER_MANIFESTS,
 )
 from src.identity.keys import load_or_create_private_key_from_file
+from src.seller_agent.protocol_router import normalize_acp, normalize_ucp_task, NormalizedOrder
 
 # CLI args: --port, --well-known-dir, --name
 # Defaults match Phase 3 behavior so all existing tests still work.
@@ -236,38 +237,29 @@ def _process_order(order_lines: list[OrderLine]) -> tuple[list[dict], float, lis
     return line_items, round(subtotal, 2), errors
 
 
-# ── A2A Task Endpoints ────────────────────────────────────────────────────────
+# ── Shared order execution (Phase 12: protocol router feeds this) ─────────────
 
-@app.post("/tasks/send", status_code=201)
-async def send_task(
-    task_req: PurchaseTaskRequest,
-    x_agent_dnsid: Optional[str] = Header(default=None, alias="X-Agent-DNSid"),
-):
+def _apply_gates(order: NormalizedOrder) -> tuple[bool, bool, Optional[str]]:
     """
-    A2A Protocol: receive a purchase task from a Buyer Agent.
-
-    DNSid Gate (Phase 8, default-off policy):
-      If X-Agent-DNSid header is present: resolve the handle.
-        - Revoked: reject with 403 before processing any order.
-        - Active:  proceed, mark buyer_dnsid_verified=True in result.
-      If header is absent: proceed normally (most buyer agents have no DNSid today).
-
-    Returns the full task record including status, line items, and total cost.
+    Apply DNSid and Cart Mandate gates to a normalized order.
+    Returns (buyer_dnsid_verified, cart_mandate_verified, operator_id).
+    Raises HTTPException 403 on gate failure.
+    Security invariant: gates run before any order processing, regardless of protocol.
     """
     buyer_dnsid_verified = False
-    if x_agent_dnsid:
-        dnsid_record = resolve_dnsid(x_agent_dnsid)
+    if order.buyer_dnsid:
+        dnsid_record = resolve_dnsid(order.buyer_dnsid)
         if dnsid_record.get("status") == "revoked":
             raise HTTPException(
                 status_code=403,
-                detail=f"Buyer DNSid {x_agent_dnsid} is revoked. Purchase rejected.",
+                detail=f"Buyer DNSid {order.buyer_dnsid} is revoked. Purchase rejected.",
             )
         buyer_dnsid_verified = dnsid_record.get("status") == "active"
 
     cart_mandate_verified = False
     operator_id           = None
-    if task_req.cart_mandate:
-        verification = verify_cart_mandate(task_req.cart_mandate)
+    if order.cart_mandate:
+        verification = verify_cart_mandate(order.cart_mandate)
         if verification["decision"] == "reject":
             raise HTTPException(
                 status_code=403,
@@ -276,20 +268,32 @@ async def send_task(
         cart_mandate_verified = True
         operator_id           = verification.get("operator_id")
 
-    task_id = str(uuid.uuid4())
+    return buyer_dnsid_verified, cart_mandate_verified, operator_id
+
+
+def _build_task_result(order: NormalizedOrder) -> JSONResponse:
+    """
+    Execute an order from any protocol and return a task result.
+    Called by both UCP (/tasks/send) and ACP (/acp/v1/checkout) endpoints.
+    """
+    buyer_dnsid_verified, cart_mandate_verified, operator_id = _apply_gates(order)
+
+    task_id    = str(uuid.uuid4())
     created_at = _now()
 
     task: dict = {
-        "task_id":    task_id,
-        "status":     "submitted",
-        "created_at": created_at,
-        "updated_at": created_at,
-        "buyer_id":   task_req.buyer_id,
-        "request":    task_req.model_dump(),
+        "task_id":           task_id,
+        "status":            "submitted",
+        "created_at":        created_at,
+        "updated_at":        created_at,
+        "buyer_id":          order.buyer_id,
+        "protocol_of_record": order.protocol,
+        "request":           order.raw_payload,
     }
     TASKS[task_id] = task
 
-    line_items, subtotal, errors = _process_order(task_req.order_lines)
+    raw_lines = [OrderLine(sku=l["sku"], quantity=l["quantity"]) for l in order.order_lines]
+    line_items, subtotal, errors = _process_order(raw_lines)
 
     if errors:
         task["status"]     = "failed"
@@ -305,22 +309,82 @@ async def send_task(
         "line_items":        line_items,
         "products_subtotal": subtotal,
         "shipping": {
-            "origin_zip":      task_req.origin_zip,
-            "destination_zip": task_req.destination_zip,
-            "service_level":   task_req.service_level,
+            "origin_zip":      order.origin_zip,
+            "destination_zip": order.destination_zip,
+            "service_level":   order.service_level,
             "note":            "Shipping cost calculated by MCP Shipping Server at order execution time",
         },
-        "payment_note": (
-            "Phase 4: AP2 Mandate will authorize USDC settlement "
-            "to each product's wallet_address listed above."
-        ),
-        "buyer_dnsid_verified":   buyer_dnsid_verified,
-        "cart_mandate_verified":  cart_mandate_verified,
-        "operator_id":            operator_id,
+        "payment_note":          "Phase 4: AP2 Mandate will authorize USDC settlement to each product's wallet_address.",
+        "buyer_dnsid_verified":  buyer_dnsid_verified,
+        "cart_mandate_verified": cart_mandate_verified,
+        "operator_id":           operator_id,
+        "protocol_of_record":    order.protocol,
     }
 
     TASKS[task_id] = task
     return JSONResponse(content=task, status_code=201)
+
+
+# ── A2A / UCP Task Endpoint ───────────────────────────────────────────────────
+
+@app.post("/tasks/send", status_code=201)
+async def send_task(
+    task_req: PurchaseTaskRequest,
+    x_agent_dnsid: Optional[str] = Header(default=None, alias="X-Agent-DNSid"),
+):
+    """
+    A2A + UCP Protocol: receive a purchase task from a Buyer Agent.
+    Phase 12: normalized through protocol router before processing.
+    DNSid and Cart Mandate gates enforced before order execution.
+    """
+    order = normalize_ucp_task(task_req.model_dump(), buyer_dnsid=x_agent_dnsid)
+    return _build_task_result(order)
+
+
+# ── ACP Checkout Endpoint (Phase 12) ─────────────────────────────────────────
+
+class AcpItem(BaseModel):
+    product_id: str
+    quantity:   int
+
+class AcpShipping(BaseModel):
+    origin:      str = "00000"
+    destination: str = "00000"
+    service:     str = "standard"
+
+class AcpCheckoutRequest(BaseModel):
+    """
+    ACP (OpenAI/Stripe Agentic Commerce Protocol) checkout request.
+    A buyer agent built on GPT-4o sends this format instead of A2A /tasks/send.
+    The protocol router normalizes it to the same internal format before processing.
+    """
+    buyer_id:       str
+    items:          list[AcpItem]
+    shipping:       AcpShipping = AcpShipping()
+    payment_intent: Optional[str] = None
+    cart_mandate:   Optional[dict] = None
+
+
+@app.post("/acp/v1/checkout", status_code=201)
+async def acp_checkout(
+    req: AcpCheckoutRequest,
+    x_agent_dnsid: Optional[str] = Header(default=None, alias="X-Agent-DNSid"),
+):
+    """
+    ACP Protocol: Agentic Commerce Protocol checkout endpoint.
+    Accepts purchases from GPT-4o and other ACP-compatible buyer agents.
+    Phase 12: same DNSid and Cart Mandate gates as UCP /tasks/send.
+    Protocol-of-record is 'acp' in all result fields and governance audit trail.
+    """
+    payload = req.model_dump()
+    order   = normalize_acp(payload, buyer_dnsid=x_agent_dnsid)
+    return _build_task_result(order)
+
+
+@app.get("/tasks")
+async def list_tasks():
+    """List all tasks -- used by governance dashboard for protocol-of-record audit."""
+    return JSONResponse(content=list(TASKS.values()))
 
 
 @app.get("/tasks/{task_id}")
