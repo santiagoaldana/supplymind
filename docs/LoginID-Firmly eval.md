@@ -870,6 +870,148 @@ layer gives the merchant something neither company can deliver alone.
 
 ---
 
+## Firmly Distribution Strategy: Three-Path Partnership Model
+
+### The Core Problem
+
+Merchants need their selling agents to be discoverable by buyer agents. No universal
+standard exists yet. NANDA is the most credible open candidate, but betting only on
+NANDA adoption is strategically risky. The three-path model hedges across ecosystem
+maturity so Firmly builds compounding distribution regardless of which standard wins.
+
+---
+
+### Path 1: NANDA + Maritime (Available Now)
+
+Firmly and LoginID co-sign AgentFacts documents as a two-company trust seal.
+Maritime.sh delivers it zero-friction: one merchant form gets HTTPS endpoint,
+NANDA registration, and co-signed identity in a single workflow.
+
+**Risk:** Depends on NANDA becoming the open standard. If closed directories
+(Shopify, Amazon, Google Shopping) capture the market instead, NANDA adoption
+stalls and this path loses leverage.
+
+**Window:** Mid-2026 is early enough to establish the co-signature as the trust
+standard before a closed directory fills the gap. This window closes as the larger
+platforms ship their own agent discovery products.
+
+---
+
+### Path 2: Agent Builder SDK and Platform Partnerships
+
+Embed Firmly's commerce infrastructure in the tools developers use to build agents.
+If Firmly is part of the construction layer, merchants and buyers get Firmly by
+default without a separate integration decision.
+
+**Two distinct partnership mechanics:**
+
+**Seller-side builder platforms** (where merchants build their selling agents):
+Firmly becomes the default checkout and catalog protocol layer. Merchant deploys
+a selling agent pre-wired to accept any buyer agent. This is the most direct
+extension of Firmly's existing motion.
+
+**Buyer-side builder platforms** (where enterprises build procurement agents):
+Firmly becomes the payment and vendor discovery layer those agents already speak.
+Merchants who want inbound traffic from Firmly-connected buyer agents connect
+to Firmly -- a demand-generation pull rather than a direct sale.
+
+**Candidate partners (research status -- requires verification before outreach):**
+
+| Platform | Side | Commerce angle | Est. size | Notes |
+|---|---|---|---|---|
+| **CrewAI** | Buyer | Multi-agent B2B enterprise workflows; procurement and ops agents | Series A range | Founder-accessible; explicitly targets enterprise use cases where procurement agents live |
+| **LangChain / LangGraph** | Both | Most widely used agent orchestration framework; LangGraph becoming standard for multi-agent | Series B range | Very large developer install base; commerce angle indirect; may be harder to partner with commercially than size suggests -- needs verification |
+| **Composio** | Buyer | Tool integration platform for agents (Zapier for AI agents); commerce tools already integrated | Early stage | Sits between agent and tool -- exactly where Firmly's protocol abstraction lives; strong technical fit |
+| **Relevance AI** | Both | No-code agent builder; explicit B2B workflow focus | Series A range | Targets business users not just developers; aligns with Firmly's no-code merchant positioning; low partnership friction |
+| **Beam AI** | Buyer | Agentic process automation; enterprise procurement focus | Early stage | High persona fit (their buyer = Firmly's buyer); worth direct founder outreach |
+| **AgentKit (Coinbase)** | Buyer | Agent framework with native wallet and payment primitives; x402 alignment | Coinbase-backed | Commerce-adjacent but crypto-native; B2B procurement persona not primary; lower fit than others |
+| **AutoGen (Microsoft)** | Both | Microsoft-backed multi-agent framework; enterprise credibility | Microsoft org | Enterprise distribution is attractive; Microsoft relationship dynamics make commercial partnership difficult; monitor rather than pursue |
+
+**Note:** Size estimates above are approximate and require verification. Do not
+filter candidates based on size assumptions -- a "large" framework may still be
+an accessible partnership if Firmly approaches the right team.
+
+**Recommended starting point:** CrewAI and Relevance AI. Both are founder-accessible,
+both have explicit enterprise/B2B commerce angles, and both serve the merchant
+persona Firmly already sells to.
+
+---
+
+### Path 3: Foundation Model Partnerships (Long Term)
+
+Anthropic, Google (Gemini), OpenAI. If Firmly is the native commerce infrastructure
+for Claude or Gemini agents, distribution is transformative -- any agent on those
+platforms buying or selling would run through Firmly.
+
+**Why this is not today's move:** Firmly needs meaningful merchant volume and
+transaction data before foundation model providers have a commercial reason to
+prefer Firmly over building their own commerce layer. The leverage point is
+proving that Firmly-connected merchants convert better, have lower dispute rates,
+and produce better agent commerce outcomes than unconnected merchants.
+
+**Trigger:** When Firmly has 500+ live merchants and measurable transaction data,
+revisit Anthropic and Google partnerships. LoginID's relationships with enterprise
+buyers (their existing B2B customers) may provide warm intros to the right teams
+at foundation model companies.
+
+---
+
+### Shopify: Competitor or Partner?
+
+**Firmly's current position:** Firmly serves non-Shopify merchants -- the enterprises
+and mid-market B2B sellers that do not run on Shopify's platform. From this lens,
+Shopify is a parallel track: they will build their own agentic commerce story for
+their own merchant base, and Firmly builds the infrastructure for everyone else.
+
+**The case for reconsidering this:**
+
+Shopify is not a monolithic competitor. They are a platform with an app ecosystem.
+The relevant question is not "Shopify vs. Firmly" but "does Shopify's agentic
+commerce product serve the needs of enterprise B2B merchants the way Firmly does?"
+
+Three reasons to challenge the competitor framing:
+
+1. **Shopify's core strength is B2C, not B2B.** Shopify Commerce is optimized for
+   consumer checkout -- high volume, low SKU complexity, card-on-file payments.
+   Enterprise B2B procurement (the market Firmly serves) has different requirements:
+   AP2 mandates, multi-party approval workflows, contract pricing, net-30 terms,
+   compliance audit trails. Shopify does not natively solve these. Firmly does.
+   This means there is a real gap even inside the Shopify merchant base -- Shopify
+   merchants who want to accept B2B agent purchases may need Firmly's layer on top.
+
+2. **Shopify's app ecosystem is a distribution channel, not a competitor.**
+   A "Firmly Connect for Shopify" app would let Shopify merchants accept AP2-governed
+   agent purchases, handle x402 micro-payment challenges, and surface in NANDA
+   with a co-signed AgentFacts document -- none of which Shopify builds natively.
+   Shopify benefits (their merchants can accept a new class of buyers); Firmly
+   benefits (access to Shopify's merchant distribution without a direct sales motion).
+   This is a Path 2 partnership, not a competitive battle.
+
+3. **The agentic commerce layer sits above the e-commerce platform layer.**
+   A buyer agent does not care whether the seller runs on Shopify, Magento, or a
+   custom ERP. It cares whether the seller speaks AP2, UCP, and A2A. Firmly's value
+   is in the protocol abstraction layer above the commerce platform -- which means
+   Firmly can ride Shopify's distribution rather than fight it.
+
+**Recommended framing for Firmly:** Shopify is the largest distribution channel
+for Path 2, not a competitor. The question to ask Firmly: "Are there Shopify
+merchants who want to sell to enterprise buyer agents and cannot do it natively
+through Shopify?" If yes, a Firmly app in the Shopify App Store reaches those
+merchants with zero Firmly sales effort.
+
+**What needs verification:** How Shopify is currently building their own agentic
+commerce features (they have announced Sidekick and related AI products). If
+Shopify ships native AP2 and A2A support, the gap narrows. If they build a
+proprietary checkout flow for agents, Firmly's open-protocol positioning becomes
+a stronger differentiator for merchants who need interoperability.
+
+**Action item:** Understand Shopify's agentic commerce roadmap before finalizing
+the competitor vs. partner framing. This will be naturally illuminated during
+Phase 11 (Multi-Protocol Checkout), where ACP and UCP checkout flows are built
+and Shopify's approach to these protocols becomes directly relevant.
+
+---
+
 ## Priority Matrix
 
 Priorities reflect: merchant willingness to pay today, joint leverage (neither
