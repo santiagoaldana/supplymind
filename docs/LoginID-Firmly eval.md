@@ -788,6 +788,62 @@ complement. Propose as a companion standard to AP2 -- Firmly leads the spec,
 LoginID leads the signing ceremony. The reference implementation in SupplyMind
 is the proof of concept for both companies.
 
+**Merchant friction analysis and deployment strategy:**
+
+Firmly's customer is the merchant, and merchants resist complex implementations.
+Phase 10 has three friction points that must be addressed before broad adoption:
+
+1. The signing ceremony (low friction -- one biometric gesture at onboarding,
+   LoginID designed for this).
+2. Defining price ranges and discount limits (medium friction -- requires the
+   merchant to think explicitly about pricing policy, potentially involving a
+   different team than whoever implements Firmly).
+3. Re-signing when prices change (high friction if frequent -- kills adoption
+   for merchants with dynamic pricing or frequent promotions).
+
+The key insight: **the merchant already approved these prices when they loaded
+them into their existing system.** The manifest does not need a new approval
+process -- it needs to read the approval that already happened and sign it.
+
+Three approaches in order of merchant friction, lowest to highest capability:
+
+**Approach 1: Price buffer policy (no-code, zero ongoing friction) -- launch here**
+Merchant sets one policy at onboarding: "authorize my agent to sell anything in
+my catalog at plus or minus X% of listed price, with a maximum discount of Y%."
+Firmly applies that policy globally. The manifest auto-regenerates on every
+catalog sync. The merchant never touches it again unless the policy changes.
+Re-signing is only required when the policy itself changes, not when individual
+prices change. This is the true no-code path and the right launch configuration.
+
+**Approach 2: Catalog-sync manifest (low friction, SKU-level control) -- mid-market**
+Firmly reads the merchant's existing catalog (UCP feed, Shopify product API, or
+any feed already exposed). Auto-generates the manifest with price ranges derived
+from current prices plus the configured buffer. Merchant sees a one-screen summary:
+"Your agent is authorized to sell these 47 SKUs at these ranges. Confirm with
+Face ID." One tap. Re-signing triggers automatically as a mobile push notification
+when catalog changes exceed the buffer threshold. The merchant never needs to
+understand what a manifest is.
+
+**Approach 3: ERP and PIM agent integration (enterprise tier) -- highest value**
+An MCP server connects to the merchant's ERP (SAP, NetSuite, Dynamics) or PIM
+(Akeneo, Salsify). An agent reads approved prices, active SKUs, and existing
+discount rules directly from the merchant's internal source of truth. The manifest
+is constructed automatically from data the merchant's pricing team already approved.
+The LoginID signing ceremony is the final step: biometric confirmation that "yes,
+this reflects what our system already says." Zero manual data entry. Re-signing
+triggers when the ERP data changes beyond threshold.
+
+This is the strongest LoginID differentiation: the signing is tied to a specific
+named person reviewing a manifest derived from a live enterprise system, with
+hardware attestation that they were present at that moment. Gmail cannot produce
+this artifact. An auditor or dispute resolution process can verify exactly who
+approved what pricing policy, when, from which system of record.
+
+**Implementation note for SupplyMind:** Approach 3 is a natural Phase 17 or 18
+addition -- an MCP server that reads from a mock ERP and feeds the manifest
+creation flow. This would be the first end-to-end demonstration of the
+LoginID + Firmly + ERP integration that neither company has built yet.
+
 ---
 
 ## Phase 11: Governance Dashboard
