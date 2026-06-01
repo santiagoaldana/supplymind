@@ -55,7 +55,7 @@ SupplyMind/
 | 7 | Cryptographic Identity | secp256k1, DID, KYA | Done |
 | 8 | DNSid Ownership Layer | DNSid, PKI, DNS | Done |
 | 9 | AP2 v0.2.0 Mandate Upgrade | AP2 v0.2.0, secp256k1 | Done |
-| 10 | Seller Authorization Manifest | secp256k1, AP2 pattern, DNSid | Next |
+| 10 | Seller Authorization Manifest | secp256k1, AP2 pattern, DNSid | Done |
 | 11 | Governance Dashboard | DNSid, AP2, x402, NANDA | Planned |
 | 12 | Multi-Protocol Checkout | ACP (OpenAI/Stripe), UCP | Planned |
 | 13 | Agent Wallet Layer | Stripe Link, Coinbase/Base MCP | Planned |
@@ -63,7 +63,7 @@ SupplyMind/
 | 15 | Fraud and Bot Detection | Stripe Radar, DNSid rate limiting | Planned |
 | 16 | Stablecoin Settlement | x402 (LF), AWS AgentCore, USDC/Base | Planned |
 
-**Current phase:** Phase 10 (Seller Authorization Manifest)
+**Current phase:** Phase 11 (Governance Dashboard)
 
 ## Key Protocols
 

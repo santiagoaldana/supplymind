@@ -762,6 +762,27 @@ platform fetches the manifest from Firmly's endpoint, verifies the LoginID
 signature, and surfaces "verified seller" to the human buyer. Neither company
 can deliver the complete signal alone.
 
+**Clerk's Four Auth Questions -- Phase 10 contribution:**
+
+Phases 7 through 9 advanced Identity, Scoping, and Approvals on the buyer side.
+Phase 10 is the first phase that meaningfully advances Enforcement on the seller
+side -- and Enforcement has been the weakest layer throughout.
+
+- **Identity:** seller DNSid (Phase 8) establishes who the agent is. Phase 10
+  adds: the human owner is cryptographically bound to the agent's authorization.
+- **Scoping:** the Seller Authorization Manifest defines exactly what the agent
+  is permitted to sell, at what prices, with what discount limits. This is
+  seller-side scoping -- the buyer-side equivalent is the Intent Mandate (Phase 9).
+- **Approvals:** the manifest is signed by the merchant operator (LoginID ceremony).
+  Each signed quote is the agent's approval artifact for that specific offer.
+- **Enforcement (the key advance):** without the manifest, a compromised or rogue
+  seller agent can quote any price, any SKU, any discount -- and the buyer has no
+  way to detect deviation at transaction time. With the manifest, the chat interface
+  or buyer agent verifies the quote against the signed baseline before presenting
+  it to the human. Deviation fails at the transaction boundary, not in an audit
+  log after money has moved. This is runtime enforcement, not retrospective
+  detection -- the first instance of that in the SupplyMind architecture.
+
 **Roadmap recommendation:** Build alongside Phase 9 (AP2 v0.2.0) as the seller-side
 complement. Propose as a companion standard to AP2 -- Firmly leads the spec,
 LoginID leads the signing ceremony. The reference implementation in SupplyMind

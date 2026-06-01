@@ -57,6 +57,12 @@ from src.seller_agent.ucp_profile import generate_ucp_profile
 from src.identity.dnsid import resolve_dnsid
 from src.identity.dnsid_registry_seed import seed as seed_dnsid_registry
 from src.identity.signed_mandate import verify_cart_mandate
+from src.identity.seller_manifest import (
+    create_seller_manifest,
+    create_signed_offer,
+    SELLER_MANIFESTS,
+)
+from src.identity.keys import load_or_create_private_key_from_file
 
 # CLI args: --port, --well-known-dir, --name
 # Defaults match Phase 3 behavior so all existing tests still work.
@@ -78,6 +84,25 @@ AGENT_CARD_PATH = WELL_KNOWN / "agent-card.json"
 
 init_db()
 seed_dnsid_registry()
+
+# Load or create the seller agent's signing key (reuses Phase 7 key file pattern)
+_SELLER_KEY_FILE = Path(__file__).parent.parent.parent / "data" / "seller_agent.key.hex"
+_SELLER_PRIVATE_KEY = load_or_create_private_key_from_file(_SELLER_KEY_FILE)
+
+# Seed the Seller Authorization Manifest at startup.
+# In production this is created once by the merchant operator via LoginID ceremony.
+_SELLER_MANIFEST = create_seller_manifest(
+    operator_id     = "ops@supplymind.localhost",
+    seller_agent_id = "did:web:localhost:8080",
+    seller_dnsid    = "dnsid://supplymind.localhost/agents/seller-001",
+    authorized_skus = [
+        {"sku": "PPR-001", "min_price_usd":  5.00, "max_price_usd":  30.00, "max_discount_pct": 5.0},
+        {"sku": "PPR-002", "min_price_usd":  5.00, "max_price_usd":  30.00, "max_discount_pct": 5.0},
+        {"sku": "PEN-001", "min_price_usd":  1.00, "max_price_usd":  20.00, "max_discount_pct": 3.0},
+        {"sku": "STK-001", "min_price_usd":  1.00, "max_price_usd":  20.00, "max_discount_pct": 3.0},
+    ],
+    private_key     = _SELLER_PRIVATE_KEY,
+)
 
 app = FastAPI(
     title="SupplyMind Seller Agent",
@@ -123,6 +148,19 @@ async def get_agent_card():
     business card — name, capabilities, and task endpoint URL.
     """
     return JSONResponse(content=json.loads(AGENT_CARD_PATH.read_text()), media_type="application/json")
+
+
+# ── Seller Authorization Manifest (Phase 10) ─────────────────────────────────
+
+@app.get("/.well-known/seller-manifest.json")
+async def get_seller_manifest():
+    """
+    Phase 10: Seller Authorization Manifest endpoint.
+    Buyer agents and chat interfaces fetch this to verify the seller's
+    signed authorization before presenting any offer to the human buyer.
+    Equivalent of HTTPS certificate -- machine-readable, cryptographically signed.
+    """
+    return JSONResponse(content=_SELLER_MANIFEST, media_type="application/json")
 
 
 # ── A2A Task Models ───────────────────────────────────────────────────────────
@@ -385,6 +423,18 @@ async def get_quote(
     discounted_price = round(row["unit_price"] * (1 - bulk_discount_pct / 100), 4)
     discounted_total = round(discounted_price * quantity, 2)
 
+    signed_offer = create_signed_offer(
+        manifest_id  = _SELLER_MANIFEST["manifest_id"],
+        sku          = sku,
+        quantity     = quantity,
+        unit_price   = row["unit_price"],
+        discount_pct = bulk_discount_pct,
+        private_key  = _SELLER_PRIVATE_KEY,
+    )
+    # Embed the manifest so the buyer can verify the full chain without a separate fetch.
+    if "error" not in signed_offer:
+        signed_offer["seller_manifest"] = _SELLER_MANIFEST
+
     quote = {
         "sku":                sku.upper(),
         "name":               row["name"],
@@ -399,6 +449,7 @@ async def get_quote(
         "quote_valid_until":  "2026-05-12T00:00:00Z",
         "x402_paid":              x_payment is not None,
         "buyer_dnsid_verified":   buyer_dnsid_verified,
+        "signed_offer":           signed_offer if "error" not in signed_offer else None,
         "payment_note":           (
             "Phase 4: AP2 Mandate will authorize USDC settlement to wallet_address above."
         ),
