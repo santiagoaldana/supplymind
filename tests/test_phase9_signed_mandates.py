@@ -1,5 +1,5 @@
 """
-Phase 9 -- AP2 v0.2.0 Signed Mandates: Unit Tests
+Phase 9 -- AP2 v0.2.0 Signed Mandates: Unit + Integration Tests
 
 Tests cover:
   1. Create Intent Mandate, verify signature is present and valid
@@ -11,6 +11,9 @@ Tests cover:
   7. Reject when seller not in Intent Mandate approved list
   8. Cart Mandate with buyer DNSid -- field propagates to verification result
   9. Cart Mandate creation fails if Intent Mandate not found
+ 10. Seller server: purchase with valid Cart Mandate returns cart_mandate_verified=True
+ 11. Seller server: purchase with tampered Cart Mandate returns 403
+ 12. Seller server: purchase without Cart Mandate proceeds normally
 
 Run:
   python tests/test_phase9_signed_mandates.py
@@ -18,7 +21,11 @@ Run:
 
 import sys
 import copy
+import time
+import subprocess
 from pathlib import Path
+
+import httpx
 
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -35,8 +42,9 @@ from src.identity.signed_mandate import (
 PASS = "[PASS]"
 FAIL = "[FAIL]"
 
-SELLER_ID = "did:web:localhost:8080"
-BUYER_ID  = "did:web:localhost:8090"
+SELLER_ID        = "did:web:localhost:8080"
+BUYER_ID         = "did:web:localhost:8090"
+SELLER_BASE_URL  = "http://localhost:8080"
 
 
 def _clear():
@@ -296,6 +304,95 @@ def test_cart_fails_without_intent():
     print(f"  {PASS} cart_fails_without_intent: cart creation blocked when intent not found")
 
 
+def _start_seller():
+    proc = subprocess.Popen(
+        [sys.executable, "src/seller_agent/server.py"],
+        cwd=str(PROJECT_ROOT),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    for _ in range(30):
+        try:
+            r = httpx.get(f"{SELLER_BASE_URL}/.well-known/agent-card.json", timeout=1.0)
+            if r.status_code == 200:
+                return proc
+        except Exception:
+            pass
+        time.sleep(0.5)
+    proc.terminate()
+    raise RuntimeError("Seller server did not start in time")
+
+
+def test_server_cart_mandate_gates():
+    print("  Starting seller server for integration tests...")
+    proc = _start_seller()
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            operator_key, _ = generate_keypair()
+            agent_key, _    = generate_keypair()
+
+            intent = create_intent_mandate(
+                operator_id      = "cfo@acme.example",
+                buyer_agent_id   = BUYER_ID,
+                approved_sellers = [SELLER_ID],
+                max_per_tx_usd   = 500.0,
+                max_total_usd    = 5000.0,
+                private_key      = operator_key,
+            )
+            cart = create_cart_mandate(
+                intent_mandate_id = intent["mandate_id"],
+                seller_id         = SELLER_ID,
+                amount_usd        = 44.99,
+                order_lines       = [{"sku": "PPR-001", "quantity": 1}],
+                private_key       = agent_key,
+            )
+
+            base_payload = {
+                "buyer_id":        BUYER_ID,
+                "order_lines":     [{"sku": "PPR-001", "quantity": 1}],
+                "origin_zip":      "10001",
+                "destination_zip": "90210",
+                "service_level":   "standard",
+            }
+
+            # Embed the Intent Mandate so the seller can verify the full chain
+            # without sharing in-process memory (production behaviour).
+            cart_with_intent = {**cart, "intent_mandate": intent}
+
+            # Test 10: valid Cart Mandate accepted
+            r = client.post(
+                f"{SELLER_BASE_URL}/tasks/send",
+                json={**base_payload, "cart_mandate": cart_with_intent},
+            )
+            assert r.status_code == 201, f"Expected 201, got {r.status_code}: {r.text}"
+            result = r.json()["result"]
+            assert result["cart_mandate_verified"] is True
+            assert result["operator_id"] == "cfo@acme.example"
+            print(f"  {PASS} server_valid_cart_mandate: 201, cart_mandate_verified=True, operator_id present")
+
+            # Test 11: tampered Cart Mandate rejected
+            tampered = copy.deepcopy(cart_with_intent)
+            tampered["amount_usd"] = 9999.0
+            r = client.post(
+                f"{SELLER_BASE_URL}/tasks/send",
+                json={**base_payload, "cart_mandate": tampered},
+            )
+            assert r.status_code == 403, f"Expected 403, got {r.status_code}"
+            print(f"  {PASS} server_tampered_cart_mandate: 403 returned for invalid signature")
+
+            # Test 12: no Cart Mandate proceeds normally
+            r = client.post(f"{SELLER_BASE_URL}/tasks/send", json=base_payload)
+            assert r.status_code == 201, f"Expected 201, got {r.status_code}"
+            result = r.json()["result"]
+            assert result["cart_mandate_verified"] is False
+            assert result["operator_id"] is None
+            print(f"  {PASS} server_no_cart_mandate: 201, proceeds normally, cart_mandate_verified=False")
+
+    finally:
+        proc.terminate()
+        proc.wait()
+
+
 def run():
     print()
     print("=" * 60)
@@ -303,6 +400,7 @@ def run():
     print("=" * 60)
     print()
 
+    print("Unit tests:")
     test_intent_mandate_created_and_signed()
     test_cart_mandate_created_and_signed()
     test_full_chain_verification_accept()
@@ -312,6 +410,10 @@ def run():
     test_reject_seller_not_approved()
     test_cart_with_buyer_dnsid()
     test_cart_fails_without_intent()
+
+    print()
+    print("Integration tests (live seller server):")
+    test_server_cart_mandate_gates()
 
     print()
     print("All Phase 9 tests passed.")

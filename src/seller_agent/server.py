@@ -56,6 +56,7 @@ from src.seller_agent.generate_ucp import generate_ucp_catalog
 from src.seller_agent.ucp_profile import generate_ucp_profile
 from src.identity.dnsid import resolve_dnsid
 from src.identity.dnsid_registry_seed import seed as seed_dnsid_registry
+from src.identity.signed_mandate import verify_cart_mandate
 
 # CLI args: --port, --well-known-dir, --name
 # Defaults match Phase 3 behavior so all existing tests still work.
@@ -135,6 +136,12 @@ class PurchaseTaskRequest(BaseModel):
     A2A Protocol: the task payload the Buyer Agent sends to POST /tasks/send.
     Each task has a buyer_id (who is sending), a list of order lines,
     shipping details, and optional notes.
+
+    cart_mandate: optional AP2 v0.2.0 signed Cart Mandate dict (Phase 9).
+      If present, the seller verifies the full chain: agent signature on the
+      Cart Mandate + human operator signature on the linked Intent Mandate.
+      If verification fails, the purchase is rejected with 403.
+      If absent, purchase proceeds under Phase 4 unsigned mandate policy.
     """
     buyer_id:        str
     order_lines:     list[OrderLine]
@@ -142,6 +149,7 @@ class PurchaseTaskRequest(BaseModel):
     destination_zip: str
     service_level:   str = "standard"
     notes:           Optional[str] = None
+    cart_mandate:    Optional[dict] = None
 
 
 def _now() -> str:
@@ -218,6 +226,18 @@ async def send_task(
             )
         buyer_dnsid_verified = dnsid_record.get("status") == "active"
 
+    cart_mandate_verified = False
+    operator_id           = None
+    if task_req.cart_mandate:
+        verification = verify_cart_mandate(task_req.cart_mandate)
+        if verification["decision"] == "reject":
+            raise HTTPException(
+                status_code=403,
+                detail=f"Cart Mandate verification failed: {verification['reason']}",
+            )
+        cart_mandate_verified = True
+        operator_id           = verification.get("operator_id")
+
     task_id = str(uuid.uuid4())
     created_at = _now()
 
@@ -256,7 +276,9 @@ async def send_task(
             "Phase 4: AP2 Mandate will authorize USDC settlement "
             "to each product's wallet_address listed above."
         ),
-        "buyer_dnsid_verified": buyer_dnsid_verified,
+        "buyer_dnsid_verified":   buyer_dnsid_verified,
+        "cart_mandate_verified":  cart_mandate_verified,
+        "operator_id":            operator_id,
     }
 
     TASKS[task_id] = task

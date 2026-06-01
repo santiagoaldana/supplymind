@@ -155,11 +155,15 @@ def verify_cart_mandate(cart_mandate: dict) -> dict:
     if not cart_sig or not cart_pubkey:
         return {"decision": "reject", "reason": "Cart Mandate missing proof or public key", "cart_mandate_id": cart_id}
 
-    if not verify_signature(cart_mandate, cart_sig, cart_pubkey):
+    # Strip transport-only field before verifying -- intent_mandate is not part of the signed content.
+    cart_for_verification = {k: v for k, v in cart_mandate.items() if k != "intent_mandate"}
+    if not verify_signature(cart_for_verification, cart_sig, cart_pubkey):
         return {"decision": "reject", "reason": "Cart Mandate signature invalid", "cart_mandate_id": cart_id}
 
     intent_id = cart_mandate.get("intent_mandate_id")
-    intent    = INTENT_MANDATES.get(intent_id)
+    # Accept Intent Mandate embedded in the payload (cross-process / network case)
+    # or fall back to local store (same-process case).
+    intent = cart_mandate.get("intent_mandate") or INTENT_MANDATES.get(intent_id)
     if not intent:
         return {"decision": "reject", "reason": f"Intent Mandate {intent_id} not found", "cart_mandate_id": cart_id}
 
