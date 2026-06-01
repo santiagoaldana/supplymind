@@ -60,7 +60,7 @@ MCP Auth (Linux Foundation), and XAA + ID-JAG (Okta).
 A recurring loophole across this entire stack: **possession of a key proves
 nothing about ownership or intent.** A stolen private key looks identical to a
 legitimate one. This is why DNSid (Phase 8), AP2 Mandates (Phase 9), and
-Verifiable Intent (Phase 13) exist as separate layers on top of cryptographic
+Verifiable Intent (Phase 14) exist as separate layers on top of cryptographic
 identity. Cryptography proves the message was signed by a key. Ownership
 registries prove who controls the key. Mandates prove what the key is authorized
 to do. All three are required for enterprise trust.
@@ -157,12 +157,12 @@ and checkout session endpoints.
 **Dependencies and sequencing:**
 Requires MCP (Phase 1) for the inventory data that populates the catalog.
 Without UCP, the buyer agent has no machine-readable way to discover what the
-seller offers — it would require custom parsing per seller. Phase 11 (ACP)
+seller offers — it would require custom parsing per seller. Phase 12 (ACP)
 extends this by adding a second catalog protocol; without UCP in place first,
-Phase 11 has nothing to route from.
+Phase 12 has nothing to route from.
 
 **Alternatives considered:**
-- ACP (OpenAI + Stripe, Phase 11) is the main competitor at this layer.
+- ACP (OpenAI + Stripe, Phase 12) is the main competitor at this layer.
   UCP uses JSON-LD and schema.org targeting semantic interoperability across
   any buyer agent; ACP uses a more REST-native format targeting the ChatGPT
   and OpenAI ecosystem specifically. SupplyMind chose UCP first because of the
@@ -291,13 +291,13 @@ challenge, client pays, retries with proof, gets the data.
 Bulk quotes above $500 trigger a 402 response with USDC payment instructions.
 Buyer reads the challenge, simulates a USDC payment, retries with a transaction
 hash in the X-Payment header. Seller currently accepts any non-empty header.
-Phase 15 replaces this with real on-chain verification.
+Phase 16 replaces this with real on-chain verification.
 
 **Dependencies and sequencing:**
 Requires A2A (Phase 3) for the buyer to have found the seller and initiated
 a task before a payment challenge arises. Phase 8 (DNSid) adds a gate that
-must pass before x402 fires. Phase 15 (real settlement) requires a funded
-wallet from Phase 12. Skipping x402 means bulk quotes have no access control
+must pass before x402 fires. Phase 16 (real settlement) requires a funded
+wallet from Phase 13. Skipping x402 means bulk quotes have no access control
 — any agent can request them for free.
 
 **Alternatives considered:**
@@ -381,7 +381,7 @@ counterparty checks. Skipping AP2 means the agent has no spending policy —
 the financial risk is unbounded.
 
 **Alternatives considered:**
-- Mastercard Verifiable Intent (Phase 13) addresses the same audit trail
+- Mastercard Verifiable Intent (Phase 14) addresses the same audit trail
   problem from the card network side rather than the protocol side. They are
   complementary: AP2 governs the agent's spending policy; Verifiable Intent
   creates a tamper-resistant network-level record of human consent. SupplyMind
@@ -475,7 +475,7 @@ changing them requires re-signing.
 - [Enforcement] BLOCK requires terminal interaction. In a headless production
   deployment, there is no terminal. BLOCK would fail silently or hang.
   Mitigation: replace terminal prompts with a webhook or message queue monitored
-  via the governance dashboard (Phase 10).
+  via the governance dashboard (Phase 11).
 
 **Why this matters:**
 ACF's tiered autonomy is the design pattern that makes human oversight scalable.
@@ -513,12 +513,12 @@ the agent's problem rather than the payment abstraction layer's problem.
 
 **Alternatives considered:**
 - Stripe alone (fiat only) is simpler but excludes the stablecoin settlement
-  path needed for x402 micro-payments and Phase 15.
+  path needed for x402 micro-payments and Phase 16.
 - Circle Programmable Wallets alone (stablecoin only) excludes merchants who
   only accept card payments.
-- AWS AgentCore Payments (Phase 15) is a managed implementation of x402 and
+- AWS AgentCore Payments (Phase 16) is a managed implementation of x402 and
   Coinbase/Stripe rails — essentially MPP as a service. SupplyMind builds MPP
-  manually first to understand the plumbing; Phase 15 evaluates AgentCore as
+  manually first to understand the plumbing; Phase 16 evaluates AgentCore as
   the managed alternative.
 - SupplyMind chose MPP to remain rail-agnostic from the start, reflecting the
   likely production reality where different counterparties require different rails.
@@ -527,7 +527,7 @@ the agent's problem rather than the payment abstraction layer's problem.
 
 - [Scoping] Rail selection is unverified. The implementation runs both rails
   and returns whichever succeeds first. No policy governs which rail should
-  be used for which transaction type. Phase 12 introduces explicit payment
+  be used for which transaction type. Phase 13 introduces explicit payment
   routing policy by transaction size.
 
 - [Enforcement] USDC transfer is simulated. There is no on-chain settlement.
@@ -540,7 +540,7 @@ the agent's problem rather than the payment abstraction layer's problem.
 **Why this matters:**
 MPP is the abstraction that prevents the agent from needing to understand rails.
 The security implication is that an abstraction layer can hide failures. The
-governance dashboard (Phase 10) makes rail behavior visible so operators can
+governance dashboard (Phase 11) makes rail behavior visible so operators can
 detect silent failures.
 
 ---
@@ -640,7 +640,7 @@ using verify_signature() from src/identity/keys.py.
 **Dependencies and sequencing:**
 Phase 7 is the cryptographic foundation for Phases 8, 9, 10, and 13. DNSid
 (Phase 8) anchors the key to a DNS domain. Signed Mandates (Phase 9) use the
-same signing infrastructure. Visa TAP (Phase 13) adds a network-level credential
+same signing infrastructure. Visa TAP (Phase 14) adds a network-level credential
 on top of the key-based identity. Skipping Phase 7 means every downstream phase
 that requires signatures has nothing to sign with.
 
@@ -696,7 +696,7 @@ enterprise-grade.
 
 ---
 
-## Phase 8: DNSid — Agent Ownership Registry (Planned)
+## Phase 8: DNSid — Agent Ownership Registry (Done)
 
 **Type:** Protocol
 **Established by:** Identity Digital Innovation Labs (dnsid.ai), launched
@@ -719,7 +719,7 @@ This is the layer that transforms SupplyMind from autonomous to accountable.
 Requires Phase 7 (secp256k1 + KYA) — DNSid anchors the existing cryptographic
 identity to a DNS domain and adds ownership and revocation on top. Phase 9
 (signed mandates) requires DNSid to know who is signing the Intent Mandate.
-Phase 10 (governance dashboard) audits by DNSid handle. Skipping Phase 8 means
+Phase 11 (governance dashboard) audits by DNSid handle. Skipping Phase 8 means
 every phase above it has no ownership accountability layer.
 
 **Alternatives considered:**
@@ -759,7 +759,7 @@ have a system that can prove who is accountable for that key.
 
 ---
 
-## Phase 9: AP2 v0.2.0 — Signed Mandate Upgrade (Planned)
+## Phase 9: AP2 v0.2.0 — Signed Mandate Upgrade (Done)
 
 **Type:** Protocol upgrade
 **Announced:** Google I/O May 2026. 60+ partners including PayPal, Mastercard,
@@ -776,10 +776,10 @@ a tamper-proof audit trail from human intent to payment execution.
 Requires Phase 7 (secp256k1) for the signing infrastructure. Requires Phase 8
 (DNSid) for the vendor_dnsid field in Cart Mandates and for the DNSid gate that
 must pass before a Cart Mandate is issued. Without Phase 9, the governance
-dashboard (Phase 10) has no signed mandate records to audit.
+dashboard (Phase 11) has no signed mandate records to audit.
 
 **Alternatives considered:**
-- Mastercard Verifiable Intent (Phase 13) creates a similar tamper-resistant
+- Mastercard Verifiable Intent (Phase 14) creates a similar tamper-resistant
   audit trail from the card network side. The two are complementary: AP2
   governs the agent's internal spending policy; Verifiable Intent creates a
   network-level record visible to the card network and issuer.
@@ -809,7 +809,90 @@ independently verifiable long after the transaction completes.
 
 ---
 
-## Phase 10: Governance and Audit Dashboard (Planned)
+## Phase 10: Seller Authorization Manifest (Done)
+
+**Type:** Novel spec (no existing standard -- borrows AP2 v0.2.0 cryptographic pattern)
+**Established by:** SupplyMind Phase 10. Proposed as companion standard to AP2.
+**Maturity:** Experimental. No existing standard; SupplyMind is the reference implementation.
+
+**Problem it solves:**
+HTTPS gives browser commerce a cryptographic trust signal: the padlock in the URL
+bar proves the server is operated by the named entity. Agentic and social commerce
+remove the browser. When a human buys from within Claude, ChatGPT, or a TikTok
+feed, there is no URL bar, no padlock, no SSL certificate visible to the human.
+The interface navigates to the seller on the human's behalf with no machine-readable
+signal to verify the seller is legitimate and the offer genuine.
+
+Two concrete use cases that exist today (before autonomous buyer agents are common):
+
+1. Chat-native commerce: human tells Claude "order 500 reams of paper." Claude
+   finds a seller, presents a quote, completes the purchase inside the chat. The
+   human needs to know: is this seller real, and is this price what their owner
+   actually authorized?
+
+2. Social commerce (TikTok, Instagram): human sees a product in a feed, taps buy,
+   purchase completes inside the app. Same question without a browser to provide
+   any trust signal.
+
+The Seller Authorization Manifest is the replacement for HTTPS in these contexts:
+a signed document created by the merchant's human operator before the selling agent
+goes live. It states what the agent may sell, at what price ranges, with what
+discount limits. The buyer agent or chat interface verifies the signed offer against
+the manifest before presenting it to the human. Deviation fails at the transaction
+boundary -- before the human confirms, not after money moves.
+
+**What was built:**
+- `src/identity/seller_manifest.py`: create_seller_manifest() (operator signs the
+  authorization), create_signed_offer() (agent signs each quote against manifest),
+  verify_signed_offer() (buyer-side runtime enforcement gate)
+- Seller server: GET /.well-known/seller-manifest.json endpoint; quote responses
+  include signed_offer with manifest embedded for full chain verification
+- 12 tests: 9 unit + 3 integration
+
+**Relationship to AP2:**
+AP2 is buyer-side governance by design. It governs what a buyer agent can spend,
+not what a seller agent can offer. The Seller Authorization Manifest borrows AP2's
+cryptographic pattern (secp256k1-signed document, human operator key, agent
+execution key) and applies it to the seller side. This is not AP2 -- it is a
+novel companion spec that fills a gap AP2 does not address.
+
+**Dependencies and sequencing:**
+Requires Phase 7 (secp256k1) for the signing infrastructure. Requires Phase 9
+(AP2 v0.2.0) as the buyer-side complement -- the two together give Clerk's full
+four-question coverage on both sides. Phase 11 (governance dashboard) aggregates
+both buyer and seller signed artifacts into a single audit view.
+
+**Merchant friction and deployment strategy:**
+Three-tier deployment: Approach 1 (price buffer policy, no-code, zero ongoing
+friction -- right launch config), Approach 2 (catalog-sync manifest, one-tap
+mobile confirm for mid-market), Approach 3 (ERP/PIM MCP integration, LoginID
+biometric on live system data -- enterprise tier and strongest LoginID
+differentiation). See LoginID-Firmly eval.md for full analysis.
+
+**Security loopholes to address:**
+
+- [Enforcement] Manifest must be versioned. If a merchant updates pricing, the
+  old manifest must not be accepted for new offers. Manifest ID must be
+  timestamp-bound or include an expiry field in production.
+
+- [Enforcement] Offer replay attack: a signed offer is valid until rejected.
+  Production must include a nonce or timestamp in the offer that expires quickly,
+  preventing a buyer from replaying an old offer at an old price.
+
+- [Scoping] Price buffer width is a policy decision. A buffer that is too wide
+  (±50%) defeats the purpose of the manifest. Production should enforce a maximum
+  buffer width as a platform-level governance parameter.
+
+**Why this matters:**
+The padlock is the most trusted security signal in consumer computing history --
+so trusted it is invisible. Removing it without a replacement is not an acceptable
+security posture for agentic or social commerce at scale. The Seller Authorization
+Manifest is the structural replacement: machine-readable, cryptographically signed,
+independently verifiable by any chat interface or buyer agent without a browser.
+
+---
+
+## Phase 11: Governance and Audit Dashboard (Done)
 
 **Type:** Application (implements DNSid, AP2, x402, NANDA as data sources)
 **Maturity:** N/A (SupplyMind-specific implementation).
@@ -820,10 +903,10 @@ place: who are my agents and who owns them? What are they authorized to spend?
 What have they actually spent? Has anything suspicious happened?
 
 **Dependencies and sequencing:**
-Requires Phases 8 and 9 to have meaningful data to display. Without DNSid
-handles, the agent registry has no ownership data. Without signed mandates,
-the mandate ledger has no cryptographic records. Phase 14 (fraud detection)
-feeds anomalies into this dashboard. The dashboard is the visibility layer
+Requires Phases 8, 9, and 10 to have meaningful data to display. Without DNSid
+handles, the agent registry has no ownership data. Without signed mandates and
+seller manifests, the mandate and offer ledgers have no cryptographic records.
+Phase 15 (fraud detection) feeds anomalies into this dashboard. The dashboard is the visibility layer
 for every security investment made in previous phases.
 
 **Alternatives considered:**
@@ -835,13 +918,13 @@ for every security investment made in previous phases.
   semantics. A custom dashboard is the only option for domain-specific audit.
 
 **Why this matters:**
-The governance dashboard is not a Phase 10 add-on. It is the artifact that makes
+The governance dashboard is not a Phase 11 add-on. It is the artifact that makes
 every phase before it auditable. Without it, the security properties of DNSid,
 signed mandates, and network credentials exist in logs that no one reads.
 
 ---
 
-## Phase 11: ACP — Agentic Commerce Protocol (Planned)
+## Phase 12: ACP — Agentic Commerce Protocol (Planned)
 
 **Type:** Protocol
 **Established by:** OpenAI and Stripe (September 2025). Apache 2.0.
@@ -889,7 +972,7 @@ while keeping the payment governance layer unified.
 
 ---
 
-## Phase 12: Agent Wallet Layer (Planned)
+## Phase 13: Agent Wallet Layer (Planned)
 
 **Type:** Implementation (Stripe Link Agent Wallet + Coinbase/Base MCP)
 **Maturity:** Maturing. Stripe Link and Coinbase wallets are production-grade;
@@ -903,15 +986,15 @@ policies, non-custodial identity anchored to DNSid).
 
 **Dependencies and sequencing:**
 Requires AP2 mandates (Phase 4/9) to be in place before real money flows —
-a funded wallet without a spending policy is a liability. Phase 15 (x402 real
-settlement) requires the Coinbase/Base wallet from Phase 12. Skipping Phase 12
-means Phase 15 has no funded wallet to draw from.
+a funded wallet without a spending policy is a liability. Phase 16 (x402 real
+settlement) requires the Coinbase/Base wallet from Phase 13. Skipping Phase 13
+means Phase 16 has no funded wallet to draw from.
 
 **Alternatives considered:**
 - Circle Programmable Wallets are the stablecoin wallet alternative to
   Coinbase — both support USDC on multiple chains. Circle has stronger
   enterprise payment credentials and existing integration in SupplyMind's
-  earlier simulation code. Coinbase/Base MCP is chosen for Phase 12 because
+  earlier simulation code. Coinbase/Base MCP is chosen for Phase 13 because
   of the native Claude integration via Base MCP.
 - PayPal agent wallet is in early development and targets consumer use cases
   more than B2B procurement.
@@ -927,7 +1010,7 @@ auditable, policy-constrained boundaries.
 
 ---
 
-## Phase 13: Network Credential Layer — Visa TAP + Mastercard Agent Pay (Planned)
+## Phase 14: Network Credential Layer — Visa TAP + Mastercard Agent Pay (Planned)
 
 **Type:** Protocol (Visa TAP) + Framework (Mastercard Agent Pay)
 **Established by:** Visa TAP (October 2025, RFC 9421). Mastercard Agent Pay
@@ -955,7 +1038,7 @@ and the transaction outcome for audit and dispute resolution.
 **Dependencies and sequencing:**
 Requires Phase 8 (DNSid) — Visa TAP and Mastercard Agentic Tokens are bound
 to a specific agent identity; DNSid provides the ownership layer that makes
-that binding meaningful. Requires Phase 12 (real wallets) — network credentials
+that binding meaningful. Requires Phase 13 (real wallets) — network credentials
 are meaningless without a real payment instrument behind them.
 
 **Alternatives considered:**
@@ -991,7 +1074,7 @@ that existing financial infrastructure recognizes.
 
 ---
 
-## Phase 14: Fraud and Bot Detection (Planned)
+## Phase 15: Fraud and Bot Detection (Planned)
 
 **Type:** Implementation (Stripe Radar + DNSid rate limiting)
 **Maturity:** Experimental (DNSid-anchored rate limiting is novel).
@@ -1005,7 +1088,7 @@ agents and from automated scanners, scrapers, and bots.
 **Dependencies and sequencing:**
 Requires Phase 8 (DNSid) — rate limiting and traffic classification are anchored
 to DNSid handles. Without DNSid, rate limiting must fall back to IP addresses,
-which are trivially rotated. Requires Phase 10 (governance dashboard) as the
+which are trivially rotated. Requires Phase 11 (governance dashboard) as the
 surface where anomalies are surfaced.
 
 **Alternatives considered:**
@@ -1023,7 +1106,7 @@ surface for anomalies surfaced here.
 
 ---
 
-## Phase 15: Stablecoin Settlement — x402 Foundation + AWS AgentCore (Planned)
+## Phase 16: Stablecoin Settlement — x402 Foundation + AWS AgentCore (Planned)
 
 **Type:** Implementation (x402 Linux Foundation spec + AWS Bedrock AgentCore)
 **Established by:** x402 Foundation launched April 2 2026. AWS AgentCore
@@ -1032,15 +1115,15 @@ Payments launched in preview May 7 2026 (Coinbase + Stripe).
 is in preview as of May 2026.
 
 **Problem it solves:**
-The current x402 path accepts any non-empty payment header as proof. Phase 15
+The current x402 path accepts any non-empty payment header as proof. Phase 16
 replaces this with real on-chain verification via the x402 Linux Foundation spec
 and optionally routes through AWS AgentCore Payments as the managed execution layer.
 
 **Dependencies and sequencing:**
-Requires Phase 12 (funded wallet on Base) — x402 on Base requires USDC in the
+Requires Phase 13 (funded wallet on Base) — x402 on Base requires USDC in the
 buyer's Coinbase wallet. Requires Phase 8 (DNSid gates on x402 path) — real
 settlement should not proceed without ownership verification. Requires Phase 3
-(x402 protocol skeleton) — Phase 15 upgrades the existing path rather than
+(x402 protocol skeleton) — Phase 16 upgrades the existing path rather than
 building from scratch.
 
 **Alternatives considered:**
@@ -1056,7 +1139,7 @@ building from scratch.
   protocol preference.
 
 **Why this matters:**
-Phase 15 closes the loop opened in Phase 3. The x402 protocol was always designed
+Phase 16 closes the loop opened in Phase 3. The x402 protocol was always designed
 to verify on-chain; it was simulated in early phases to make the architecture
 understandable without requiring testnet infrastructure. Real settlement is the
 final step that makes SupplyMind a working financial system rather than a
