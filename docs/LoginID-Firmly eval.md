@@ -577,53 +577,71 @@ trust standard before a dominant player does is open now. A closed directory
 not develop a credible trust layer. Firmly and LoginID are better positioned
 than any other pair of companies to be that trust layer.
 
-**Critical analysis: honest objections to NANDA/Maritime value**
+**Critical analysis: where each layer sits in the transaction flow**
 
-The above analysis is the optimistic case. Before committing resources, both
-companies should stress-test three objections:
+The right frame is not "does DNSid compete with Visa/MC" but "does DNSid add
+value at a different step in the same process." The answer is yes, and the
+steps are distinct:
 
-**Objection 1: NANDA may not become the standard.**
-The open decentralized registry narrative is compelling but historically the
-open standard often loses to the closed platform with distribution. Google
-Shopping, Amazon Marketplace, and Shopify each built closed curated directories
-that dominate their respective markets. If OpenAI builds an agent directory for
-ChatGPT plugins (which it effectively has), or if Anthropic builds one for
-Claude agents, or if Shopify builds one for commerce agents -- these closed
-directories have instant distribution that NANDA cannot match.
+```
+Step 1: Discovery       -- buyer finds seller            (NANDA / Maritime)
+Step 2: Agent identity  -- is this agent real, not revoked? (DNSid)
+Step 3: Authorization   -- did a human approve this spend?  (AP2 / Intent Mandate)
+Step 4: Payment auth    -- can this agent use this card?     (Visa TAP / MC Token)
+Step 5: Settlement      -- money moves                      (Stripe / Coinbase / ACH)
+```
 
-The value of the NANDA co-signature is zero if buyers never query NANDA.
-Firmly and LoginID should not invest heavily in NANDA unless they have evidence
-that buyer agent developers are actively querying it, or unless they can be
-the entity that creates that behavior (e.g. by embedding NANDA queries in
-Firmly Connect's buyer-side SDK).
+Visa TAP operates at Step 4. DNSid operates at Step 2. They are not competing --
+they answer different questions at different moments.
 
-**Objection 2: DNSid provides no value to Visa or Mastercard.**
-This must be stated explicitly. For any transaction that goes through the card
-network layer -- which is most consumer commerce and a large portion of B2B --
-Visa TAP and Mastercard Agent Pay replace the need for DNSid verification.
-The networks do not read DNSid handles. A merchant using Visa TAP gets agent
-identity verification from Visa's infrastructure, not from DNSid.
+**Why DNSid adds value even when Visa TAP is present:**
 
-DNSid's value is real but narrow: it matters for open-web, non-card transactions
-(stablecoin payments, AP2-governed B2B procurement without a card rail, NANDA-
-discovered agents). For card-funded commerce, DNSid is invisible to the trust
-infrastructure that actually matters to the merchant.
+Visa and Mastercard know who owns the card account. But cardholder identity is
+not agent authorization. A card can be valid and active while the agent using it
+has been revoked -- because the procurement agent was compromised, because the
+employee left the company, because the mandate was cancelled by the operator.
+Visa sees a valid card. DNSid sees a revoked agent. Those are two different facts
+about the same transaction.
 
-This does not make Phase 8 wasted work -- DNSid is the right foundation for
-open-web agent identity. But Firmly and LoginID should not position DNSid as
-a complement to Visa/MC credentials. They are parallel systems for different
-transaction types, and for the larger market (card-funded), Visa/MC wins by default.
+DNSid catches agent-level revocation at Step 2, before the transaction reaches
+the card network at Step 4. This matters to the merchant: a revoked agent that
+reaches Visa TAP will pass Visa's check (the card is still valid) and the merchant
+will process a transaction they should not have. DNSid is the guard at the earlier
+door that Visa does not check.
 
-**Objection 3: Maritime's value is convenience, not moat.**
-Any cloud provider can host an agent with an HTTPS endpoint. AWS, GCP, Vercel,
-Railway -- all provide this. Maritime's differentiation is agent-specific tooling
-and NANDA integration by default. If NANDA adoption stalls (Objection 1), Maritime's
-differentiation collapses to "cheap hosting with agent templates" -- a commodity.
+The positioning is: DNSid + Visa TAP together provide defense in depth. Neither
+alone is sufficient. DNSid handles agent-level revocation; Visa TAP handles
+cardholder-level authorization. The merchant who has both is more protected than
+the merchant who has only one.
 
-The Maritime bet only pays off if NANDA becomes the discovery standard. It is
-a double bet, not a single one.
+**Why NANDA/Maritime adds value even when Visa TAP is present:**
 
-**The honest strategic framing:**
+NANDA operates at Step 1 -- discovery. Visa TAP operates at Step 4 -- payment.
+They do not overlap. A buyer agent searching for sellers has not yet reached the
+payment step. The trust question at Step 1 is "is this a legitimate seller?" --
+which Visa cannot answer because the transaction has not started yet.
+
+The Firmly + LoginID co-signature on NANDA answers the Step 1 question before
+any payment credential is involved. It is the trust signal that gets the buyer
+agent to initiate the transaction in the first place. Without it, the buyer
+agent has no basis for trusting the seller except self-asserted claims.
+
+**What remains a real risk:**
+
+The risk is not that Visa/MC displace NANDA/DNSid -- the steps are different.
+The risk is that NANDA adoption stalls and buyers never reach Step 1 through
+NANDA at all. If closed directories (OpenAI plugin store, Shopify agent
+marketplace, Anthropic tool directory) become the dominant discovery mechanism,
+Step 1 bypasses NANDA entirely. In that world, the NANDA co-signature has no
+audience.
+
+This is the strategic risk for Firmly and LoginID: not that Visa competes with
+them, but that discovery moves inside closed platforms that neither company
+controls. The three-path distribution strategy addresses this directly: Path 1
+(NANDA/Maritime) for the open web, Path 2 (SDK/builder partnerships) for the
+closed platforms, Path 3 (foundation model partnerships) for the LLM layer.
+
+**The strategic framing:**
 NANDA + Maritime + DNSid form a coherent open-web stack that works well together.
 The risk is that the open web for agent commerce never reaches the scale needed
 for this stack to matter commercially -- because Visa, Mastercard, Shopify,
@@ -1032,25 +1050,42 @@ Only the two mock address generation functions change -- all other code is ident
 | Regulatory tailwind | Very high | Very high |
 | Enterprise sales fit | Very high -- but through networks, not around them | Very high -- but depends on network partnership |
 
-**Critical analysis: competitive tensions and honest objections**
+**Where the card networks operate vs. where LoginID and Firmly operate**
 
-This phase requires confronting three uncomfortable questions before building
-anything. The eval document should not paper over them.
+Understanding the relationship requires mapping where each layer sits in the
+transaction flow:
 
-**Objection 1: Visa and Mastercard compete directly with LoginID.**
+```
+Step 1: Discovery       -- buyer finds seller            (NANDA / Maritime)
+Step 2: Agent identity  -- is this agent real, not revoked? (DNSid)
+Step 3: Authorization   -- did a human approve this spend?  (AP2 / Intent Mandate)
+Step 4: Payment auth    -- can this agent use this card?     (Visa TAP / MC Token)
+Step 5: Settlement      -- money moves                      (Stripe / Coinbase / ACH)
+```
+
+Visa TAP and Mastercard Agent Pay own Step 4. DNSid owns Step 2. They are not
+competing -- they answer different questions at different points.
+
+The key insight on DNSid and card networks: Visa and Mastercard know the
+cardholder identity. They do not know agent authorization. A card can be valid
+while the agent using it has been revoked -- compromised agent, terminated
+employee, cancelled mandate. Visa sees a valid card at Step 4. DNSid catches
+the revocation at Step 2, before the transaction reaches the network. DNSid
+and Visa TAP together provide defense in depth; neither alone is complete.
+
+**Where the card networks do create competitive tension with LoginID:**
 
 Visa TAP (RFC 9421) issues cryptographically signed agent credentials. Mastercard
 Verifiable Intent creates a tamper-resistant human consent record. Both products
-do what LoginID does -- prove a human authorized a specific action -- but backed
-by the full trust infrastructure of a card network: issuer relationships, fraud
-liability frameworks, and hundreds of millions of enrolled cardholders.
+address human authorization at Step 4 -- they answer "did a human consent to
+this agent acting on their behalf?" from the network's perspective. This overlaps
+with what LoginID does at the transaction level.
 
-LoginID's FIDO2 biometric is a strong authentication product. But Visa and
-Mastercard are not just authentication products -- they are authorization
-infrastructure that banks and merchants already trust and have already integrated.
-A merchant that accepts Visa TAP does not need LoginID to prove the buyer's human
-owner authorized the agent. The network credential already contains that proof,
-and it comes with network-level fraud liability protection that LoginID cannot match.
+LoginID's FIDO2 biometric is a strong authentication product. But the card
+networks provide authorization backed by fraud liability frameworks and issuer
+relationships that LoginID cannot match for card-funded transactions. A merchant
+that accepts Visa TAP has network-level human consent proof for card payments.
+LoginID's transaction-level authorization is redundant there.
 
 **Where LoginID is not displaced:**
 The card networks cover their own cardholders on their own rails. They do not cover:
