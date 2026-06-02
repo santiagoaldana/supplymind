@@ -1133,27 +1133,76 @@ The honest position: Firmly is at risk of being squeezed between the card networ
 position is the governance and compliance layer -- AP2 mandates, audit trails, and
 the multi-protocol abstraction -- not the payment execution layer.
 
-**Objection 3: DNSid and NANDA/Maritime provide no value to Visa or Mastercard.**
+**How AP2 (Phases 4, 9, 10) relates to Mastercard Verifiable Intent:**
 
-This is correct and worth stating explicitly. Visa TAP and Mastercard Agent Pay
-do not read DNSid handles. They do not query NANDA registries. A merchant enrolled
-in Visa TAP gets agent identity verification from Visa's own credential system,
-not from SupplyMind's Phase 8 registry.
+This comparison is important because Mastercard Verifiable Intent and our AP2
+chain (Intent Mandate + Cart Mandate + Seller Authorization Manifest) cover the
+same conceptual ground from different angles. Understanding the overlap and the
+gaps clarifies what each company should build vs. defer.
 
-The value of DNSid and NANDA to the card networks is zero -- they built their
-own identity and trust infrastructure. This does not make DNSid worthless, but
-it means DNSid's value is limited to the open agentic web (non-card transactions,
-stablecoin payments, NANDA-discovered agents). For Visa/MC transactions, DNSid
-is irrelevant.
+What AP2 provides (SupplyMind Phases 4, 9, 10):
+- Intent Mandate: human operator signs spending policy with secp256k1 -- governs
+  what the buyer agent may spend, with whom, up to what limits
+- Cart Mandate: buyer agent signs per-transaction authorization, linked to and
+  constrained by the Intent Mandate
+- Seller Authorization Manifest: merchant operator signs what the seller agent
+  may offer, at what prices, with what discount limits
+- Signed Offer: seller agent signs each quote against the manifest
+
+The full AP2 chain is visible to the merchant and to the governance dashboard.
+It is cryptographically verifiable end-to-end. It answers: did a human authorize
+this specific transaction, and is it within the bounds they set?
+
+What Mastercard Verifiable Intent provides:
+- A tamper-resistant signed record linking consumer identity, their specific
+  instructions, and the transaction outcome
+- Visible to the card network, the issuer, and the acquiring bank -- not just
+  the merchant
+- Backed by Mastercard's legal and fraud liability framework
+- Usable in dispute resolution with financial institutions
+
+The structural comparison:
+
+| Layer | AP2 (our build) | MC Verifiable Intent |
+|---|---|---|
+| Who signs | Human operator key (secp256k1) | Consumer via Mastercard enrollment |
+| What is signed | Spending policy + per-transaction auth | Consumer intent + transaction outcome |
+| Who sees it | Merchant, governance dashboard | Card network, issuer, acquirer |
+| Legal weight | Merchant-level audit artifact | Network-level dispute record |
+| Covers | All payment rails (USDC, fiat, ACH) | Card-funded transactions only |
+
+The gap AP2 does not fill: network visibility. Our Cart Mandate proves to the
+merchant that a human authorized the transaction. It does not prove this to the
+card network or the issuer. If a dispute escalates to a chargeback, the bank
+does not see the AP2 mandate -- it sees the Mastercard Verifiable Intent record,
+if one exists.
+
+The gap Mastercard Verifiable Intent does not fill: pre-payment governance.
+MC Verifiable Intent records what happened after the fact. It does not enforce
+spending limits before the transaction is submitted. The buyer's AP2 mandate
+(max $500 per transaction) is enforced at Step 3 before the card network sees
+anything. MC Verifiable Intent at Step 4 cannot prevent a transaction that
+exceeds the mandate -- it can only record that it happened.
+
+Both are needed for the complete picture:
+- AP2 mandates: prevent unauthorized transactions before they reach the network
+- MC Verifiable Intent: create legally defensible records after they execute
+
+The joint Firmly + LoginID product is the bridge: Firmly generates AP2 mandates
+that enforce spending policy pre-transaction; LoginID signs the Intent Mandate
+with FIDO2 biometric so the mandate itself can be submitted as evidence in a
+network-level dispute, giving the AP2 artifact the legal weight that MC Verifiable
+Intent carries at the network layer.
 
 **Implication for Phase 14 build:**
 
-Build Visa TAP and Mastercard Agent Pay as verification gates, but frame them
-correctly: these are the card network trust layer that replaces DNSid for
-card-funded transactions, not an extension of it. The governance dashboard should
-show both: a transaction verified by DNSid + AP2 mandate (open web) vs. a
-transaction verified by Visa TAP credential (card network). These are parallel
-trust paths, not a single chain.
+Build Visa TAP and Mastercard Agent Pay as verification gates that sit alongside
+the existing AP2 chain -- not replacing it. The governance dashboard should show
+both trust paths for each transaction:
+- Open-web path: DNSid verified + AP2 Intent/Cart Mandate chain (merchant-visible)
+- Card-network path: Visa TAP credential + MC Verifiable Intent (network-visible)
+A transaction with both is the highest trust level. A transaction with only one
+has a gap the other does not cover.
 
 **LoginID's realistic role in Phase 14:**
 Not the transaction authorization layer (Visa/MC own that). The enrollment
