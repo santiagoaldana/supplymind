@@ -577,6 +577,64 @@ trust standard before a dominant player does is open now. A closed directory
 not develop a credible trust layer. Firmly and LoginID are better positioned
 than any other pair of companies to be that trust layer.
 
+**Critical analysis: honest objections to NANDA/Maritime value**
+
+The above analysis is the optimistic case. Before committing resources, both
+companies should stress-test three objections:
+
+**Objection 1: NANDA may not become the standard.**
+The open decentralized registry narrative is compelling but historically the
+open standard often loses to the closed platform with distribution. Google
+Shopping, Amazon Marketplace, and Shopify each built closed curated directories
+that dominate their respective markets. If OpenAI builds an agent directory for
+ChatGPT plugins (which it effectively has), or if Anthropic builds one for
+Claude agents, or if Shopify builds one for commerce agents -- these closed
+directories have instant distribution that NANDA cannot match.
+
+The value of the NANDA co-signature is zero if buyers never query NANDA.
+Firmly and LoginID should not invest heavily in NANDA unless they have evidence
+that buyer agent developers are actively querying it, or unless they can be
+the entity that creates that behavior (e.g. by embedding NANDA queries in
+Firmly Connect's buyer-side SDK).
+
+**Objection 2: DNSid provides no value to Visa or Mastercard.**
+This must be stated explicitly. For any transaction that goes through the card
+network layer -- which is most consumer commerce and a large portion of B2B --
+Visa TAP and Mastercard Agent Pay replace the need for DNSid verification.
+The networks do not read DNSid handles. A merchant using Visa TAP gets agent
+identity verification from Visa's infrastructure, not from DNSid.
+
+DNSid's value is real but narrow: it matters for open-web, non-card transactions
+(stablecoin payments, AP2-governed B2B procurement without a card rail, NANDA-
+discovered agents). For card-funded commerce, DNSid is invisible to the trust
+infrastructure that actually matters to the merchant.
+
+This does not make Phase 8 wasted work -- DNSid is the right foundation for
+open-web agent identity. But Firmly and LoginID should not position DNSid as
+a complement to Visa/MC credentials. They are parallel systems for different
+transaction types, and for the larger market (card-funded), Visa/MC wins by default.
+
+**Objection 3: Maritime's value is convenience, not moat.**
+Any cloud provider can host an agent with an HTTPS endpoint. AWS, GCP, Vercel,
+Railway -- all provide this. Maritime's differentiation is agent-specific tooling
+and NANDA integration by default. If NANDA adoption stalls (Objection 1), Maritime's
+differentiation collapses to "cheap hosting with agent templates" -- a commodity.
+
+The Maritime bet only pays off if NANDA becomes the discovery standard. It is
+a double bet, not a single one.
+
+**The honest strategic framing:**
+NANDA + Maritime + DNSid form a coherent open-web stack that works well together.
+The risk is that the open web for agent commerce never reaches the scale needed
+for this stack to matter commercially -- because Visa, Mastercard, Shopify,
+OpenAI, and Anthropic each have enough distribution to create closed alternatives
+that merchants and buyers adopt instead.
+
+Firmly and LoginID should pursue the NANDA/Maritime/DNSid stack as a real option
+while hedging by also pursuing partnerships with the closed platforms (Path 2 and
+Path 3 in the distribution strategy section). The open-web position is correct
+and defensible if it gains adoption. It should not be the only bet.
+
 ---
 
 ## Phase 7: Cryptographic Identity (secp256k1, DID, KYA)
@@ -967,34 +1025,122 @@ Only the two mock address generation functions change -- all other code is ident
 
 | Criterion | LoginID | Firmly |
 |-----------|---------|--------|
-| Differentiation | High | High |
-| Gap addressed | Biometric consumer consent for network credentials is unsolved | No agentic platform natively validates both network credentials |
+| Differentiation | Contested -- see critical analysis below | Contested -- see critical analysis below |
+| Gap addressed | Biometric consent layer IF networks don't build it themselves | Protocol abstraction IF networks don't bypass Firmly entirely |
 | Standard clarity | Maturing -- both networks live | Maturing |
-| Joint leverage | High | High |
+| Joint leverage | Lower than prior phases -- see below | Lower than prior phases -- see below |
 | Regulatory tailwind | Very high | Very high |
-| Enterprise sales fit | Very high | Very high |
+| Enterprise sales fit | Very high -- but through networks, not around them | Very high -- but depends on network partnership |
 
-**LoginID:** Visa TAP requires a consumer consent record signed by the consumer's
-issuer. Mastercard Verifiable Intent requires a tamper-resistant record of what
-the human authorized. Neither requires biometric proof of the human during consent.
-LoginID can be the biometric consent ceremony -- when a consumer grants an agent
-permission to use their Visa or Mastercard, LoginID provides the FIDO2 attestation
-that a verified human (not a script) gave that consent. Direct integration point
-with both networks.
+**Critical analysis: competitive tensions and honest objections**
 
-**Firmly:** Firmly Connect as merchant-of-record needs to accept Visa TAP and
-MC Agent Pay credentials from buyer agents. Firmly should be the first agentic
-commerce platform to natively validate both network credentials before accepting
-any agent purchase -- turning this into a trust signal for merchants using
-Firmly Connect.
+This phase requires confronting three uncomfortable questions before building
+anything. The eval document should not paper over them.
 
-**Joint:** LoginID provides the consumer consent biometric. Firmly validates the
-resulting network credential. Full chain: human biometric (LoginID) -- network
-token (Visa TAP / MC Agent Pay) -- merchant acceptance (Firmly Connect).
+**Objection 1: Visa and Mastercard compete directly with LoginID.**
 
-**Roadmap recommendation:** Highest regulatory urgency for both companies. Visa TAP
-and MC Agent Pay integration should be prioritized for any customer in financial
-services, banking, or regulated retail.
+Visa TAP (RFC 9421) issues cryptographically signed agent credentials. Mastercard
+Verifiable Intent creates a tamper-resistant human consent record. Both products
+do what LoginID does -- prove a human authorized a specific action -- but backed
+by the full trust infrastructure of a card network: issuer relationships, fraud
+liability frameworks, and hundreds of millions of enrolled cardholders.
+
+LoginID's FIDO2 biometric is a strong authentication product. But Visa and
+Mastercard are not just authentication products -- they are authorization
+infrastructure that banks and merchants already trust and have already integrated.
+A merchant that accepts Visa TAP does not need LoginID to prove the buyer's human
+owner authorized the agent. The network credential already contains that proof,
+and it comes with network-level fraud liability protection that LoginID cannot match.
+
+**Where LoginID is not displaced:**
+The card networks cover their own cardholders on their own rails. They do not cover:
+- Stablecoin (USDC) transactions on Base or Ethereum -- no Visa TAP here
+- B2B procurement agents operating under AP2 mandates without card payments
+- Enterprise buyer agents in regulated industries that use wire transfer or ACH
+- The initial enrollment ceremony itself -- Visa TAP requires the human to
+  enroll their agent with their issuer. That enrollment event is where LoginID
+  fits: providing the FIDO2 biometric at the moment of enrollment, not at every
+  transaction. If Visa or MC mandate biometric enrollment (likely in regulated
+  markets), LoginID is the natural issuer-side ceremony provider.
+
+The honest position: LoginID competes with the card networks on the transaction
+authorization layer and loses. LoginID wins on the enrollment ceremony layer --
+if and only if the networks require biometric proof at enrollment rather than
+relying on password or OTP. This is not guaranteed.
+
+**Objection 2: Visa and Mastercard compete directly with Firmly.**
+
+Firmly Connect's value proposition is abstracting across protocols (MCP, AP2, ACP,
+UCP, A2A) so merchants connect once. But if Visa TAP and MC Agent Pay become the
+dominant agent payment standard -- which is plausible given network effects --
+merchants will connect to the card networks directly, not through a middleware
+layer. Visa already has direct integrations at Adyen, Stripe, and Worldpay.
+
+If Stripe natively handles Visa TAP verification (which it does), and if most
+agentic purchases are card-funded (which most B2C purchases are), then Firmly's
+protocol abstraction layer may be redundant for the Visa/MC transaction layer.
+
+**Where Firmly is not displaced:**
+The card networks cover the payment authorization layer. They do not cover:
+- Pre-purchase discovery: how does the buyer agent find the seller and get a quote?
+  NANDA, A2A agent cards, and UCP catalogs are not card network products.
+- Spending governance: AP2 mandates, Cart Mandates, and the ACF tier system are
+  not card network products. A merchant that wants to enforce spending policies
+  above the network level needs Firmly.
+- Multi-protocol checkout: a merchant selling to both card-funded agents (Visa TAP)
+  and stablecoin agents (x402, Base) needs a layer above the card network.
+  Firmly is that layer.
+- B2B procurement: most large B2B transactions are invoice or ACH, not card.
+  The card networks' agentic products are primarily B2C today.
+
+The honest position: Firmly is at risk of being squeezed between the card networks
+(payment authorization) and the LLM platforms (discovery and intent). The defensible
+position is the governance and compliance layer -- AP2 mandates, audit trails, and
+the multi-protocol abstraction -- not the payment execution layer.
+
+**Objection 3: DNSid and NANDA/Maritime provide no value to Visa or Mastercard.**
+
+This is correct and worth stating explicitly. Visa TAP and Mastercard Agent Pay
+do not read DNSid handles. They do not query NANDA registries. A merchant enrolled
+in Visa TAP gets agent identity verification from Visa's own credential system,
+not from SupplyMind's Phase 8 registry.
+
+The value of DNSid and NANDA to the card networks is zero -- they built their
+own identity and trust infrastructure. This does not make DNSid worthless, but
+it means DNSid's value is limited to the open agentic web (non-card transactions,
+stablecoin payments, NANDA-discovered agents). For Visa/MC transactions, DNSid
+is irrelevant.
+
+**Implication for Phase 14 build:**
+
+Build Visa TAP and Mastercard Agent Pay as verification gates, but frame them
+correctly: these are the card network trust layer that replaces DNSid for
+card-funded transactions, not an extension of it. The governance dashboard should
+show both: a transaction verified by DNSid + AP2 mandate (open web) vs. a
+transaction verified by Visa TAP credential (card network). These are parallel
+trust paths, not a single chain.
+
+**LoginID's realistic role in Phase 14:**
+Not the transaction authorization layer (Visa/MC own that). The enrollment
+ceremony layer -- the one-time event where the human grants their agent permission
+to use their card credential. This is genuinely valuable and genuinely unsolved
+by the networks themselves. The networks issue the credential; they do not specify
+how the human proves they are human at enrollment. LoginID fills that gap.
+
+**Firmly's realistic role in Phase 14:**
+Accept Visa TAP and MC Agent Pay credentials as trust signals for card-funded
+agent purchases, while maintaining the governance layer (AP2 mandates, audit trail)
+that the card networks do not provide. Firmly is the layer above the card network,
+not a competitor to it.
+
+**Roadmap recommendation:**
+Both companies must partner with the card networks, not compete with them. For
+LoginID: approach Visa and Mastercard as the biometric enrollment provider -- the
+missing link in their agent credentialing stack. For Firmly: integrate Visa TAP
+and MC Agent Pay credential validation into Firmly Connect so merchants get both
+network-level trust (card network) and governance-level trust (Firmly + LoginID)
+in a single platform. The joint story is: card network for payment trust, Firmly
+for governance trust, LoginID for the enrollment ceremony that ties both together.
 
 ---
 
