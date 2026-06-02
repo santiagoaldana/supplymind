@@ -64,6 +64,7 @@ from src.identity.seller_manifest import (
 )
 from src.identity.keys import load_or_create_private_key_from_file
 from src.seller_agent.protocol_router import normalize_acp, normalize_ucp_task, NormalizedOrder
+from src.governance.event_log import log_event
 
 # CLI args: --port, --well-known-dir, --name
 # Defaults match Phase 3 behavior so all existing tests still work.
@@ -322,6 +323,8 @@ def _build_task_result(order: NormalizedOrder) -> JSONResponse:
     }
 
     TASKS[task_id] = task
+    log_event("Enforcement", "transaction_completed", order.buyer_id,
+              order.protocol, f"task_id={task_id} subtotal=${subtotal} protocol={order.protocol} dnsid_verified={buyer_dnsid_verified} mandate_verified={cart_mandate_verified}")
     return JSONResponse(content=task, status_code=201)
 
 
@@ -385,6 +388,40 @@ async def acp_checkout(
 async def list_tasks():
     """List all tasks -- used by governance dashboard for protocol-of-record audit."""
     return JSONResponse(content=list(TASKS.values()))
+
+
+@app.get("/governance/data/agents")
+async def governance_agents():
+    """Governance: export DNSid registry for dashboard cross-process read."""
+    from src.identity.dnsid import list_registry
+    return JSONResponse(content=list_registry())
+
+
+@app.get("/governance/data/manifests")
+async def governance_manifests():
+    """Governance: export seller manifests for dashboard cross-process read."""
+    return JSONResponse(content=list(SELLER_MANIFESTS.values()))
+
+
+@app.get("/governance/data/intent-mandates")
+async def governance_intent_mandates():
+    """Governance: export intent mandates for dashboard cross-process read."""
+    from src.identity.signed_mandate import INTENT_MANDATES
+    return JSONResponse(content=list(INTENT_MANDATES.values()))
+
+
+@app.get("/governance/data/cart-mandates")
+async def governance_cart_mandates():
+    """Governance: export cart mandates for dashboard cross-process read."""
+    from src.identity.signed_mandate import CART_MANDATES
+    return JSONResponse(content=list(CART_MANDATES.values()))
+
+
+@app.get("/governance/data/signed-offers")
+async def governance_signed_offers():
+    """Governance: export signed offers for dashboard cross-process read."""
+    from src.identity.seller_manifest import SIGNED_OFFERS
+    return JSONResponse(content=list(SIGNED_OFFERS.values()))
 
 
 @app.get("/tasks/{task_id}")

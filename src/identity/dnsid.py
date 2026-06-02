@@ -31,6 +31,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
+from src.governance.event_log import log_event
+
 _REGISTRY: dict[str, dict] = {}
 
 _TEST_REVOKED_HANDLE = "dnsid://test.invalid/revoked"
@@ -69,6 +71,7 @@ def register_agent(
         "revocation_reason": None,
         "registration_id": str(uuid.uuid4()),
     }
+    log_event("Identity", "agent_registered", handle, owner, f"agent_id={agent_id} domain={domain}")
     return handle
 
 
@@ -119,6 +122,7 @@ def revoke_agent(handle: str, reason: str = "revoked by owner") -> dict:
     record["status"]             = "revoked"
     record["revoked_at"]         = _now()
     record["revocation_reason"]  = reason
+    log_event("Identity", "agent_revoked", handle, record["owner"], f"reason={reason}")
     return dict(record)
 
 

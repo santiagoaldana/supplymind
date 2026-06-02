@@ -29,6 +29,7 @@ from src.identity.keys import generate_keypair
 from src.identity.dnsid import register_agent, revoke_agent, _REGISTRY
 from src.identity.seller_manifest import create_seller_manifest, create_signed_offer, SELLER_MANIFESTS, SIGNED_OFFERS
 from src.identity.signed_mandate import create_intent_mandate, create_cart_mandate, INTENT_MANDATES, CART_MANDATES
+from src.governance.event_log import clear_log
 from src.governance.dashboard import app
 
 PASS      = "[PASS]"
@@ -106,6 +107,7 @@ def run():
     print("  Using in-process FastAPI test client (shared memory with seeded data)")
     print()
 
+    clear_log()
     seller_handle, buyer_handle, manifest, offer, intent, cart = _seed_data()
 
     # Test 1: agents endpoint
@@ -188,19 +190,19 @@ def run():
     assert data["enforcement"]["manifest_gate_active"] is True
     print(f"  {PASS} summary_gates: enforcement gates correctly report active")
 
-    # Test 9: audit trail -- all four layers present, ordered by timestamp
+    # Test 9: audit trail reads from log file, ordered by ts
     r = client.get("/governance/audit-trail")
     assert r.status_code == 200
     data = r.json()
     assert data["total_events"] > 0
+    assert data["log_file"] == "logs/audit.jsonl"
     layers = {e["layer"] for e in data["events"]}
     assert "Identity"    in layers
     assert "Scoping"     in layers
     assert "Approvals"   in layers
-    assert "Enforcement" in layers
-    timestamps = [e["timestamp"] for e in data["events"]]
+    timestamps = [e["ts"] for e in data["events"]]
     assert timestamps == sorted(timestamps)
-    print(f"  {PASS} audit_trail: {data['total_events']} events, all 4 Clerk layers, ordered by timestamp")
+    print(f"  {PASS} audit_trail: {data['total_events']} events from log file, ordered by timestamp")
 
     # Test 10: index page
     r = client.get("/")

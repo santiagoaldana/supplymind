@@ -39,7 +39,9 @@ SupplyMind/
     governance/                    # Phase 10 (planned): audit dashboard
   data/                            # SQLite DBs, seed data
   logs/                            # Tool call traces, run logs
-  tests/                           # Phase test scripts (test_phase1 through test_phase10)
+  tests/                           # Phase test scripts (test_phase1 through test_phase12)
+  logs/
+    audit.jsonl                    # Durable append-only audit event log (persists across restarts)
 ```
 
 ## 15-Phase Build Plan

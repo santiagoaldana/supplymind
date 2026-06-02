@@ -38,6 +38,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from src.identity.keys import sign_document, verify_signature, public_key_to_hex
+from src.governance.event_log import log_event
 
 SELLER_MANIFESTS: dict[str, dict] = {}
 SIGNED_OFFERS:   dict[str, dict] = {}
@@ -86,6 +87,8 @@ def create_seller_manifest(
         "signature": sign_document(manifest, private_key),
     }
     SELLER_MANIFESTS[manifest_id] = manifest
+    log_event("Scoping", "seller_manifest_signed", seller_agent_id, operator_id,
+              f"manifest_id={manifest_id} skus={len(authorized_skus)}")
     return manifest
 
 
@@ -148,6 +151,8 @@ def create_signed_offer(
         "signature": sign_document(offer, private_key),
     }
     SIGNED_OFFERS[offer_id] = offer
+    log_event("Enforcement", "signed_offer_generated", sku.upper(),
+              buyer_id or "unknown", f"offer_id={offer_id} unit_price=${unit_price} qty={quantity} total=${total}")
     return offer
 
 

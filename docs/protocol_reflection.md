@@ -694,6 +694,73 @@ network-level credentials (Visa TAP, Mastercard Agent Pay), and revocation
 infrastructure. Phase 7 lays the foundation; Phases 8 and 13 make it
 enterprise-grade.
 
+**The missing layer: business entity verification (KYA gap)**
+
+Phase 7 proves the agent signed its own credential. DNSid (Phase 8) proves
+the agent controls a domain. Neither answers the question that every payment
+rail, lender, and supplier actually needs: is the business behind this agent
+real, solvent, and legally clean?
+
+This is the KYA gap. An agent can have a perfect secp256k1 signature and a
+valid DNSid handle and still represent a shell LLC incorporated yesterday at
+a vacant lot, sanctioned, or under active litigation. Cryptographic identity
+and business entity verification are orthogonal problems. The first proves
+the agent is who it claims to be. The second proves the claimed entity is
+worth trusting.
+
+The traditional KYB (Know Your Business) process was designed for humans
+filling out forms reviewed by other humans. It cannot run at agent speed.
+When a buyer agent and seller agent negotiate a procurement contract in
+seconds, there is no time for a compliance analyst to pull a D&B report,
+check references, and screen OFAC. A machine-readable, real-time trust
+oracle has to exist at the protocol layer.
+
+Without it, every agentic payment rail, every trade credit workflow, and
+every merchant onboarding process either falls back to human intervention
+(which defeats the purpose of agents) or accepts unverified counterparties
+(which opens the door to fraud at machine speed).
+
+**Market landscape: who is building this layer (as of June 2026)**
+
+This gap has attracted real capital and enterprise attention. The emerging
+category is sometimes called the "agent trust layer" or "KYA infrastructure."
+
+| Player | Approach | Signal |
+|--------|----------|--------|
+| Baselayer | Graph AI over SOS, EIN, OFAC, liens, litigation. Immutable Business ID carried by the agent. MCP server integration planned. | $6.5M seed (Torch Capital, Founder Collective, Afore). B2B focus. |
+| Skyfire | KYAPay protocol: signed JWTs carrying verified identity claims (who built the agent, who authorized it, what it can do, how it pays). | $9.5M total (a16z CSX, Coinbase Ventures, Neuberger Berman). Partnered with Experian. |
+| Experian Agent Trust | Human-to-agent binding: takes KYA tokens and enriches them against Experian's consumer and business data, issues a real-time risk score. Partners include Skyfire, Akamai, Visa, Cloudflare. | Enterprise incumbency. Launched April 2026. |
+| Trulioo | Published KYA white paper. Extending existing KYB/KYC platform to cover agent identity verification. | Established identity verification vendor, 195 countries. |
+| KnowYourAgent.xyz | Lightweight agent verification at checkout. Consumer-facing. | Early stage, narrow scope. |
+
+Three distinct approaches are emerging:
+
+1. **Business graph oracles** (Baselayer): verify the legal entity behind the
+   agent via authoritative records. Answer: "is this business real and clean?"
+
+2. **Agent credential issuers** (Skyfire, Clerk, AgentPass): issue signed tokens
+   that assert what the agent is authorized to do on behalf of a verified human.
+   Answer: "is this agent properly delegated?"
+
+3. **Network trust stamps** (Experian, Visa TAP, Mastercard Agent Pay): large
+   incumbents enriching agent identity with their existing risk data and network
+   relationships. Answer: "does our network vouch for this counterparty?"
+
+These three approaches are complementary, not competing. A production agentic
+commerce stack needs all three: a business graph oracle to verify the entity,
+a credential issuer to constrain the agent's authority, and a network trust
+stamp to make the credential universally recognized. SupplyMind builds the
+protocol layer that sits above all three: the agent-to-agent transaction flow
+that consumes these trust signals and acts on them.
+
+**Why this matters for SupplyMind:**
+SupplyMind intentionally left this gap open. The prototype builds and operates
+the transaction protocol stack (MCP, A2A, UCP, AP2, ACP) and documents where
+an external trust oracle would plug in. That gap, between cryptographic identity
+and business entity verification, is exactly where a $6.5M seed company is
+building today. SupplyMind's architecture is a working prototype of the layer
+above theirs.
+
 ---
 
 ## Phase 8: DNSid — Agent Ownership Registry (Done)
@@ -917,14 +984,36 @@ for every security investment made in previous phases.
   do not understand DNSid handles, mandate structures, or agentic commerce
   semantics. A custom dashboard is the only option for domain-specific audit.
 
+**What was built:**
+- `src/governance/dashboard.py`: FastAPI server on port 8085. Six endpoints:
+  GET /governance/agents (Identity), /governance/seller-manifests (Scoping seller),
+  /governance/intent-mandates (Scoping buyer), /governance/cart-mandates (Approvals),
+  /governance/signed-offers (Enforcement), /governance/summary (CISO single-screen),
+  /governance/audit-trail (durable log), /governance/protocols (Phase 12 protocol breakdown)
+- `src/governance/event_log.py`: append-only JSONL audit log at logs/audit.jsonl.
+  Every significant event (agent registration, revocation, manifest signing, mandate
+  creation, transaction completion) is written as it happens. Persists across restarts.
+- Dashboard reads live data from seller server via HTTP endpoints added to seller:
+  GET /governance/data/agents, /manifests, /intent-mandates, /cart-mandates, /signed-offers
+- Falls back to in-process in-memory reads when seller server is unreachable (test mode)
+
+**Log file format (logs/audit.jsonl):**
+One JSON object per line. Example:
+  {"ts": "2026-06-02T20:12:07Z", "layer": "Identity", "event": "agent_registered",
+   "entity": "dnsid://supplymind.localhost/agents/seller-001",
+   "operator": "supplymind.localhost", "detail": "agent_id=seller-001"}
+
 **Why this matters:**
 The governance dashboard is not a Phase 11 add-on. It is the artifact that makes
 every phase before it auditable. Without it, the security properties of DNSid,
 signed mandates, and network credentials exist in logs that no one reads.
+With the durable log, every event is written to disk as it happens -- a CISO can
+open logs/audit.jsonl in any text editor and read the complete history of every
+agent, every authorization, and every transaction the system has ever processed.
 
 ---
 
-## Phase 12: ACP — Agentic Commerce Protocol (Planned)
+## Phase 12: ACP — Agentic Commerce Protocol (Done)
 
 **Type:** Protocol
 **Established by:** OpenAI and Stripe (September 2025). Apache 2.0.
@@ -964,6 +1053,20 @@ same spending policy regardless of which checkout protocol the buyer used.
 - [Scoping] ACP and UCP may expose different catalog fields. The router must
   ensure that a buyer cannot access more catalog data via one protocol than
   the other. Schema normalization is required before routing.
+
+**What was built:**
+- `src/seller_agent/protocol_router.py`: normalize_acp() and normalize_ucp_task()
+  convert either wire format to NormalizedOrder. Single shared pipeline for all protocols.
+- POST /acp/v1/checkout: new endpoint for GPT-4o and Stripe-based buyer agents.
+  Same DNSid and Cart Mandate gates as UCP -- protocol cannot bypass identity checks.
+- protocol_of_record field ("acp" or "ucp") in every task result and governance audit trail.
+- GET /governance/protocols: dashboard endpoint showing protocol breakdown per transaction.
+- 9 tests: 2 unit (router normalization) + 7 integration.
+
+**Security invariant implemented:**
+DNSid and Cart Mandate gates are applied in _apply_gates() BEFORE routing to the
+order execution pipeline. A buyer agent using ACP cannot bypass any gate that a
+UCP buyer would face. The protocol is a transport choice, not a trust level.
 
 **Why this matters:**
 Single-protocol sellers are partitioned from a large portion of agentic traffic.

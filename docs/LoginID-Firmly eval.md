@@ -874,6 +874,18 @@ connected agent).
 Center. Most valuable single product investment for enterprise sales motion.
 LoginID -- human attestation log as a data feed into the dashboard.
 
+**What was built in SupplyMind:**
+The governance dashboard (port 8085) answers all four Clerk questions via HTTP
+endpoints. A durable audit log (`logs/audit.jsonl`) records every event as it
+happens -- agent registrations, manifest signings, mandate creation, transaction
+completions. The log persists across server restarts. Every event includes
+timestamp, layer, event type, entity, operator, and detail. A CISO can open
+the file directly or query it via `GET /governance/audit-trail`.
+
+The dashboard reads live data from the seller server via HTTP (cross-process safe).
+This is the architecture Firmly would use in production: a separate read-only
+audit service reading from the operational service, not sharing its memory.
+
 ---
 
 ## Phase 12: Multi-Protocol Checkout (ACP + UCP)

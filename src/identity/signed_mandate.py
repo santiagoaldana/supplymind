@@ -34,6 +34,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from src.identity.keys import sign_document, verify_signature, public_key_to_hex
+from src.governance.event_log import log_event
 
 INTENT_MANDATES: dict[str, dict] = {}
 CART_MANDATES:   dict[str, dict] = {}
@@ -81,6 +82,8 @@ def create_intent_mandate(
         "signature": sign_document(mandate, private_key),
     }
     INTENT_MANDATES[mandate_id] = mandate
+    log_event("Scoping", "intent_mandate_signed", buyer_agent_id, operator_id,
+              f"mandate_id={mandate_id} max_per_tx=${max_per_tx_usd} max_total=${max_total_usd}")
     return mandate
 
 
@@ -130,6 +133,8 @@ def create_cart_mandate(
         "signature": sign_document(cart, private_key),
     }
     CART_MANDATES[cart_id] = cart
+    log_event("Approvals", "cart_mandate_signed", seller_id,
+              buyer_dnsid or "unknown", f"cart_id={cart_id} amount=${amount_usd} intent={intent_mandate_id}")
     return cart
 
 
