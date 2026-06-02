@@ -65,6 +65,8 @@ from src.identity.seller_manifest import (
 from src.identity.keys import load_or_create_private_key_from_file
 from src.seller_agent.protocol_router import normalize_acp, normalize_ucp_task, NormalizedOrder
 from src.governance.event_log import log_event
+from src.payment_server.wallet import execute_payment, get_wallets_by_owner, list_wallets
+from src.payment_server.wallet_seed import seed as seed_wallets
 
 # CLI args: --port, --well-known-dir, --name
 # Defaults match Phase 3 behavior so all existing tests still work.
@@ -86,6 +88,7 @@ AGENT_CARD_PATH = WELL_KNOWN / "agent-card.json"
 
 init_db()
 seed_dnsid_registry()
+seed_wallets()
 
 # Load or create the seller agent's signing key (reuses Phase 7 key file pattern)
 _SELLER_KEY_FILE = Path(__file__).parent.parent.parent / "data" / "seller_agent.key.hex"
@@ -306,6 +309,31 @@ def _build_task_result(order: NormalizedOrder) -> JSONResponse:
     task["status"]     = "completed"
     task["updated_at"] = _now()
     task["errors"]     = []
+    # Phase 13a: execute wallet payment
+    buyer_wallets  = get_wallets_by_owner(order.buyer_id)
+    seller_wallets = get_wallets_by_owner("did:web:localhost:8080")
+    payment_result = None
+
+    # Prefer USDC wallet; fall back to fiat
+    buyer_wallet  = next((w for w in buyer_wallets  if w["wallet_type"] == "coinbase_usdc"), None) or \
+                    next((w for w in buyer_wallets   if w["wallet_type"] == "stripe_link"),    None)
+    seller_wallet = next((w for w in seller_wallets if w["wallet_type"] == "coinbase_usdc"), None)
+
+    if buyer_wallet and seller_wallet:
+        payment_result = execute_payment(
+            from_wallet_id = buyer_wallet["wallet_id"],
+            to_wallet_id   = seller_wallet["wallet_id"],
+            amount         = subtotal,
+            task_id        = task_id,
+        )
+        if payment_result.get("status") == "insufficient_funds":
+            task["status"]     = "failed"
+            task["updated_at"] = _now()
+            task["errors"]     = [f"Payment failed: {payment_result['reason']}"]
+            task["result"]     = None
+            TASKS[task_id]     = task
+            return JSONResponse(content=task, status_code=402)
+
     task["result"] = {
         "line_items":        line_items,
         "products_subtotal": subtotal,
@@ -315,7 +343,7 @@ def _build_task_result(order: NormalizedOrder) -> JSONResponse:
             "service_level":   order.service_level,
             "note":            "Shipping cost calculated by MCP Shipping Server at order execution time",
         },
-        "payment_note":          "Phase 4: AP2 Mandate will authorize USDC settlement to each product's wallet_address.",
+        "payment_result":        payment_result,
         "buyer_dnsid_verified":  buyer_dnsid_verified,
         "cart_mandate_verified": cart_mandate_verified,
         "operator_id":           operator_id,
@@ -422,6 +450,22 @@ async def governance_signed_offers():
     """Governance: export signed offers for dashboard cross-process read."""
     from src.identity.seller_manifest import SIGNED_OFFERS
     return JSONResponse(content=list(SIGNED_OFFERS.values()))
+
+
+@app.get("/governance/data/wallets")
+async def governance_wallets():
+    """Governance: export all wallet states for dashboard cross-process read."""
+    return JSONResponse(content=list_wallets())
+
+
+@app.get("/wallet/balance")
+async def wallet_balance(owner_id: str = "did:web:localhost:8090"):
+    """Return current wallet balances for an owner. Used by demo script."""
+    wallets = get_wallets_by_owner(owner_id)
+    return JSONResponse(content={
+        "owner_id": owner_id,
+        "wallets":  wallets,
+    })
 
 
 @app.get("/tasks/{task_id}")

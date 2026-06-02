@@ -60,12 +60,12 @@ SupplyMind/
 | 10 | Seller Authorization Manifest | secp256k1, AP2 pattern, DNSid | Done |
 | 11 | Governance Dashboard | DNSid, AP2, x402, NANDA | Done |
 | 12 | Multi-Protocol Checkout | ACP (OpenAI/Stripe), UCP | Done |
-| 13 | Agent Wallet Layer | Stripe Link, Coinbase/Base MCP | Planned |
+| 13 | Agent Wallet Layer | Stripe Link, Coinbase/Base MCP | Done (13a mock; 13b optional) |
 | 14 | Network Credential Layer | Visa TAP, Mastercard Agent Pay | Planned |
 | 15 | Fraud and Bot Detection | Stripe Radar, DNSid rate limiting | Planned |
 | 16 | Stablecoin Settlement | x402 (LF), AWS AgentCore, USDC/Base | Planned |
 
-**Current phase:** Phase 13 (Agent Wallet Layer)
+**Current phase:** Phase 14 (Network Credential Layer)
 
 ## Key Protocols
 

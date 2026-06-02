@@ -177,7 +177,22 @@ def main():
               f"dnsid={t['buyer_dnsid_verified']} "
               f"mandate={t['cart_mandate_verified']}")
 
-    separator("Step 7: Governance summary")
+    separator("Step 7: Wallet balances (Phase 13a)")
+    r = httpx.get(f"{SELLER_URL}/wallet/balance?owner_id={BUYER_ID}", timeout=5.0)
+    wallets = r.json()["wallets"]
+    print(f"  Buyer wallets after 2 purchases:")
+    for w in wallets:
+        print(f"    [{w['wallet_type']:16}] balance={w['balance']:8} {w['currency']}  "
+              f"tx_count={w['tx_count']}  status={w['status']}")
+
+    r = httpx.get(f"{SELLER_URL}/wallet/balance?owner_id=did:web:localhost:8080", timeout=5.0)
+    seller_wallets = r.json()["wallets"]
+    print(f"  Seller wallets (received payments):")
+    for w in seller_wallets:
+        print(f"    [{w['wallet_type']:16}] balance={w['balance']:8} {w['currency']}  "
+              f"tx_count={w['tx_count']}")
+
+    separator("Step 8: Governance summary")
     r = httpx.get(f"{GOVERNANCE_URL}/governance/summary", timeout=5.0)
     data = r.json()
     print(f"  Health:       {data['health']}")
@@ -185,25 +200,28 @@ def main():
     print(f"  Agents:       {data['identity']['total_agents']} total, {data['identity']['revoked']} revoked")
     print(f"  Manifests:    {data['scoping']['seller_manifests']} seller manifests")
     print(f"  Transactions: {data['approvals']['total_transactions']} completed")
-    print(f"  Enforcement gates: manifest={data['enforcement']['manifest_gate_active']} "
-          f"dnsid={data['enforcement']['dnsid_gate_active']} "
-          f"mandate={data['enforcement']['cart_mandate_gate_active']}")
+    enf = data['enforcement']
+    print(f"  Enforcement gates: manifest={enf['manifest_gate_active']} "
+          f"dnsid={enf['dnsid_gate_active']} "
+          f"mandate={enf['cart_mandate_gate_active']} "
+          f"wallet={enf.get('wallet_layer_active', False)}")
 
-    separator("Step 8: Audit trail (last 6 events)")
-    r = httpx.get(f"{GOVERNANCE_URL}/governance/audit-trail?limit=6", timeout=5.0)
+    separator("Step 9: Audit trail (last 8 events)")
+    r = httpx.get(f"{GOVERNANCE_URL}/governance/audit-trail?limit=8", timeout=5.0)
     data = r.json()
     print(f"  Total events in log: {data['total_events']}")
     print(f"  Log file: {data['log_file']}")
     print()
-    for e in data["events"][-6:]:
-        print(f"  [{e['layer']:12}] {e['event']:30} {e['entity'][:50]}")
-        print(f"               operator={e['operator']}  detail={e['detail'][:60]}")
+    for e in data["events"][-8:]:
+        print(f"  [{e['layer']:12}] {e['event']:30} {e['entity'][:45]}")
+        print(f"               operator={e['operator'][:40]}  detail={e['detail'][:55]}")
 
     print()
     print("=" * 60)
     print("  Demo complete.")
-    print("  Compare the verified purchases (dnsid=True, mandate=True)")
-    print("  with the anonymous ones (dnsid=False, mandate=False).")
+    print("  Phase 13a: payment now actually moves between wallets.")
+    print("  buyer_dnsid_verified=True  cart_mandate_verified=True")
+    print("  payment_result.status=succeeded  wallet balances updated.")
     print("  The audit trail in logs/audit.jsonl has the full history.")
     print("=" * 60)
     print()

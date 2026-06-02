@@ -1075,7 +1075,7 @@ while keeping the payment governance layer unified.
 
 ---
 
-## Phase 13: Agent Wallet Layer (Planned)
+## Phase 13: Agent Wallet Layer (13a Done -- mock; 13b optional with real APIs)
 
 **Type:** Implementation (Stripe Link Agent Wallet + Coinbase/Base MCP)
 **Maturity:** Maturing. Stripe Link and Coinbase wallets are production-grade;
@@ -1110,6 +1110,32 @@ means Phase 16 has no funded wallet to draw from.
 Real wallets introduce real financial risk. The security properties of all
 previous phases exist precisely so that when real money flows, it flows within
 auditable, policy-constrained boundaries.
+
+**What was built (Phase 13a -- high-fidelity mock):**
+- `src/payment_server/wallet.py`: WALLETS dict, two rails (stripe_link fiat /
+  coinbase_usdc stablecoin). Address formats match real APIs: pm_test_* for Stripe,
+  0x* for Coinbase. execute_payment() debits buyer, credits seller, enforces mandate
+  per-tx limit, calls record_spend(), logs to audit trail. All return schemas mirror
+  real Stripe PaymentIntent and Coinbase transaction response formats.
+- `src/payment_server/wallet_seed.py`: seeds buyer (1000 USDC + 5000 USD fiat)
+  and seller (0 USDC receives payments) wallets at startup via LoginID-hook operator.
+- Seller server: execute_payment() called in _build_task_result(); payment_result
+  added to every task result; GET /wallet/balance and GET /governance/data/wallets
+  endpoints added.
+- Governance dashboard: GET /governance/wallets endpoint; wallet_layer_active in
+  summary; wallet events in audit trail.
+- 11 tests: 6 unit (provision, payment, insufficient funds, mandate limit, history)
+  + 5 integration.
+
+**Phase 13b (optional -- requires free account creation):**
+Wire up real test APIs. Both are free sandboxes:
+- Stripe: sign up at stripe.com, get sk_test_... key, add to .env. Replace
+  _mock_stripe_address() with real Stripe PaymentMethod create call.
+- Coinbase: sign up at coinbase.com/developer-platform, get CDP API key, add to .env.
+  Replace _mock_coinbase_address() with real AgentKit wallet.create() on Base Sepolia.
+  Get test USDC from faucet.base.org (free, 2 minutes).
+The function signatures and return schemas are identical -- only the implementation
+of the two mock address functions changes.
 
 ---
 

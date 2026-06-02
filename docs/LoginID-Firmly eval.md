@@ -937,6 +937,30 @@ and differentiates the platform as compliance-first.
 **Roadmap recommendation:** LoginID -- agent wallet KYC binding as a product.
 Firmly -- LoginID as required attestation step for wallet activation.
 
+**What was built in SupplyMind (Phase 13a):**
+Two wallet rails implemented as high-fidelity mocks with exact Stripe and Coinbase
+API response schemas -- swap-ready for real credentials without changing function
+signatures:
+
+- **stripe_link** (fiat rail): one virtual card per task, address format pm_test_*.
+  Mirrors Stripe PaymentIntent + PaymentMethod schemas.
+- **coinbase_usdc** (stablecoin rail): USDC wallet, address format 0x*, mirrors
+  Coinbase AgentKit wallet + transaction schemas.
+
+**The LoginID hook is explicit in the code:** provision_wallet() requires an
+operator_id -- the human who authorized wallet creation. In production this field
+is populated by the LoginID biometric ceremony result. The wallet cannot be
+provisioned without it, making LoginID a hard dependency for KYC compliance rather
+than an optional add-on.
+
+Payment now actually moves: buyer wallet debited, seller wallet credited,
+mandate running total updated, event logged. Prior phases recorded wallet
+addresses in results but never executed the transfer.
+
+**Phase 13b (optional, free):** Wire up real Stripe test keys (sk_test_...) and
+Coinbase CDP sandbox. Both platforms have free sandboxes requiring no real money.
+Only the two mock address generation functions change -- all other code is identical.
+
 ---
 
 ## Phase 14: Network Credential Layer (Visa TAP + Mastercard Agent Pay)

@@ -106,6 +106,13 @@ def _fetch_signed_offers() -> list[dict]:
         return list(SIGNED_OFFERS.values())
     return result
 
+def _fetch_wallets() -> list[dict]:
+    result = _fetch("/governance/data/wallets")
+    if not result:
+        from src.payment_server.wallet import list_wallets
+        return list_wallets()
+    return result
+
 app = FastAPI(
     title="SupplyMind Governance Dashboard",
     description="Phase 11: CISO-grade audit view -- Clerk four-question coverage across all agents and transactions",
@@ -265,6 +272,29 @@ async def get_signed_offers():
     })
 
 
+# ── Phase 13a: Wallet Layer ───────────────────────────────────────────────────
+
+@app.get("/governance/wallets")
+async def get_wallets():
+    """
+    Phase 13a: Wallet state across all agents.
+    Shows owner, rail, balance, currency, tx_count, and status.
+    Answers: what funds are available and have any wallets been depleted?
+    """
+    wallets = _fetch_wallets()
+    total_value = round(sum(w["balance"] for w in wallets), 2)
+    depleted    = [w for w in wallets if w["status"] == "depleted"]
+
+    return JSONResponse(content={
+        "clerk_question":  "Enforcement -- what is the payment capacity of each agent?",
+        "total_wallets":   len(wallets),
+        "depleted_wallets": len(depleted),
+        "total_value_usd": total_value,
+        "wallets":         wallets,
+        "generated_at":    _now(),
+    })
+
+
 # ── Phase 12: Protocol-of-Record ─────────────────────────────────────────────
 
 @app.get("/governance/protocols")
@@ -375,11 +405,12 @@ async def get_summary():
             "total_transactions": len([t for t in tasks if t.get("status") == "completed"]),
         },
         "enforcement": {
-            "clerk_question":         "Is there a mechanism preventing violations?",
-            "manifest_gate_active":   len(manifests) > 0,
+            "clerk_question":           "Is there a mechanism preventing violations?",
+            "manifest_gate_active":     len(manifests) > 0,
             "cart_mandate_gate_active": len(intents) > 0,
-            "dnsid_gate_active":      len(agents) > 0,
-            "note": "Runtime enforcement gates active: DNSid revocation, Cart Mandate verification, Seller Manifest verification",
+            "dnsid_gate_active":        len(agents) > 0,
+            "wallet_layer_active":      len(_fetch_wallets()) > 0,
+            "note": "Runtime enforcement gates active: DNSid revocation, Cart Mandate verification, Seller Manifest verification, Wallet balance enforcement",
         },
         "generated_at": _now(),
     })
