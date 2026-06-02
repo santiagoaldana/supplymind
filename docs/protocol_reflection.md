@@ -1106,6 +1106,30 @@ means Phase 16 has no funded wallet to draw from.
   (Coinbase, agent controls the key) is more complex but aligns with the
   DNSid ownership model.
 
+**LoginID's role:**
+Financial regulators require KYC (Know Your Customer) on wallet owners. When an
+agent wallet is provisioned -- whether Stripe Link or Coinbase USDC -- someone
+must prove they are the human owner who authorized it. Without this, an autonomous
+agent could provision a wallet and move money with no human accountable.
+
+LoginID is the provisioning ceremony. The `provision_wallet()` function requires
+an `operator_id` parameter -- the verified human who authorized wallet creation.
+In production this is a LoginID FIDO2 biometric event: the CFO or procurement
+manager performs a Touch ID or hardware key gesture, LoginID returns a signed
+attestation, and that attestation is stored as the `provisioned_by` field in the
+wallet record. The wallet cannot be created without it.
+
+This is LoginID's clearest product in the agentic commerce stack: every regulated
+financial institution will require a human accountability record before allowing
+an autonomous agent to hold and spend funds. LoginID produces that record.
+The `operator_id` field in every wallet record is the audit artifact -- it proves
+which human, verified by hardware biometric, authorized this agent to handle money.
+
+In the SupplyMind mock, `operator_id` is a string ("cfo@supplymind.localhost").
+In production, it is a LoginID attestation object with a FIDO2 credential ID,
+timestamp, and cryptographic proof. The field is there in the schema precisely
+so the production swap is a one-line change.
+
 **Why this matters:**
 Real wallets introduce real financial risk. The security properties of all
 previous phases exist precisely so that when real money flows, it flows within
