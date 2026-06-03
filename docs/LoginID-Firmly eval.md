@@ -465,30 +465,138 @@ register as "certified office supplies distributor" and appear in search results
 alongside legitimate sellers. Buyer agents have no way to distinguish a
 self-asserted claim from a verified one at discovery time.
 
-**What Maritime is:**
+**What Maritime actually is (updated June 2026):**
 
-Maritime.sh is a cloud hosting platform purpose-built for AI agents -- roughly
-$1/month per agent. It provides a public HTTPS endpoint (which NANDA requires),
-automatic agent card generation, and agent discovery services. It is the lowest
-friction path from "I have a local agent" to "my agent is live on the open
-agentic web." SupplyMind built a Maritime deployment manifest in Phase 6. One
-deploy command moves SupplyMind from localhost to a publicly reachable, NANDA-
-registered, HTTPS-hosted agent.
+Maritime.sh is a lightweight cloud hosting platform for AI agents. Three tiers:
+Smart ($1/month, 1,000 invocations), Extended ($5/month, 10,000 invocations),
+Always-On ($10/month, unlimited). Currently in private beta. Core architecture:
+sleep/wake model -- agents only consume compute when handling requests, which
+enables the low price point.
 
-Maritime is not just a hosting convenience -- it is a distribution mechanism.
-An agent hosted on Maritime is immediately discoverable on the open web. A
-merchant who deploys through Maritime gets NANDA registration as a side effect
-with zero additional configuration.
+**What Maritime does:**
+
+- Deploys agents from pre-configured templates (Blueprints) in minutes with no
+  Dockerfile or setup code
+- Provides a public HTTPS endpoint per agent
+- Provides persistent agent identity: dedicated phone number and email address
+  per agent (powered by Inkbox), enabling multi-channel communication
+- OAuth integrations: WhatsApp, Gmail, Telegram -- agents can authenticate into
+  these services on behalf of users
+- Built-in web browsing (Playwright), in-chat file sharing
+- Agent templates: OpenClaw (Node.js, 100+ skills, personal assistant),
+  Hermes (Nous Research, self-improving Python agent with memory), ZeroClaw
+  (ultra-lightweight Rust), CrewAI, LangGraph
+
+**What Maritime does NOT do (confirmed gaps):**
+
+- No explicit support for AP2, UCP, x402, or DNSid protocols
+- No commerce-specific features -- no catalog, no checkout, no payment rail
+- No explicit A2A (Agent-to-Agent) protocol support documented
+- Primary audience is developers and builders, not merchants
+
+**The NANDA relationship -- correcting prior analysis:**
+
+Maritime and NANDA are independent. No confirmed integration or partnership
+exists between them. Prior analysis in this document stated that Maritime
+provides "NANDA registration as a side effect" -- this was an assumption, not
+a confirmed fact. What is true: Maritime provides a public HTTPS endpoint, which
+is a prerequisite for NANDA registration. But NANDA registration is not automatic
+-- it would require a separate step to register the agent on NANDA after Maritime
+deployment. The integration opportunity is real but not yet built.
+
+**Agent Blueprints -- what this changes:**
+
+Agent Blueprints (shipped June 2026) are shareable pre-configured agent templates.
+You configure an agent for your specific use case, package it as a Blueprint, and
+share it with others who can deploy their own copy instantly. This is significant
+for the Firmly distribution story: a SupplyMind seller agent Blueprint on Maritime
+would let any merchant deploy a commerce-ready agent in one click, with no code.
+The Blueprint is the distribution mechanism; Firmly Connect would be the commerce
+trust layer on top of it.
+
+**Agent identity (phone + email) -- what this means:**
+
+A Maritime-hosted agent now has three identity layers:
+- Maritime hosting identity (the HTTPS endpoint URL)
+- Persistent communication identity (phone number + email via Inkbox)
+- (Potential) DNSid handle (DNS-anchored ownership registry)
+
+These answer different questions. The HTTPS URL proves reachability. The phone
+and email prove persistent communication channels. DNSid proves domain ownership
+and supports revocation. None of these overlap -- they are complementary, not
+competing. A compromised agent with a valid phone number and email still needs
+DNSid revocation to be rejected by systems checking agent authorization status.
+
+**The Gmail/WhatsApp OAuth point -- direct relevance to LoginID:**
+
+Maritime agents authenticated via Gmail OAuth or WhatsApp OTP present a concrete
+contrast case for LoginID's value proposition. A Maritime agent logged in via
+Gmail is indistinguishable (to the commerce layer) from a compromised agent that
+gained access to that Gmail account. Gmail proves account access; it does not
+prove physical presence or deliberate authorization at the moment of the
+transaction. LoginID FIDO2 proves hardware-bound biometric presence -- a
+materially stronger guarantee for high-value commerce. This is the "where Gmail
+is not enough" argument made concrete by Maritime's own feature set.
+
+**Opportunities Maritime creates for Firmly and LoginID:**
+
+1. **Blueprints as Firmly Connect distribution.** A "Firmly Connect Seller Agent"
+   Blueprint on Maritime would let any merchant deploy a commerce-ready agent in
+   one click. No code, no Firmly integration work beyond the initial Blueprint
+   configuration. This is Approach 2 (catalog-sync manifest) from the Phase 10
+   merchant friction analysis, executed at the agent deployment layer instead of
+   the catalog layer. Maritime is the delivery vehicle; Firmly is the commerce
+   trust payload inside it.
+
+2. **The NANDA integration gap is an opportunity, not a given.** Maritime does not
+   automatically register agents on NANDA. Firmly could build that bridge:
+   Firmly Connect onboarding deploys to Maritime AND registers on NANDA AND
+   co-signs the AgentFacts document. The merchant fills one form; Firmly orchestrates
+   all three steps. This makes Firmly the integration layer between Maritime
+   (hosting) and NANDA (discovery) -- a position neither Maritime nor NANDA
+   currently occupies.
+
+3. **Agent identity as a LoginID integration point.** Maritime provides phone +
+   email identity via Inkbox. LoginID could provide a third identity layer at a
+   higher trust level: FIDO2-bound hardware credential for the agent operator.
+   The Maritime identity proves the agent can communicate. LoginID identity proves
+   a verified human is accountable for it. Complementary, not competing.
+
+4. **The onboarding call Maria offered is a real opening.** Maritime is in private
+   beta and actively onboarding builders. This is the Path 2 SDK/builder
+   partnership moment described in the distribution strategy section. Firmly
+   should have this conversation now, not after Maritime scales.
+
+**Challenges Maritime creates:**
+
+1. **Blueprints could become the agent marketplace that bypasses NANDA.**
+   If Maritime curates Blueprints into a discoverable directory -- "find agents
+   by category" -- this becomes the closed discovery layer that makes NANDA
+   irrelevant for Maritime-hosted agents. Maritime's $1/month price makes this
+   plausible at scale. Monitor whether Maritime adds a Blueprint marketplace with
+   search/filter; if so, NANDA integration becomes less important than Maritime
+   integration.
+
+2. **Gmail/WhatsApp OAuth normalizes lower-trust authentication.**
+   Merchants and users seeing "log in with Gmail" as the agent authentication
+   pattern will have lower expectations for what agent identity means. LoginID
+   needs to articulate the specific failure modes of Gmail auth in commerce
+   contexts (see "Where Gmail is not enough" section) -- not just claim to be
+   stronger, but show the concrete scenarios where Gmail auth leads to disputes
+   or fraud.
+
+3. **Maritime's commerce gap may attract a competitor rather than a partner.**
+   Maritime has no commerce features. That gap is exactly what Firmly fills.
+   But Maritime could also partner with Stripe, Shopify, or another commerce
+   platform instead. The Firmly conversation needs to happen before that decision
+   is made.
 
 **The joint opportunity: Firmly + LoginID as the trust layer on top of NANDA + Maritime**
 
-This is the most underweighted opportunity in the prior analysis. Here is why
-it matters:
-
-NANDA + Maritime solves the discoverability problem: any buyer agent anywhere
-can find any seller agent. But discoverability without trust is a fraud surface.
-The buyer agent that discovers a seller on NANDA has no way to know if that
-seller is legitimate, solvent, and accountable.
+NANDA + Maritime solves reachability: any buyer agent anywhere can find and
+connect to any seller agent. But reachability without trust is a fraud surface.
+The buyer agent that discovers a seller on NANDA or Maritime has no way to know
+if that seller is legitimate, accountable, or authorized to sell what it claims.
 
 **Firmly's play:** Firmly Connect should offer a verified merchant tier on NANDA.
 When a merchant onboards to Firmly Connect, Firmly registers their agent on
@@ -501,12 +609,15 @@ Connect the trust anchor for the entire NANDA discovery layer -- not just for
 merchants who deploy through Firmly, but for buyer agents everywhere that want
 to transact safely.
 
-The Maritime integration makes this zero-friction: merchant signs up for Firmly
-Connect, Firmly deploys their agent to Maritime, Maritime provides the HTTPS
-endpoint, Firmly co-signs the NANDA AgentFacts. The merchant did nothing except
-fill out the Firmly Connect onboarding form. This directly addresses the adoption
-friction problem: no code, no DNS configuration, no separate NANDA registration,
-no Maritime account. One form, fully deployed, verified, discoverable.
+The Maritime integration makes this achievable but requires Firmly to build the
+bridge: merchant signs up for Firmly Connect, Firmly deploys their agent to
+Maritime (HTTPS endpoint), Firmly registers on NANDA (separate step, not
+automatic), Firmly co-signs the AgentFacts document. The merchant fills one
+form; Firmly orchestrates Maritime deployment + NANDA registration + co-signature.
+This directly addresses the adoption friction problem identified in Phase 10:
+no code, no DNS configuration, no separate NANDA registration, no Maritime
+account. Note: this integration is an opportunity to build, not a feature
+Maritime currently provides.
 
 **LoginID's play on NANDA:** LoginID co-signs the AgentFacts document at the
 human authorization layer. Where Firmly's signature says "this seller is a
