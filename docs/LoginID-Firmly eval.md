@@ -899,39 +899,47 @@ engineering investment is justified.
 
 **The compound value of deploying on NANDA + DNSid without a formal partnership:**
 
-Each layer answers a different question a buyer agent asks before initiating a
-transaction. The three questions are distinct and none of the layers answers more
-than one:
+Important framing: this entire stack operates on the SELLER side. Firmly's
+customer is the merchant. The trust being established is "this seller agent is
+verified, legitimate, and safe to transact with." The buyer agent reads and
+benefits from this trust signal, but Firmly is not in the buyer authorization
+business. Visa TAP, Mastercard Agent Pay, virtual cards, and spend management
+platforms (Ramp, Brex) operate on the buyer side -- that is a separate problem
+Firmly does not solve today.
 
-- DNSid answers: who owns this agent? The buyer agent verifies domain ownership
-  cryptographically -- not self-asserted, DNS-anchored. If the agent is compromised
-  or the merchant goes dark, the handle can be revoked. This is accountability
-  infrastructure.
+Each layer answers a different question a buyer agent asks about the SELLER
+before initiating a transaction. The three questions are distinct and none of
+the layers answers more than one:
 
-- NANDA answers: where do I find this agent? The buyer agent queries NANDA, gets
-  back a list of sellers, filters by capability. Without NANDA, the buyer must
-  know the seller's endpoint in advance. NANDA is what makes cold discovery
-  possible -- the buyer finds sellers it has never interacted with before.
+- DNSid answers: who owns this seller agent? The buyer agent verifies domain
+  ownership cryptographically -- not self-asserted, DNS-anchored. If the agent
+  is compromised or the merchant goes dark, the handle can be revoked. This is
+  seller accountability infrastructure.
 
-- Firmly + LoginID co-signatures answer: should I trust this agent? NANDA tells
-  the buyer the agent exists. The co-signatures tell the buyer a commerce platform
-  verified it sells real products (Firmly) and a human with biometric identity
-  registered it (LoginID). These are the signals that move a buyer agent from
-  "I found a seller" to "I will transact with this seller."
+- NANDA answers: where do I find this seller agent? The buyer agent queries
+  NANDA, gets back a list of sellers, filters by capability. Without NANDA,
+  the buyer must know the seller's endpoint in advance. NANDA is what makes
+  cold seller discovery possible.
+
+- Firmly + LoginID co-signatures answer: should I trust this seller agent?
+  NANDA tells the buyer the agent exists. The co-signatures tell the buyer a
+  commerce platform verified it sells real products (Firmly) and a human with
+  biometric identity registered it (LoginID). These are the signals that move
+  a buyer agent from "I found a seller" to "I will transact with this seller."
 
 Any one layer alone is weak:
 
-- DNSid alone: ownership is verifiable, but the agent is not discoverable and
-  has no commerce trust signal
+- DNSid alone: seller ownership is verifiable, but the agent is not discoverable
+  and has no commerce trust signal
 - NANDA alone: discovery works, but any agent can register, so finding agents
   without a trust filter is noise
 - Co-signatures alone: endorsements exist, but if the agent is not on NANDA,
   buyer agents never encounter them
 
-Together the three layers form a complete answer to the buyer agent's pre-transaction
-questions. None requires a formal partnership. Firmly and LoginID can deploy all
-three with standard infrastructure -- DNS operations, HTTPS hosting, secp256k1
-signing -- today.
+Together the three layers form a complete seller-side trust profile. None
+requires a formal partnership. Firmly and LoginID can deploy all three with
+standard infrastructure -- DNS operations, HTTPS hosting, secp256k1 signing --
+today.
 
 **Why this stack is a moat against closed platforms:**
 
@@ -958,52 +966,58 @@ hedging with Path 2 and Path 3 partnerships in parallel.
 
 **Critical analysis: where each layer sits in the transaction flow**
 
-The right frame is not "does DNSid compete with Visa/MC" but "does DNSid add
-value at a different step in the same process." The answer is yes, and the
-steps are distinct:
+The right frame is not "does DNSid compete with Visa/MC" but "does each layer
+answer a different question at a different step." The answer is yes -- and the
+steps split cleanly between seller-side and buyer-side concerns:
 
 ```
+SELLER SIDE (Firmly's domain):
 Step 1: Discovery       -- buyer finds seller            (NANDA / Maritime)
-Step 2: Agent identity  -- is this agent real, not revoked? (DNSid)
-Step 3: Authorization   -- did a human approve this spend?  (AP2 / Intent Mandate)
+Step 2: Seller identity -- is this seller real, not revoked? (DNSid + co-sigs)
+
+BUYER SIDE (not Firmly's domain today):
+Step 3: Buyer authz     -- did a human approve this spend?  (AP2 / Intent Mandate)
 Step 4: Payment auth    -- can this agent use this card?     (Visa TAP / MC Token)
+
+SHARED:
 Step 5: Settlement      -- money moves                      (Stripe / Coinbase / ACH)
 ```
 
-Visa TAP operates at Step 4. DNSid operates at Step 2. They are not competing --
-they answer different questions at different moments.
+Firmly operates at Steps 1 and 2 -- seller trust. Visa TAP and Mastercard Agent
+Pay operate at Step 4 -- buyer payment authorization. They do not compete; they
+serve different parties at different moments.
 
 **Why DNSid adds value even when Visa TAP is present:**
 
-Visa and Mastercard know who owns the card account. But cardholder identity is
-not agent authorization. A card can be valid and active while the agent using it
-has been revoked -- because the procurement agent was compromised, because the
-employee left the company, because the mandate was cancelled by the operator.
-Visa sees a valid card. DNSid sees a revoked agent. Those are two different facts
-about the same transaction.
+Visa and Mastercard know who owns the card account on the buyer side. They do
+not know whether the seller agent receiving the transaction is legitimate or has
+been revoked. A card can be valid and the buyer authorization can be clean while
+the seller agent has been compromised -- because the merchant's agent was taken
+over, or the DNSid handle was revoked due to fraud. Visa sees a valid card and
+an authorized buyer. DNSid sees a revoked seller agent. Those are two different
+facts about the same transaction, on two different sides.
 
-DNSid catches agent-level revocation at Step 2, before the transaction reaches
-the card network at Step 4. This matters to the merchant: a revoked agent that
-reaches Visa TAP will pass Visa's check (the card is still valid) and the merchant
-will process a transaction they should not have. DNSid is the guard at the earlier
-door that Visa does not check.
+DNSid catches seller-side agent revocation at Step 2, before the transaction
+reaches the card network at Step 4. The merchant who has DNSid integrated can
+reject a revoked counterparty before money moves; without it, the transaction
+completes and the merchant bears the fraud liability.
 
-The positioning is: DNSid + Visa TAP together provide defense in depth. Neither
-alone is sufficient. DNSid handles agent-level revocation; Visa TAP handles
-cardholder-level authorization. The merchant who has both is more protected than
-the merchant who has only one.
+The positioning is: DNSid (seller identity) + Visa TAP (buyer authorization)
+together cover both sides of the transaction. Neither alone is sufficient for
+the full trust picture.
 
 **Why NANDA/Maritime adds value even when Visa TAP is present:**
 
-NANDA operates at Step 1 -- discovery. Visa TAP operates at Step 4 -- payment.
-They do not overlap. A buyer agent searching for sellers has not yet reached the
-payment step. The trust question at Step 1 is "is this a legitimate seller?" --
-which Visa cannot answer because the transaction has not started yet.
+NANDA operates at Step 1 -- seller discovery. Visa TAP operates at Step 4 --
+buyer payment authorization. They do not overlap. A buyer agent searching for
+sellers has not yet reached the payment step. The trust question at Step 1 is
+"is this a legitimate seller?" -- which Visa cannot answer because the
+transaction has not started and Visa has no seller-verification role.
 
 The Firmly + LoginID co-signature on NANDA answers the Step 1 question before
-any payment credential is involved. It is the trust signal that gets the buyer
-agent to initiate the transaction in the first place. Without it, the buyer
-agent has no basis for trusting the seller except self-asserted claims.
+any payment credential is involved. It is the seller trust signal that gets the
+buyer agent to initiate the transaction in the first place. Without it, the
+buyer agent has no basis for trusting the seller except self-asserted claims.
 
 **What remains a real risk:**
 
