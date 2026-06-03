@@ -842,6 +842,61 @@ Realistic sequencing:
 The Identity Digital partnership is the right long-term play. It is not the
 right first move.
 
+**Critical correction: DNSid is an open standard, not a paid registry (researched June 2026):**
+
+DNSid does not have per-agent registration fees. It is a standard built on DNS
+infrastructure that any domain owner can use. The mechanism: merchant has a domain,
+Firmly creates a DNS TXT record on that domain, generates a DNSid handle, optionally
+anchors to blockchain. Identity Digital makes money from domain registrations --
+DNSid is a value-add to make their domain portfolio more relevant in the AI agent
+era, not a separate paid product.
+
+Cost to register an agent on DNSid: effectively zero, assuming the merchant has
+a domain. Same marginal cost as adding a DNS record.
+
+This changes the partnership question entirely. Firmly does not need a reseller
+agreement or API deal with Identity Digital to register merchants on DNSid. Firmly
+needs to:
+
+1. Help the merchant own a domain (or use their existing one)
+2. Create the DNS TXT record on that domain
+3. Generate the DNSid handle
+
+All standard DNS operations. Firmly can build this into Connect onboarding today
+with no partnership required -- identical conclusion to the NANDA HTTPS question.
+
+What an Identity Digital partnership would actually provide (reframed):
+
+- Validation and co-branding: Identity Digital backing the standard adds trust
+  signal to Firmly-onboarded merchants. Not infrastructure access -- brand value.
+- Domain provisioning for domainless merchants: If Firmly wants to provision
+  agent-specific subdomains for merchants who do not own a domain
+  (e.g. agent.merchantname.co where .co is an Identity Digital TLD), Identity
+  Digital's domain reseller API is the path. This is the part requiring a commercial
+  relationship.
+
+**Dual registration: deploying agents on both NANDA and DNSid:**
+
+Yes -- and the economics now make this obvious. Both are effectively free at the
+margin once Firmly builds the automation:
+
+- DNSid handle: provisioned from the merchant's domain via DNS record. Zero
+  marginal cost per merchant after the tooling is built.
+- NANDA AgentFacts: published with Firmly + LoginID co-signatures. Zero marginal
+  cost per merchant after the registration step is built.
+
+A merchant onboarded through Firmly Connect gets both automatically:
+- DNSid handle (open-web agent identity, revocation supported)
+- NANDA listing (open-web discovery, Firmly + LoginID trust endorsements)
+- HTTPS endpoint (satisfies NANDA requirement, standard web infrastructure)
+
+The total incremental cost per merchant: near zero after Firmly builds the
+tooling once. This is not a question of whether Firmly can afford to do this
+for every merchant. It is a question of whether to invest the engineering time
+to build the automation. Given that the resulting merchant profile has both
+open-web discovery and cryptographic identity at zero marginal cost, the
+engineering investment is justified.
+
 **Urgency note:** NANDA is experimental today, backed by MIT, with real but
 limited adoption. The window to establish the trust standard is open but not
 guaranteed to remain open -- closed platforms (OpenAI agent directory, Shopify
