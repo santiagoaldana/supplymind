@@ -897,6 +897,58 @@ to build the automation. Given that the resulting merchant profile has both
 open-web discovery and cryptographic identity at zero marginal cost, the
 engineering investment is justified.
 
+**The compound value of deploying on NANDA + DNSid without a formal partnership:**
+
+Each layer answers a different question a buyer agent asks before initiating a
+transaction. The three questions are distinct and none of the layers answers more
+than one:
+
+- DNSid answers: who owns this agent? The buyer agent verifies domain ownership
+  cryptographically -- not self-asserted, DNS-anchored. If the agent is compromised
+  or the merchant goes dark, the handle can be revoked. This is accountability
+  infrastructure.
+
+- NANDA answers: where do I find this agent? The buyer agent queries NANDA, gets
+  back a list of sellers, filters by capability. Without NANDA, the buyer must
+  know the seller's endpoint in advance. NANDA is what makes cold discovery
+  possible -- the buyer finds sellers it has never interacted with before.
+
+- Firmly + LoginID co-signatures answer: should I trust this agent? NANDA tells
+  the buyer the agent exists. The co-signatures tell the buyer a commerce platform
+  verified it sells real products (Firmly) and a human with biometric identity
+  registered it (LoginID). These are the signals that move a buyer agent from
+  "I found a seller" to "I will transact with this seller."
+
+Any one layer alone is weak:
+
+- DNSid alone: ownership is verifiable, but the agent is not discoverable and
+  has no commerce trust signal
+- NANDA alone: discovery works, but any agent can register, so finding agents
+  without a trust filter is noise
+- Co-signatures alone: endorsements exist, but if the agent is not on NANDA,
+  buyer agents never encounter them
+
+Together the three layers form a complete answer to the buyer agent's pre-transaction
+questions. None requires a formal partnership. Firmly and LoginID can deploy all
+three with standard infrastructure -- DNS operations, HTTPS hosting, secp256k1
+signing -- today.
+
+**Why this stack is a moat against closed platforms:**
+
+OpenAI's agent directory and Shopify's agent marketplace can provide discovery
+(a NANDA equivalent) inside their own walls. They cannot provide DNS-anchored
+ownership verification or hardware-backed biometric registration that works across
+platforms and organizational boundaries. The closed platforms answer the trust
+question only for agents inside their ecosystem.
+
+B2B agentic commerce -- a buyer agent at one company transacting with a seller
+agent at a different company -- is by definition cross-platform. The open-web
+stack (NANDA + DNSid + co-signatures) is the only one that works across
+organizational boundaries without requiring both parties to share a common
+platform. This is the structural advantage of the open-web position: it is
+the only credible answer to the cross-company trust problem that closed platforms
+cannot solve by design.
+
 **Urgency note:** NANDA is experimental today, backed by MIT, with real but
 limited adoption. The window to establish the trust standard is open but not
 guaranteed to remain open -- closed platforms (OpenAI agent directory, Shopify
