@@ -681,12 +681,81 @@ implementation for either company. The infrastructure already exists.
   for any buyer agent developer to filter for trusted sellers. The standard
   becomes infrastructure; the infrastructure creates lock-in.
 
-**Urgency note:** NANDA is experimental today, but it is the only open,
-decentralized, W3C-VC-based agent registry. The window to establish the
-trust standard before a dominant player does is open now. A closed directory
-(a single company's curated agent list) will emerge if the open registry does
-not develop a credible trust layer. Firmly and LoginID are better positioned
-than any other pair of companies to be that trust layer.
+**NANDA adoption -- where it actually stands (researched June 2026):**
+
+NANDA is an MIT Media Lab project, not a community initiative. MIT backing
+gives it academic credibility and long-term staying power. 1,000+ registered
+agents as of mid-2026 -- but this number almost certainly represents developers
+and researchers testing the registry, not merchants running production commerce.
+
+No major platform has integrated NANDA. The Agentic AI Foundation launched
+December 2025 by OpenAI, Anthropic, and Google uses MCP, AGENTS.md, and other
+standards -- not NANDA. NANDA is theoretically sound but has not crossed the
+adoption threshold that creates commercial value for a Firmly partnership today.
+
+The registration requirement confirmed: NANDA requires an HTTPS endpoint with
+a valid domain and SSL certificate. This is standard web infrastructure --
+any company that hosts agents on behalf of merchants (including Firmly) can
+provision this without any special partnership. Maritime provides it for $1/month.
+Firmly could include it in Connect onboarding as standard infrastructure.
+
+**Identity Digital / DNSid -- partnership analysis:**
+
+Identity Digital (formerly Donuts/Afilias, rebranded 2022) is not a startup.
+They operate the world's largest domain extension portfolio -- hundreds of TLDs
+including .co, .org, .tech -- and hold ICANN RSP pre-approval. DNSid is their
+own product from Identity Digital Innovation Labs, launched April 2026. It binds
+AI agent identity to DNS-anchored ownership using DNS, PKI, and blockchain.
+
+Their current customers: registrars, domain resellers, enterprises using their
+TLDs. They are not currently positioned as a merchant onboarding platform.
+
+**The partnership logic for Firmly + Identity Digital:**
+
+Identity Digital needs distribution for DNSid -- it is a new product with no
+established adoption path. Firmly has merchant relationships and onboarding
+infrastructure. The value exchange is clear:
+
+- Identity Digital provides: DNS provisioning at scale, DNSid handle generation,
+  SSL certificates, blockchain anchoring -- everything needed for a merchant
+  agent to have a fully credentialed DNS identity in one step
+- Firmly provides: the merchant relationship, the onboarding flow, and the
+  commerce context that makes DNSid meaningful (an agent with a DNSid handle
+  selling real products to real buyers)
+
+If Firmly integrates Identity Digital's DNS infrastructure into Connect onboarding,
+a merchant who signs up for Firmly Connect automatically gets:
+- A real DNS-anchored domain (e.g. agent.merchantname.co via Identity Digital)
+- A DNSid handle (dnsid://merchantname.co/agents/seller-001)
+- SSL certificate (HTTPS, enabling NANDA registration)
+- Blockchain anchor for tamper evidence
+
+This makes Firmly the enrollment path for DNSid -- not just a consumer of it.
+That is a meaningfully different position: Firmly controls the onboarding flow
+that creates DNSid adoption.
+
+**Partnership sequencing reality check:**
+
+Identity Digital is a large, established infrastructure company. Firmly is
+early-stage. Large infrastructure partnerships take time and require Firmly
+to have enough merchant volume to be commercially interesting to Identity Digital.
+
+Realistic sequencing:
+1. Firmly builds the HTTPS + NANDA registration piece independently (standard
+   web infrastructure, no partnership needed, can be done in weeks)
+2. Firmly proves merchant adoption and NANDA traction
+3. Firmly approaches Identity Digital for formal DNSid integration when volume
+   makes the conversation credible
+
+The Identity Digital partnership is the right long-term play. It is not the
+right first move.
+
+**Urgency note:** NANDA is experimental today, backed by MIT, with real but
+limited adoption. The window to establish the trust standard is open but not
+guaranteed to remain open -- closed platforms (OpenAI agent directory, Shopify
+agent marketplace) have more distribution and could make NANDA irrelevant if
+they move faster. Firmly and LoginID should pursue NANDA as a real option while
+hedging with Path 2 and Path 3 partnerships in parallel.
 
 **Critical analysis: where each layer sits in the transaction flow**
 
