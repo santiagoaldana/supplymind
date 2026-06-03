@@ -675,11 +675,103 @@ implementation for either company. The infrastructure already exists.
   on record." This is the same Non-Repudiation product from the merchant section,
   applied at discovery time rather than transaction time.
 
-- Joint: define the "Firmly + LoginID Verified Seller" co-signature standard.
-  Publish the public keys. Write the buyer-agent verification SDK (two function
-  calls: verify_firmly_signature, verify_loginid_attestation). Make it trivial
-  for any buyer agent developer to filter for trusted sellers. The standard
-  becomes infrastructure; the infrastructure creates lock-in.
+- Joint: define and publish the "Firmly + LoginID Verified Seller" co-signature
+  standard. See full specification below.
+
+**The co-signature standard -- what it is and why it matters:**
+
+Every NANDA-registered agent publishes an AgentFacts document: a structured JSON
+file describing who they are, what they sell, and where their endpoint is. Today
+this document is entirely self-asserted -- any agent can claim any capability with
+no verification. There is no way for a buyer agent to distinguish a legitimate
+merchant from a fraudulent one at discovery time.
+
+A co-signature standard adds endorsement fields to the AgentFacts schema, signed
+by trusted third parties who have verified something specific about the merchant.
+
+Current AgentFacts document (self-asserted only):
+```json
+{
+  "agent_id": "did:web:merchant.com/agents/seller",
+  "capabilities": ["sell:office-supplies"],
+  "endpoint": "https://merchant.com/agent",
+  "proof": { "signature": "merchant-signed-this" }
+}
+```
+
+With the Firmly + LoginID co-signature standard:
+```json
+{
+  "agent_id": "did:web:merchant.com/agents/seller",
+  "capabilities": ["sell:office-supplies"],
+  "endpoint": "https://merchant.com/agent",
+  "proof": { "signature": "merchant-signed-this" },
+  "endorsements": [
+    {
+      "issuer": "did:web:firmly.com",
+      "claim": "verified-commerce-merchant",
+      "issued_at": "2026-06-01T00:00:00Z",
+      "signature": "firmly-signed-this"
+    },
+    {
+      "issuer": "did:web:loginid.com",
+      "claim": "human-verified-registrant",
+      "issued_at": "2026-06-01T00:00:00Z",
+      "signature": "loginid-signed-this"
+    }
+  ]
+}
+```
+
+Firmly's endorsement means: "we verified this merchant has a working commerce
+integration, real products, and is operating on our platform."
+LoginID's endorsement means: "a human with verified FIDO2 biometric identity
+registered this merchant -- a real accountable person is on record."
+
+A buyer agent reading this document verifies both signatures cryptographically --
+the same way a browser verifies an HTTPS certificate. If both check out, the
+buyer agent knows: this seller is a legitimate commerce merchant with a verified
+human owner. Neither signature alone is sufficient; both together answer the
+question the buyer agent needs answered at discovery time.
+
+**Why "standard" rather than "feature":**
+
+If Firmly publishes their co-signature in a proprietary format with no
+documentation, buyer agent developers must write custom code to read it.
+Adoption is slow and fragile.
+
+If Firmly and LoginID publish a public specification -- field names, signature
+algorithm (secp256k1-sha256, consistent with the AP2 mandate chain already built),
+public key locations, verification procedure -- then any buyer agent developer
+adds two function calls to support verified seller filtering. The verification
+SDK is the distribution mechanism: once enough buyer agents ship it, every
+merchant wants the endorsements, which means every merchant routes through
+Firmly and LoginID to get them.
+
+This is the same model that made HTTPS ubiquitous: browsers required it,
+so websites adopted it, so certificate authorities became infrastructure.
+Firmly and LoginID are positioning to be the certificate authorities for
+agentic commerce trust -- the entities whose signatures buyer agents check
+by default.
+
+**What needs to be built to make this real:**
+
+1. Firmly publishes their secp256k1 public key at a well-known URL
+   (e.g. firmly.com/.well-known/endorsement-key.json)
+2. LoginID publishes their secp256k1 public key similarly
+3. Both companies define the endorsement schema (field names, signature format)
+   -- one page of specification, not a multi-year standards process
+4. Firmly adds endorsement signing to Connect onboarding: when a merchant's
+   agent is registered on NANDA, Firmly signs the AgentFacts automatically
+5. LoginID adds endorsement signing to their FIDO2 ceremony: when the merchant
+   operator completes biometric registration, LoginID signs the AgentFacts
+6. Firmly or LoginID publishes a verification SDK (open source, two functions:
+   verify_firmly_endorsement, verify_loginid_endorsement)
+7. Both companies promote the SDK to buyer agent developers
+
+Steps 1-5 are internal to each company. Step 6 is a small open-source project.
+Step 7 is developer relations. None of these require a long standards process
+or external approval. The standard is established by adoption, not by committee.
 
 **NANDA adoption -- where it actually stands (researched June 2026):**
 
