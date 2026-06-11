@@ -1893,30 +1893,57 @@ vary significantly.
 
 | Vendor | Maturity | Geography | KYA status |
 |---|---|---|---|
-| Experian | Production | Global | Announced "Agent Trust" (2026): explicit KYA product extending their KYB/KYC infrastructure into AI agent identity verification |
-| Sumsub | Production | Global | Integrated AI agent verification into their KYA framework (2026). Combines traditional KYC/KYB with agent identity products |
-| LexisNexis / Nexis Solutions | Production | Global | Integrated D&B data (August 2025). 600M+ global entities. Deploying agentic AI internally. No explicit KYA product yet |
-| Alloy | Production | Global | Command-center KYC/KYB/AML platform. Announced elevated KYB processes (2026). Modular architecture supports agent verification expansion. No explicit KYA product |
-| Jumio | Production | Global | High-assurance identity proofing for regulated industries. Expanding into autonomous systems. No explicit KYA product |
-| Persona | Growth | Global | Modular AI-driven verification. Strong in startup/AI ecosystem. Positioned for autonomous agent architectures but no explicit KYA product |
-| Vove ID | Growth | Global | Launched KYB platform (2025) with real-time risk assessment and sub-60-second verification. "AI Compliance Agent" framing |
-| Baselayer | Early | US only | KYB-to-KYA roadmap explicit. UUID for every US business from 120M government records. Live MCP server with Natural. KYA on 18-24 month roadmap |
+| Experian + Skyfire | Production | Global | "Agent Trust" (announced April 30, 2026). Experian provides identity verification, fraud signals, and Agent Registry. Skyfire's KYA Protocol is the identity layer inside Agent Trust. Together they also offer KYAPay: tokenized payment credentials attached to KYA. Visa, Cloudflare, and Akamai are co-announced partners. |
+| Skyfire | Production | Global | AI payments company (founded 2023, exited beta March 2025). Gives agents verified identity and payment credentials. KYA Protocol is their identity layer, now embedded inside Experian Agent Trust. Separate from Experian: can be used independently as a payment rail for agents. |
+| Sumsub | Production | Global | Integrated AI agent verification into their KYA framework (2026). Combines traditional KYC/KYB with agent identity products. |
+| LexisNexis / Nexis Solutions | Production | Global | Integrated D&B data (August 2025). 600M+ global entities. Deploying agentic AI internally. No explicit KYA product yet. |
+| Alloy | Production | Global | Command-center KYC/KYB/AML platform. Modular architecture supports agent verification expansion. No explicit KYA product. |
+| Jumio | Production | Global | High-assurance identity proofing for regulated industries. Expanding into autonomous systems. No explicit KYA product. |
+| Persona | Growth | Global | Modular AI-driven verification. Strong in startup/AI ecosystem. No explicit KYA product. |
+| Vove ID | Growth | Global | Launched KYB platform (2025) with real-time risk assessment and sub-60-second verification. "AI Compliance Agent" framing. |
+| Baselayer | Early | US only | KYB-to-KYA roadmap explicit. UUID for every US business from 120M government records. Live MCP server with Natural. KYA on 18-24 month roadmap. |
+
+### The Experian + Skyfire stack in detail
+
+The Experian Agent Trust announcement (April 30, 2026) is the most complete
+publicly announced KYA stack. Its structure:
+
+- **Experian layer:** business and human identity verification (KYB/KYC),
+  fraud signal database, Agent Registry for real-time revocation checks,
+  consent validation
+- **Skyfire layer:** KYA Protocol for agent identity credentials, KYAPay for
+  tokenized payment credentials attached to the identity
+- **Network partners:** Visa (payment rails), Cloudflare and Akamai (perimeter
+  enforcement, bot detection, rate limiting)
+
+This is architecturally similar to the Firmly + LoginID proposal: identity layer
+plus payment layer plus perimeter enforcement. The difference is that Experian +
+Skyfire operates at the human/agent enrollment layer and uses Experian's consumer
+and business data as the verification anchor, whereas the Firmly + LoginID proposal
+uses DNS as the ownership anchor (DNSid) and FIDO2 hardware binding (LoginID) for
+the human attestation event.
+
+Experian + Skyfire does not include protocol translation (Firmly Connect's role)
+or spending mandate scoping (AP2's role). These are complementary, not competing.
 
 ### Relevance to SupplyMind and the Firmly + LoginID proposal
 
-- **Experian and Sumsub** are the only established players with explicit KYA products
-  today. Either could be a candidate for the business verification layer beneath
-  DNSid without waiting for a new player to mature.
-- **LexisNexis** has the largest entity dataset (600M+) and D&B integration. If
-  they ship a KYA product, they become the default enterprise choice.
+- **Experian + Skyfire** is the closest public analog to what the Firmly + LoginID
+  proposal describes. The architecture is parallel: identity verification +
+  agent credentials + payment + perimeter enforcement. Worth monitoring as a
+  reference architecture and potential partner.
+- **Skyfire as payment rail** is a candidate for Phase 13/16 work alongside
+  Coinbase/Base and x402. They are production-ready and agent-native.
+- **LexisNexis** remains the sleeper: if they ship a KYA product backed by 600M+
+  entities and D&B data, they become the default enterprise choice.
 - **Baselayer** has the most explicit alignment with the SupplyMind architecture
-  (UUID-per-business, MCP server, KYA roadmap) but is US-only and early. High
-  risk for production use before 2027.
-- **The gap no player currently fills:** DNS-anchored agent identity. Existing KYB
-  platforms verify the business; none currently sign or anchor a credential to the
-  business's DNS record in a way that is independently verifiable by a buyer agent
-  at transaction time. That is the layer DNSid provides and what differentiates
-  the proposed stack.
+  but is US-only and early. High risk for production use before 2027.
+- **The gap no player fills:** DNS-anchored agent identity. Experian anchors to
+  consumer/business data records. Skyfire anchors to a Skyfire-issued credential.
+  Neither anchors to the agent owner's DNS record in a way that is independently
+  verifiable by any buyer agent without calling a proprietary API. That is the
+  layer DNSid provides and what differentiates the proposed stack from both
+  Experian + Skyfire and Firmly Connect.
 
 ### Clerk's four questions applied to the KYA gap
 
@@ -1931,7 +1958,53 @@ KYA vendors answer the first question only. The full answer requires the complet
 
 ### SupplyMind Phase 15 relevance
 
-Baselayer and Experian both maintain fraud consortium data (cross-business fraud
-signal aggregation). This is directly relevant to Phase 15 (Fraud and Bot
-Detection). A production implementation would query one of these APIs before
-accepting a new buyer agent credential, not rely solely on Stripe Radar.
+Experian (via Agent Trust) and Baselayer both maintain fraud signal databases
+relevant to cross-business fraud pattern detection. A production Phase 15
+implementation would query one of these before accepting a new buyer agent
+credential, rather than relying solely on Stripe Radar.
+
+---
+
+## Clerk: Framework Author vs. Competitor (June 2026)
+
+Clerk is an authentication company that published the four-question agentic auth
+framework (Identity, Scoping, Approvals, Enforcement) used throughout this
+document as an evaluative lens. The question is whether Clerk also sells a
+product that overlaps with the Firmly + LoginID stack.
+
+### What Clerk offers
+
+| Product | Status | What it does |
+|---|---|---|
+| @clerk/agent-toolkit | Experimental | Propagates human identity into AI agents by injecting Clerk claims (userId, sessionId, orgId) into system prompts or MCP tool contexts. Adapters for Vercel AI SDK, LangChain, and MCP. |
+| Agent Tasks | Production | Creates authenticated sessions on behalf of users without standard sign-in flows, for agent workflows. |
+| Clerk Skills | Production | Installable packages teaching AI coding agents (Claude Code, Cursor, Windsurf) how to implement Clerk auth across frameworks. |
+
+Clerk raised $50M Series C (October 2025) specifically to develop agent identity.
+The agent-toolkit is marked "experimental / testing only" as of June 2026.
+
+### Which of Clerk's four questions does Clerk itself answer?
+
+| Question | Clerk product | Firmly + LoginID equivalent |
+|---|---|---|
+| Identity | Partial. Agent-toolkit injects Clerk user context but does not verify business entity ownership or bind to a DNS record. Human identity only, no business agent identity. | Firmly ID (humans) + DNSid (businesses) + LoginID FIDO2 |
+| Scoping | Not addressed. No mandate scoping product. | AP2 v0.2.0 signed mandate |
+| Approvals | Not addressed. Agent Tasks creates sessions but does not require a hardware-attested approval event. | LoginID FIDO2 passkey binding |
+| Enforcement | Not addressed. No revocation registry or perimeter enforcement. | Firmly registry revocation |
+
+Clerk answers Identity partially (for human-owned agents in web app contexts)
+and does not address Scoping, Approvals, or Enforcement. Their framework
+correctly identifies all four questions; their product addresses one.
+
+### SupplyMind overlap
+
+SupplyMind does not use Clerk. The buyer agent authenticates via Anthropic API
+key and signs credentials with secp256k1 keys (Phase 6+). The identity layer
+uses DNSid and LoginID passkey binding (proposed). Clerk's agent-toolkit operates
+at the web application session layer, which is not the SupplyMind architecture.
+
+Clerk becomes relevant if Firmly or LoginID builds a consumer-facing merchant
+enrollment flow where human merchants create Firmly ID accounts via a web UI.
+At that point Clerk's session management and MCP adapter would be a natural fit
+for the human-to-agent binding step, before the LoginID FIDO2 event captures
+the mandate approval.
