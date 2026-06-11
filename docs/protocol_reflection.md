@@ -34,11 +34,11 @@ agentic system must answer. These are not a framework or protocol — they are a
 evaluative lens. Every security loophole in this document is tagged to the
 question it most directly undermines.
 
-**1. Identity** — who is the agent, who does it represent, and who vouches for it?
+**1. Identity** — who is the agent, and who does it represent?
 
 **2. Scoping** — what is the agent allowed to do, and how is it constrained?
 
-**3. Approvals** — who approves what the agent is about to do, and how?
+**3. Approvals** — who approves what the agent is about to do, who vouches for it, and how?
 
 **4. Enforcement** — how do we ensure the agent does only what was approved,
 in real time?
@@ -46,15 +46,15 @@ in real time?
 Clerk also identifies three keys to agent proliferation: task specification,
 approval mechanism, and enforcement engine. Current approaches for each include
 AgentPass (Clerk), Mission-bound OAuth (Karl McGuinness), AAuth (Dick Hardt),
-MCP Auth (Linux Foundation), and XAA + ID-JAG (Okta).
+MCP (Model Context Protocol) Auth (Linux Foundation), and XAA + ID-JAG (Okta).
 
 **How SupplyMind answers each question across all 15 phases:**
 
 | Question | SupplyMind Answer | Phases | Status |
 |----------|------------------|--------|--------|
-| Identity | secp256k1 + KYA + DID + DNSid | 7, 8 | Partial (Phase 8 planned) |
-| Scoping | AP2 Mandate constraints + ACF tiers | 4, 9 | Partial (Phase 9 planned) |
-| Approvals | Signed Intent Mandate | 9 | Planned |
+| Identity | secp256k1 + KYA (Know Your Agent) + DID (Decentralized Identifier) + DNSid (Domain Name System identity) | 7, 8 | Partial (Phase 8 planned) |
+| Scoping | AP2 (Agentic Payment Protocol) Mandate constraints + ACF (Agentic Commerce Framework) tiers | 4, 9 | Partial (Phase 9 planned) |
+| Approvals | Signed Intent Mandate (secp256k1 in prototype; LoginID FIDO2 biometric in production) | 9 | Planned |
 | Enforcement | check_mandate() + DNSid gate | 4, 8 | Partial, gap remains |
 
 A recurring loophole across this entire stack: **possession of a key proves
@@ -75,7 +75,7 @@ Agentic AI Foundation December 2025. Now Apache 2.0, with OpenAI, Google,
 Microsoft, AWS, and Block as founding members.
 **Adoption:** Dominant. 9,400+ public servers by April 2026. 78% of enterprise
 AI teams report at least one MCP-backed agent in production.
-**Maturity:** Production stable. LF-governed, versioned spec, multi-vendor
+**Maturity:** Production stable. LF (Linux Foundation)-governed, versioned spec, multi-vendor
 implementation, wide enterprise adoption.
 
 **Problem it solves:**
@@ -86,7 +86,7 @@ so any agent can call any tool without custom wiring per model.
 **How we used it:**
 Inventory Server (SQLite-backed, 15 products) and Shipping Server (stub cost
 estimator), both built with FastMCP. The Phase 4 Payment Server also exposes
-all payment tools over MCP so the buyer agent can create mandates, check ACF
+all payment tools over MCP so the buyer agent can create mandates, check ACF (Agentic Commerce Framework)
 decisions, and execute payments as standard tool calls.
 
 **Dependencies and sequencing:**
@@ -102,8 +102,7 @@ if MCP is skipped, but every downstream phase loses its tool access layer.
   same MCP tool server without modification.
 - Direct REST APIs with no standard interface remain an option for single-vendor
   deployments but create lock-in and require reimplementation for each new model.
-- SupplyMind chose MCP because it is now the Linux Foundation standard and the
-  only tool interface layer with multi-vendor production adoption.
+- MCP (Model Context Protocol) was the learning target for this phase. MCP is the Linux Foundation standard and the only tool interface layer with multi-vendor production adoption at the time of implementation.
 
 **Security loopholes:**
 
@@ -116,7 +115,7 @@ if MCP is skipped, but every downstream phase loses its tool access layer.
 - [Identity] No caller identity on tool calls. When the inventory server
   receives a get_product call, it cannot verify which agent called it. Audit
   trails are incomplete: you know a tool was called but not who called it.
-  Phase 8 wires DNSid so tool calls can carry caller identity.
+  Phase 8 wires DNSid (Domain Name System identity) so tool calls can carry caller identity.
 
 - [Scoping] Tool schema trust. The agent trusts the tool's schema description
   to understand what the tool does. A malicious MCP server could advertise a
@@ -155,18 +154,17 @@ schema is predictable. seller_agent/ucp_profile.py generates the UCP profile
 and checkout session endpoints.
 
 **Dependencies and sequencing:**
-Requires MCP (Phase 1) for the inventory data that populates the catalog.
+Requires MCP (Model Context Protocol) (Phase 1) for the inventory data that populates the catalog.
 Without UCP, the buyer agent has no machine-readable way to discover what the
 seller offers — it would require custom parsing per seller. Phase 12 (ACP)
 extends this by adding a second catalog protocol; without UCP in place first,
 Phase 12 has nothing to route from.
 
 **Alternatives considered:**
-- ACP (OpenAI + Stripe, Phase 12) is the main competitor at this layer.
-  UCP uses JSON-LD and schema.org targeting semantic interoperability across
-  any buyer agent; ACP uses a more REST-native format targeting the ChatGPT
-  and OpenAI ecosystem specifically. SupplyMind chose UCP first because of the
-  Google/Walmart/Shopify coalition weight and B2B catalog semantics.
+- ACP (Agentic Commerce Protocol) (OpenAI + Stripe, Phase 12) is the main competitor at this layer.
+  UCP is backed by Google, Walmart, Shopify, Target, Etsy, Wayfair, PayPal, and Stripe, and targets
+  any buyer agent across any platform. ACP is backed by OpenAI and Stripe and is optimized for
+  the ChatGPT shopping agent ecosystem. UCP (Universal Commerce Protocol) was the learning target for this phase; ACP (Agentic Commerce Protocol) was added as a second learning target in Phase 12.
 - Proprietary catalog formats (CSV exports, custom JSON) remain common in
   practice but require custom integration per seller — exactly the problem UCP
   solves.
@@ -190,7 +188,7 @@ Phase 12 has nothing to route from.
 - [Approvals] No freshness guarantee. The buyer agent caches the catalog
   between requests. A seller could change prices between the buyer's catalog
   fetch and the purchase order. Solved at the cart level in UCP's checkout
-  journey extension and in AP2 Cart Mandates (Phase 9).
+  journey extension and in AP2 (Agentic Payment Protocol) Cart Mandates (Phase 9).
 
 **Why this matters:**
 UCP solves the Tower of Babel problem for catalog data. But a shared schema
@@ -200,7 +198,9 @@ UCP + secp256k1 signatures + AP2 Cart Mandates is the complete picture.
 
 ---
 
-## Phase 3: A2A — Agent-to-Agent Protocol
+## Phase 3: Agent Discovery + Micro-payment (A2A + x402)
+
+### Phase 3a: A2A — Agent-to-Agent Protocol
 
 **Type:** Protocol
 **Established by:** Google DeepMind (April 2025, 50 founding partners).
@@ -223,10 +223,10 @@ fetches this card, sends purchase orders to POST /tasks/send, and polls
 GET /tasks/{id} for confirmation.
 
 **Dependencies and sequencing:**
-Requires UCP (Phase 2) for the seller to have something meaningful to advertise
+Requires UCP (Universal Commerce Protocol) (Phase 2) for the seller to have something meaningful to advertise
 in its Agent Card capabilities. Without A2A, buyer and seller have no standard
 discovery or task coordination mechanism — every interaction requires knowing
-the seller's URL in advance. Phase 6 (NANDA) extends A2A discovery to the open
+the seller's URL in advance. Phase 6 — NANDA (Networked Agents and Decentralized Architecture) — extends A2A discovery to the open
 web; without A2A Agent Cards, NANDA has no standard format to index.
 
 **Alternatives considered:**
@@ -236,8 +236,7 @@ web; without A2A Agent Cards, NANDA has no standard format to index.
   framework, not a protocol — no standard wire format for cross-vendor agents.
 - Direct REST without discovery is viable for known, fixed seller URLs but
   does not scale to an open marketplace where sellers are unknown in advance.
-- SupplyMind chose A2A because it is the only published, LF-governed agent
-  coordination protocol with real enterprise adoption.
+- A2A (Agent-to-Agent) was the learning target for this phase. A2A is the only published, LF-governed agent coordination protocol with real enterprise adoption at the time of implementation.
 
 **Security loopholes:**
 
@@ -245,7 +244,7 @@ web; without A2A Agent Cards, NANDA has no standard format to index.
   well-known URL. Any server can serve a card claiming to be any agent. A DNS
   hijack or BGP route leak could redirect the buyer to a fraudulent seller.
   A2A v1.2 adds signed Agent Cards with cryptographic domain verification.
-  Phase 8 adds DNSid ownership verification on top.
+  Phase 8 adds DNSid (Domain Name System identity) ownership verification on top.
 
 - [Identity] Task endpoint trust. The buyer sends purchase orders to whatever
   URL the Agent Card specifies. If the card is spoofed, orders go to the
@@ -254,7 +253,7 @@ web; without A2A Agent Cards, NANDA has no standard format to index.
 
 - [Scoping] No task integrity. Once a task is submitted, the task contents
   are trusted as-is. There is no mechanism in A2A to verify that the task was
-  not modified in transit. AP2 Cart Mandates (Phase 9) solve this by signing
+  not modified in transit. AP2 (Agentic Payment Protocol) Cart Mandates (Phase 9) solve this by signing
   cart contents before submission.
 
 - [Enforcement] Polling is trust without verification. When the buyer polls
@@ -271,7 +270,7 @@ you where someone claims to be, not who they actually are.
 
 ---
 
-## Phase 3: x402 — HTTP 402 Payment Required
+### Phase 3b: x402 — HTTP 402 Payment Required
 
 **Type:** Protocol
 **Established by:** Coinbase (open-sourced May 2025). x402 Foundation launched
@@ -283,22 +282,32 @@ March 2026. ~$600M annualized protocol volume, ~$28,000 daily real commerce volu
 but on-chain verification infrastructure still maturing in tooling.
 
 **Problem it solves:**
-Traditional billing is too heavy for micro-transactions. x402 repurposes HTTP's
-dormant 402 status code for pay-per-request: server returns 402 with a payment
-challenge, client pays, retries with proof, gets the data.
+Bulk pricing data is valuable. Without a gate, any agent -- legitimate or
+scraping -- can request it for free at any volume. x402 solves this with an
+access control mechanism: the server returns an HTTP 402 response with a
+micro-payment challenge, the client pays a small USDC amount, retries with
+proof of payment, and receives the protected data. The micro-payment is not
+the purchase price -- it is the cost of accessing the pricing tier. The
+actual purchase is handled separately by AP2 (Agentic Payment Protocol).
+x402 repurposes HTTP's dormant 402 status code for this pay-per-request
+pattern, making it native to the web without any additional protocol layer.
 
 **How we used it:**
 Bulk quotes above $500 trigger a 402 response with USDC payment instructions.
-Buyer reads the challenge, simulates a USDC payment, retries with a transaction
-hash in the X-Payment header. Seller currently accepts any non-empty header.
-Phase 16 replaces this with real on-chain verification.
+The buyer agent reads the challenge, simulates a USDC micro-payment, and retries
+with a transaction hash in the X-Payment header. The seller gate accepts any
+non-empty header in the current prototype. Real on-chain verification of the
+payment hash is outside the current scope of SupplyMind.
 
 **Dependencies and sequencing:**
-Requires A2A (Phase 3) for the buyer to have found the seller and initiated
-a task before a payment challenge arises. Phase 8 (DNSid) adds a gate that
-must pass before x402 fires. Phase 16 (real settlement) requires a funded
-wallet from Phase 13. Skipping x402 means bulk quotes have no access control
-— any agent can request them for free.
+Requires A2A (Agent-to-Agent) (Phase 3) for the buyer to have found the seller
+and initiated a task before a payment challenge arises -- x402 fires inside
+an ongoing A2A task, not as a standalone interaction. Phase 8 (DNSid
+(Domain Name System identity)) adds an identity gate that must pass before
+x402 fires, so only verified agents reach the pricing tier. Phase 13 (Agent
+Wallet Layer) provides the funded wallet required for real on-chain settlement.
+Skipping x402 means bulk quotes have no access control -- any agent can
+request them for free.
 
 **Alternatives considered:**
 - Stripe metered billing handles per-request API charging but requires a
@@ -309,8 +318,7 @@ wallet from Phase 13. Skipping x402 means bulk quotes have no access control
 - Lightning Network micropayments achieve similar per-request economics using
   Bitcoin but require Lightning node infrastructure on both sides; x402 on
   Base is simpler to deploy and uses stablecoins (no price volatility).
-- SupplyMind chose x402 because of the LF foundation, the Stripe/Visa/Mastercard
-  coalition, and native USDC support on Base.
+- x402 was the learning target for this phase. x402 is the LF-governed protocol with the strongest payment network coalition and native USDC support on Base at the time of implementation.
 
 **Security loopholes:**
 
@@ -331,7 +339,7 @@ wallet from Phase 13. Skipping x402 means bulk quotes have no access control
   HTTPS is the first mitigation; signing the payment challenge with the seller's
   secp256k1 key is the second.
 
-- [Identity] DNSid gate missing. The x402 flow currently does not verify the
+- [Identity] DNSid (Domain Name System identity) gate missing. The x402 flow currently does not verify the
   counterparty's identity before accepting payment. Phase 8 adds this gate:
   resolve the counterparty's DNSid before the micro-payment fires, and reject
   if revoked.
@@ -344,7 +352,9 @@ verification, replay prevention, and DNSid gating.
 
 ---
 
-## Phase 4: AP2 — Agent Payments Protocol
+## Phase 4: Procurement Loop (AP2 + ACF + MPP)
+
+### Phase 4a: AP2 — Agent Payments Protocol
 
 **Type:** Protocol
 **Established by:** Google (September 16 2025). 60+ founding partners including
@@ -375,7 +385,7 @@ non-repudiable cryptographic audit trail from human intent to payment execution.
 **Dependencies and sequencing:**
 Requires x402 (Phase 3) to already be in place as the micro-payment rail that
 AP2 governs. Phase 7 (secp256k1) is required for Phase 9's signed mandates —
-without a keypair, you cannot sign Intent or Cart Mandates. Phase 8 (DNSid)
+without a keypair, you cannot sign Intent or Cart Mandates. Phase 8 — DNSid (Domain Name System identity) —
 is required to replace string-based seller approval with ownership-verified
 counterparty checks. Skipping AP2 means the agent has no spending policy —
 the financial risk is unbounded.
@@ -390,15 +400,17 @@ the financial risk is unbounded.
   ecosystem and not interoperable with Claude-based buyers.
 - No mandate (trust the agent) is viable for low-risk internal automation but
   not for procurement involving external sellers and real funds.
-- SupplyMind chose AP2 because of Google's institutional backing, the 60+
-  partner coalition, and explicit B2B procurement use case alignment.
+- AP2 (Agentic Payment Protocol) was the learning target for this phase. AP2 has Google's institutional backing, a 60+ partner coalition, and explicit B2B procurement use case alignment.
 
 **Security loopholes:**
 
 - [Approvals] Mandate is unsigned. The current mandate is a Python dict in
   memory. There is no cryptographic proof it was set by the authorized human
   and not modified by the agent process. Phase 9 signs mandates with the
-  human's secp256k1 key, making tampering detectable.
+  human's secp256k1 key, making tampering detectable. In production, this
+  signing step would be performed by LoginID FIDO2: the private key lives
+  in hardware, and a biometric gesture by the human is required to produce
+  the signature.
 
 - [Enforcement] In-memory mandate store. MANDATES is a module-level dict that
   does not survive process restart. If the payment server crashes, all mandates
@@ -423,7 +435,7 @@ chain from human intent to payment execution cryptographically verifiable.
 
 ---
 
-## Phase 4: ACF — Agentic Commerce Framework
+### Phase 4b: ACF — Agentic Commerce Framework
 
 **Type:** Framework
 **Established by:** Vincent Dorange, 2025. Governed at acfstandard.com.
@@ -444,7 +456,7 @@ Three tiers: AUTO (under $5), NOTIFY ($5-$10), BLOCK (over $10). Thresholds
 are set by the human operator and encode risk tolerance, not agent intelligence.
 
 **Dependencies and sequencing:**
-ACF tiers are implemented inside the AP2 mandate check. Without AP2 (Phase 4),
+ACF tiers are implemented inside the AP2 (Agentic Payment Protocol) mandate check. Without AP2 (Phase 4),
 ACF has no enforcement mechanism — it is just a naming convention. Phase 9
 makes the tier thresholds part of the signed Intent Mandate, which means
 changing them requires re-signing.
@@ -456,10 +468,9 @@ changing them requires re-signing.
   but eliminates the autonomy that makes agentic procurement valuable.
 - Dynamic risk scoring (adjusting tiers based on vendor history, time of day,
   or anomaly signals) is more sophisticated than fixed tiers but requires
-  infrastructure SupplyMind does not currently have. Phase 14 (fraud detection)
-  creates the data needed to eventually build dynamic risk scoring.
-- SupplyMind chose ACF because tiered autonomy is the simplest model that
-  preserves human oversight without requiring human action on every transaction.
+  infrastructure SupplyMind does not currently have. Dynamic risk scoring is
+  outside the current scope of SupplyMind.
+- ACF (Agentic Commerce Framework) was the learning target for this phase. ACF's tiered autonomy model is the simplest approach that preserves human oversight without requiring human action on every transaction.
 
 **Security loopholes:**
 
@@ -484,7 +495,7 @@ Phase 9 makes the policy cryptographically durable.
 
 ---
 
-## Phase 4: MPP — Machine Payments Protocol
+### Phase 4c: MPP — Machine Payments Protocol
 
 **Type:** Protocol
 **Established by:** Stripe and Tempo (March 18 2026). Extended at Stripe
@@ -503,25 +514,39 @@ execution.
 **How we used it:**
 Dual rails simultaneously: fiat rail (Stripe PaymentIntent in test mode) and
 USDC rail (simulated Circle USDC transfer). Both return a uniform result
-envelope. The ACF governance layer sits above both rails.
+envelope. The ACF (Agentic Commerce Framework) governance layer sits above both rails.
 
 **Dependencies and sequencing:**
-Requires AP2 (Phase 4) to have already authorized the payment before MPP
+Requires AP2 (Agentic Payment Protocol) (Phase 4) to have already authorized the payment before MPP
 executes it. MPP handles execution; AP2 handles authorization. Skipping MPP
 means the agent must know which rail to use for each transaction — it becomes
 the agent's problem rather than the payment abstraction layer's problem.
 
 **Alternatives considered:**
 - Stripe alone (fiat only) is simpler but excludes the stablecoin settlement
-  path needed for x402 micro-payments and Phase 16.
+  path needed for x402 micro-payments.
 - Circle Programmable Wallets alone (stablecoin only) excludes merchants who
   only accept card payments.
-- AWS AgentCore Payments (Phase 16) is a managed implementation of x402 and
-  Coinbase/Stripe rails — essentially MPP as a service. SupplyMind builds MPP
-  manually first to understand the plumbing; Phase 16 evaluates AgentCore as
-  the managed alternative.
-- SupplyMind chose MPP to remain rail-agnostic from the start, reflecting the
-  likely production reality where different counterparties require different rails.
+- AWS AgentCore Payments is a managed implementation of x402 and Coinbase/Stripe
+  rails -- essentially MPP (Machine Payments Protocol) as a service. SupplyMind
+  builds MPP manually to understand the plumbing; AgentCore is the managed
+  alternative for a production deployment.
+- Stripe Treasury abstracts ACH, wire, and card rails behind one API but does
+  not cover stablecoin/x402, which is the gap that matters for agentic commerce.
+  Strong for fiat-only enterprise procurement.
+- Moov is open-source financial infrastructure that abstracts ACH, RTP
+  (Real-Time Payments), card, and wire. No stablecoin support. More
+  developer-controlled than Stripe Treasury; good for regulated fiat workflows.
+- Bridge (acquired by Stripe) is a stablecoin-to-fiat abstraction layer that
+  converts USDC to fiat at settlement, making the rail choice transparent to
+  the merchant. The closest production option to a true multi-rail abstraction
+  covering both card and stablecoin.
+- MPP (Machine Payments Protocol) was the learning target for this phase. MPP
+  proposes to cover all three rails (card, ACH/wire, stablecoin) behind a single
+  API. Nothing in production today does this fully. MPP is experimental precisely
+  because that three-rail abstraction does not yet exist as a production product.
+  AWS AgentCore is the nearest practical approximation for the x402 + Stripe
+  combination SupplyMind implements.
 
 **Security loopholes:**
 
@@ -545,78 +570,68 @@ detect silent failures.
 
 ---
 
-## Phase 6: NANDA — Decentralized Agent Registry
+## Phase 5: Protocol Reflection + Second Seller
 
-**Type:** Protocol (W3C Verifiable Credential + REST registry)
-**Established by:** Project NANDA (projectnanda.org). Open, decentralized.
-No single governing organization.
-**Adoption:** Early. NANDA NEST is the production registry. Registration
-requires HTTPS endpoints; localhost deployments are structurally excluded.
-**Maturity:** Experimental. Live registry, but governance model and spec
-stability are still forming.
+**Type:** Analysis + Implementation
+**Status:** Done.
 
 **Problem it solves:**
-How does a buyer agent find a seller agent it has never interacted with,
-without knowing its URL in advance? NANDA is a decentralized registry where
-agents publish their capabilities as W3C Verifiable Credentials. Any agent
-can search NANDA and find peers by capability, tag, or DID.
+After Phase 4, the system works end-to-end but with a single seller and no
+competitive dynamics. Phase 5 adds a second seller agent (QuickSupply Co.
+on port 8081) with independent pricing, tests competitive price discovery
+across both catalogs, and documents the full protocol reflection for Phases 1-4.
 
-**How we used it:**
-AgentFacts document (W3C VC, JSON-LD) generated by src/seller_agent/nanda_facts.py.
-Signed with the seller's secp256k1 key. Attempted registration to
-nest.projectnanda.org (rejected for localhost, expected behavior). Structure
-is production-ready; deployment requires a public HTTPS host.
+**What was completed:**
+Full protocol reflection across Phases 1-4 (this document). Second seller
+implementation: QuickSupply Co. runs as a second instance of the seller agent
+with a 12% price discount applied via --price-multiplier. Four new functions
+in src/buyer_agent/buyer.py implement the multi-seller flow:
+
+- discover_sellers(): fetches A2A (Agent-to-Agent) agent cards from a list of seller URLs
+- fetch_all_catalogs(): fetches UCP (Universal Commerce Protocol) catalogs from all discovered sellers
+- select_best_products_multi(): cheapest-wins selection per shopping list item across all catalogs
+- run_multi_seller_flow(): orchestrates discovery, comparison, order splitting, and submission
+
+QuickSupply Co. is registered in the DNSid (Domain Name System identity) registry under
+dnsid://quicksupply.localhost/agents/seller-001. Both sellers have active
+handles verifiable at runtime.
+
+**Buyer decision logic:**
+Rule-based, cheapest-wins per item. For each item on the shopping list, all
+seller catalogs are scanned and the matching product with the lowest unit price
+is selected. A single procurement run may be split across multiple sellers:
+one seller wins on paper, another on pens, based solely on price. No vendor
+loyalty, no bundle discount logic, no minimum-order enforcement in the prototype.
+
+**Mandate location:**
+The human issues one AP2 (Agentic Payment Protocol) Intent Mandate before the
+multi-seller flow starts. The approved_sellers field in that mandate contains
+both seller DIDs: did:web:localhost:8080 (SupplyMind Seller) and
+did:web:localhost:8081 (QuickSupply Co.). When the buyer submits a Cart Mandate
+to a seller, verify_cart_mandate() checks that the seller's DID appears in the
+Intent Mandate's approved_sellers list. Both sellers are pre-approved in a
+single mandate; no separate mandate is issued per seller. A third seller discovered via NANDA (Phase 7) that is not in approved_sellers
+is rejected without human re-authorization.
 
 **Dependencies and sequencing:**
-Requires Phase 7 (secp256k1 + KYA) to have run first — the NANDA AgentFacts
-document is signed with the same key as the KYA document. Without a signed
-identity, NANDA registration is self-asserted with no proof. Phase 8 (DNSid)
-adds an ownership verification gate that should run after NANDA discovery
-and before any transaction begins.
-
-**Alternatives considered:**
-- Maritime.sh is a cloud hosting platform for agents (~$1/month) that provides
-  agent discovery as part of its hosting service. It is simpler to set up than
-  a self-hosted NANDA registration but introduces a centralized dependency.
-- Enterprise service registries (Consul, etcd, API gateways) handle agent
-  discovery within a single organization but are not interoperable across
-  organizational boundaries — exactly the open marketplace problem SupplyMind
-  is trying to solve.
-- Centralized directories (a single org maintaining a curated agent list) are
-  simpler but create a single point of failure and a governance bottleneck.
-- SupplyMind chose NANDA because it is the only open, decentralized,
-  W3C-VC-based agent registry available. The HTTPS constraint is a known
-  limitation for local development.
-
-**Security loopholes:**
-
-- [Identity] Registration is self-asserted. Any agent can register on NANDA
-  claiming any capability. NANDA does not verify that the agent implements
-  what it advertises. Phase 8 adds DNSid ownership verification as the
-  post-discovery trust gate.
-
-- [Identity] DID ownership is unverified at discovery time. The NANDA
-  registration includes a DID but NANDA does not verify the registrant controls
-  the corresponding private key. Two agents could register with the same DID.
-  The buyer must verify the seller's KYA signature before trusting any
-  registration data.
-
-- [Scoping] HTTPS requirement creates centralization pressure. NANDA requires
-  HTTPS, which requires a domain and certificate, effectively excluding
-  private or enterprise-internal agents from the open registry. This is a
-  protocol design tradeoff, not a bug.
+The competitive discovery pattern directly enables Phase 7 NANDA (Networked
+Agents and Decentralized Architecture): the same discover_sellers() and
+select_best_products_multi() logic works whether seller URLs come from a
+hardcoded list or from a NANDA registry search. Phase 7 replaces the input
+source; the comparison and routing logic is unchanged.
 
 **Why this matters:**
-NANDA solves agent discoverability at open web scale. The security model is
-defense-in-depth: NANDA finds candidates, KYA verifies identity, DNSid verifies
-ownership, A2A coordinates the task. No single layer is sufficient alone.
+Multi-seller competition is the mechanism that makes agentic procurement
+economically meaningful for buyers. A buyer agent that can only buy from one
+known seller is a workflow tool. A buyer agent that discovers, compares, and
+selects from multiple verified sellers is an economic actor.
 
 ---
 
-## Phase 7: KYA + Cryptographic Identity (secp256k1, DID, KYA)
+## Phase 6: KYA + Cryptographic Identity (secp256k1, DID, KYA)
 
 **Type:** Framework (with W3C DID spec as the underlying protocol)
-**Established by:** DID spec by W3C. KYA as a pattern by MIT and industry
+**Established by:** DID (Decentralized Identifier) spec by W3C. KYA (Know Your Agent) as a pattern by MIT and industry
 (Sumsub, Trulioo) circa 2025. secp256k1 is the same elliptic curve used by
 Bitcoin and Ethereum.
 **Adoption:** Emerging. DID:web is widely understood; production KYA
@@ -625,24 +640,91 @@ implementations are nascent.
 Experimental (KYA as an agent identity pattern — nascent implementations).
 
 **Problem it solves:**
-In agent commerce, a buyer needs to verify that the seller it is talking to is
-who it claims to be — without a centralized authority to ask. KYA uses
-cryptographic proof: the seller publishes a document signed with a private key;
-the buyer verifies the signature using the public key.
+KYA (Know Your Agent) is symmetric: both sides of a transaction need it.
+
+The buyer needs to verify the seller is legitimate before sending money. The
+seller equally needs to verify the buyer is who it claims to be before
+fulfilling an order -- an unverified buyer agent could be placing orders it
+has no authority or funds to honor.
+
+KYA uses cryptographic proof: each party publishes a signed identity document.
+The counterparty verifies the signature using the published public key. No
+centralized authority is needed.
+
+DID (Decentralized Identifier) answers "who are you?" KYA answers "what are
+you, who operates you, and what are you authorized to do?" A DID gives an
+agent a verifiable name tied to a domain. KYA uses that same key to publish
+a richer signed credential: operator identity, capabilities, spending limits,
+and authorization chain.
+
+In production, every human-initiated signing step on both sides -- operator
+authorizing the seller agent, human authorizing the buyer agent -- is performed
+with LoginID FIDO2 biometric. The secp256k1 file-based key in SupplyMind
+simulates that ceremony. LoginID replaces the file with a hardware-attested
+biometric that cannot be copied or exfiltrated.
+
+**Buyer-side KYA: the market**
+Buyer-side KYA is where significant investment is concentrating as of mid-2026.
+Two distinct approaches are emerging:
+
+Skyfire ($9.5M raised, a16z CSX + Coinbase Ventures) takes a credential-issuer
+approach: it issues KYAPay (Know Your Agent Pay) tokens -- signed JWTs (JSON
+Web Tokens) that assert who built the buyer agent, who authorized it, and what
+it is allowed to spend. Skyfire's partnership with Experian (confirmed April
+2026) enriches KYA tokens with Experian's identity and fraud signal data,
+issuing a risk score tied to the human principal. Experian's own materials
+describe continuous behavioral scoring that can shift before a transaction
+completes -- this is not a static score attached once at issuance. KYAPay token
+expiry per the IETF draft spec is 10 seconds to 24 hours (not 90 days as
+previously stated). Whether KYAPay has a defined revocation mechanism is
+unconfirmed from available spec documentation.
+
+Baselayer ($6.5M seed, Torch Capital + Founder Collective + Afore) takes a
+business-graph approach: it evaluates the legal entity behind the buyer agent
+against authoritative records including SOS filings, EIN, and OFAC screening,
+and issues a business risk assessment. Real-time evaluation capability is a
+stated product feature. Whether this includes phone and email enrichment, how
+it compares to Experian's approach in depth or speed, and whether it is
+genuinely ahead of Skyfire on buyer-side KYA are not confirmed -- these require
+direct product evaluation.
+
+These two approaches address different questions: Skyfire answers "is this agent
+properly delegated by a verified human?", Baselayer answers "is the business
+behind this agent real and clean?" A complete buyer-side identity stack likely
+needs both. Which is more complete today is not established.
+
+**The Firmly + LoginID buyer-side opportunity**
+Firmly's current positioning is merchant-facing (seller side). LoginID's
+current positioning is human authentication. The buyer-side KYA gap is an
+expansion path for both, but it is not a natural extension -- it requires
+moving toward the buyer's organization, which is a different sales motion,
+different compliance requirements, and direct competition with Skyfire and
+Baselayer on their home ground.
+
+The structural question is whether Firmly wants to own both sides of the
+transaction trust stack or focus on making the seller side defensible first.
+Owning both sides is the stronger moat: a buyer agent credentialed by Firmly
+and a seller agent credentialed by Firmly create a closed trust loop that
+neither Skyfire nor Baselayer can replicate from their current positions.
+But it is a significantly larger product and go-to-market bet.
 
 **How we used it:**
 secp256k1 keypair generated and persisted in .keys/seller_private_key.hex
 (gitignored). DID derived as did:web:localhost:8080. KYA document built and
 signed in src/identity/kya_builder.py. NANDA AgentFacts signed with the same
 key in src/seller_agent/nanda_facts.py. Buyer can verify any signed document
-using verify_signature() from src/identity/keys.py.
+using verify_signature() from src/identity/keys.py. Buyer-side KYA was not
+implemented in SupplyMind -- the buyer agent identifies itself via BUYER_ID
+(a DID string) but does not publish a signed KYA document. That is the gap
+this phase leaves open on the buyer side.
 
 **Dependencies and sequencing:**
-Phase 7 is the cryptographic foundation for Phases 8, 9, 10, and 13. DNSid
-(Phase 8) anchors the key to a DNS domain. Signed Mandates (Phase 9) use the
-same signing infrastructure. Visa TAP (Phase 14) adds a network-level credential
-on top of the key-based identity. Skipping Phase 7 means every downstream phase
-that requires signatures has nothing to sign with.
+Phase 6 is the cryptographic foundation for Phases 7, 8, 9, and 14. DNSid (Domain Name System identity)
+(Phase 7) anchors the key to a DNS domain. Signed Mandates (Phase 8) use the
+same signing infrastructure. Visa TAP (Trusted Agent Protocol) (Phase 14) adds a network-level credential
+on top of the key-based identity. NANDA (Phase 7) uses the same key to sign
+the AgentFacts registration document. Skipping Phase 6 means every downstream
+phase that requires signatures has nothing to sign with.
 
 **Alternatives considered:**
 - ENS (Ethereum Name Service) provides human-readable names anchored on
@@ -653,17 +735,16 @@ that requires signatures has nothing to sign with.
   to resolve.
 - did:key requires no infrastructure at all (the key is the identifier) but
   provides no revocation mechanism — once a key is compromised, there is no
-  way to signal that. This makes it unsuitable for production.
-- SupplyMind chose did:web because it requires no blockchain infrastructure,
-  is fast to resolve, and is the most widely supported DID method. The
-  revocation gap is addressed by DNSid in Phase 8.
+  way to signal that to counterparties. This makes it unsuitable for production.
+- did:web was the learning target for this phase. did:web requires no blockchain infrastructure, is fast to resolve, and is the most widely supported DID (Decentralized Identifier) method. The
+  revocation gap is addressed by DNSid in Phase 7.
 
 **Security loopholes:**
 
 - [Identity] No key revocation. If the private key is compromised, there is
   no way to signal that signatures from that key should no longer be trusted.
   Every signed document from the compromised key remains cryptographically valid
-  until all relying parties rotate their trust anchor. DNSid (Phase 8) solves
+  until all relying parties rotate their trust anchor. DNSid (Phase 7) solves
   this: the DNSid registry can mark an agent as revoked regardless of signature
   validity.
 
@@ -686,17 +767,27 @@ that requires signatures has nothing to sign with.
   cryptographically valid. Mitigation: include expiry timestamps and require
   re-signing at regular intervals.
 
+- [Identity] Seller-side ownership chain stops at the company, not the human.
+  DNSid proves a company controls a domain. The KYA document names an operator.
+  Neither is verified against a human identity registry. A fraudulent seller
+  can control a real DNS record and produce a clean KYA document. The buyer
+  side goes one level higher via Skyfire/KYAPay: Experian verifies the human
+  principal behind the buyer agent. No equivalent exists on the seller side.
+  Baselayer's SOS/EIN/OFAC checks on the business entity partially close this
+  gap, but seller-side human identity verification has no confirmed solution
+  in the current market.
+
 **Why this matters:**
 Cryptographic identity is necessary but not sufficient for enterprise trust.
 It answers "was this signed by the claimed key?" but not "should I trust this
 key?" The answer to the second question requires ownership registries (DNSid),
 network-level credentials (Visa TAP, Mastercard Agent Pay), and revocation
-infrastructure. Phase 7 lays the foundation; Phases 8 and 13 make it
+infrastructure. Phase 6 lays the foundation; Phases 7 and 14 make it
 enterprise-grade.
 
 **The missing layer: business entity verification (KYA gap)**
 
-Phase 7 proves the agent signed its own credential. DNSid (Phase 8) proves
+Phase 6 proves the agent signed its own credential. DNSid (Phase 7) proves
 the agent controls a domain. Neither answers the question that every payment
 rail, lender, and supplier actually needs: is the business behind this agent
 real, solvent, and legally clean?
@@ -707,6 +798,112 @@ a vacant lot, sanctioned, or under active litigation. Cryptographic identity
 and business entity verification are orthogonal problems. The first proves
 the agent is who it claims to be. The second proves the claimed entity is
 worth trusting.
+
+Who fills this gap and what Firmly + LoginID can and cannot do:
+
+| Layer | Who solves it | What it proves |
+|---|---|---|
+| Agent key is legitimate | secp256k1 / LoginID (Phase 6) | Request was signed by the claimed key |
+| Agent's domain is controlled | DNSid (Phase 8) | Operator controls the DNS record, can revoke |
+| Human behind the agent is real | Experian via Skyfire KYAPay | Human identity, credit history, fraud signals |
+| Business entity is real and clean | Baselayer | SOS filing, EIN, OFAC status (confirmed scope) |
+
+Firmly + LoginID own the top two rows. The FIDO2 biometric (LoginID) replaces
+the secp256k1 file key with a hardware-backed human gesture. DNSid binds the
+credential to domain ownership and enables real-time revocation. Together they
+answer: "the agent is who it claims, and the human behind it explicitly
+authorized this."
+
+The bottom two rows are outside Firmly and LoginID's current scope. No amount
+of cryptographic work at Phase 6 substitutes for SOS/EIN/OFAC checks. The
+question "is the business entity behind this agent real and solvent?" requires
+a data partnership with authoritative business registries -- which is exactly
+what Baselayer is built to answer and what Experian provides at the human level
+via Skyfire. These are complementary services, not competitors: Firmly + LoginID
+win by proving the agent and the human; Skyfire and Baselayer win by proving
+the entities. A complete trust stack requires all four layers.
+
+---
+
+## Phase 7: NANDA — Decentralized Agent Registry
+
+**Type:** Protocol (W3C Verifiable Credential + REST registry)
+**Established by:** Project NANDA (projectnanda.org). Open, decentralized.
+No single governing organization.
+**Adoption:** Early. NANDA NEST is the production registry. Registration
+requires HTTPS endpoints; localhost deployments are structurally excluded.
+**Maturity:** Experimental. Live registry, but governance model and spec
+stability are still forming.
+
+**Problem it solves:**
+How does a buyer agent find a seller agent it has never interacted with,
+without knowing its URL in advance? NANDA (Networked Agents and Decentralized
+Architecture) is a decentralized registry where agents publish their
+capabilities as W3C Verifiable Credentials. Any agent can search NANDA and
+find peers by capability, tag, or DID (Decentralized Identifier).
+
+**How we used it:**
+AgentFacts document (W3C VC, JSON-LD) generated by src/seller_agent/nanda_facts.py.
+Signed with the seller's secp256k1 key from Phase 6. Attempted registration to
+nest.projectnanda.org (rejected for localhost, expected behavior). Structure
+is production-ready; deployment requires a public HTTPS host.
+
+**Dependencies and sequencing:**
+Requires Phase 6 (secp256k1 + KYA) to have run first. The NANDA AgentFacts
+document is signed with the same key as the KYA document. Without that signed
+identity, NANDA registration is self-asserted with no proof. Phase 8 — DNSid (Domain Name System identity) —
+adds an ownership verification gate that should run after NANDA discovery
+and before any transaction begins.
+
+**Alternatives considered:**
+- Enterprise service registries (Consul, etcd, API gateways) handle agent
+  discovery within a single organization but are not interoperable across
+  organizational boundaries — exactly the open marketplace problem SupplyMind
+  is trying to solve.
+- Centralized directories (a single org maintaining a curated agent list) are
+  simpler to operate but create a strategic dependency: the directory owner
+  decides who is listed, what the trust signal means, and can deprioritize
+  or exclude participants at will. A platform like Firmly would be building
+  on ground it does not control.
+- NANDA was the learning target for this phase. NANDA is the only open,
+  decentralized, W3C-VC-based agent registry available. The HTTPS constraint
+  is a known limitation for local development.
+
+**Security loopholes:**
+
+- [Identity] Registration is self-asserted. Any agent can register on NANDA
+  claiming any capability. NANDA does not verify that the agent implements
+  what it advertises. Phase 8 adds DNSid ownership verification as the
+  post-discovery trust gate.
+
+- [Identity] DID ownership is unverified at discovery time. The NANDA
+  registration includes a DID but NANDA does not verify the registrant controls
+  the corresponding private key. Two agents could register with the same DID.
+  The buyer must verify the seller's KYA signature before trusting any
+  registration data.
+
+- [Scoping] HTTPS requirement creates centralization pressure. NANDA requires
+  HTTPS, which requires a domain and certificate, effectively excluding
+  private or enterprise-internal agents from the open registry. This is a
+  protocol design tradeoff, not a bug.
+
+**Why this matters:**
+NANDA solves agent discoverability at open web scale. The security model is
+defense-in-depth: NANDA finds candidates, KYA (Phase 6) verifies identity,
+DNSid (Phase 8) verifies ownership, A2A (Agent-to-Agent) coordinates the task.
+No single layer is sufficient alone.
+
+**Production note: OpenClaw as buyer agent runtime**
+OpenClaw (openclaw.org, MIT-licensed, OpenClaw Foundation) is a widely adopted
+open-source agent runtime (15k+ GitHub stars as of early 2026). A production buyer agent
+could run on OpenClaw instead of the custom buyer.py built in SupplyMind.
+OpenClaw supports NANDA NEST registration natively (via ClawNanda), runs on
+Maritime or any self-hosted environment, and works with Claude, GPT-4o, and
+Gemini. The A2A, UCP, AP2, and mandate chain protocols SupplyMind implements
+are runtime-agnostic: an OpenClaw buyer would call the same endpoints and
+follow the same flow as buyer.py. OpenClaw adds deployment convenience and
+multi-channel access (Telegram, Slack, WhatsApp) but introduces no new
+protocol. It is a deployment choice, not a protocol phase.
 
 The traditional KYB (Know Your Business) process was designed for humans
 filling out forms reviewed by other humans. It cannot run at agent speed.
@@ -727,8 +924,8 @@ category is sometimes called the "agent trust layer" or "KYA infrastructure."
 
 | Player | Approach | Signal |
 |--------|----------|--------|
-| Baselayer | Graph AI over SOS, EIN, OFAC, liens, litigation. Immutable Business ID carried by the agent. MCP server integration planned. | $6.5M seed (Torch Capital, Founder Collective, Afore). B2B focus. |
-| Skyfire | KYAPay protocol: signed JWTs carrying verified identity claims (who built the agent, who authorized it, what it can do, how it pays). | $9.5M total (a16z CSX, Coinbase Ventures, Neuberger Berman). Partnered with Experian. |
+| Baselayer | Business identity verification against SOS filings, EIN, OFAC. Real-time risk assessment. B2B focus. | $6.5M seed (Torch Capital, Founder Collective, Afore). |
+| Skyfire | KYAPay (Know Your Agent Pay) protocol: signed JWTs (JSON Web Tokens) carrying verified identity claims (who built the agent, who authorized it, what it can do, how it pays). | $9.5M total (a16z CSX, Coinbase Ventures, Neuberger Berman). Partnered with Experian. |
 | Experian Agent Trust | Human-to-agent binding: takes KYA tokens and enriches them against Experian's consumer and business data, issues a real-time risk score. Partners include Skyfire, Akamai, Visa, Cloudflare. | Enterprise incumbency. Launched April 2026. |
 | Trulioo | Published KYA white paper. Extending existing KYB/KYC platform to cover agent identity verification. | Established identity verification vendor, 195 countries. |
 | KnowYourAgent.xyz | Lightweight agent verification at checkout. Consumer-facing. | Early stage, narrow scope. |
@@ -755,11 +952,11 @@ that consumes these trust signals and acts on them.
 
 **Why this matters for SupplyMind:**
 SupplyMind intentionally left this gap open. The prototype builds and operates
-the transaction protocol stack (MCP, A2A, UCP, AP2, ACP) and documents where
+the transaction protocol stack (MCP, A2A (Agent-to-Agent), UCP (Universal Commerce Protocol), AP2 (Agentic Payment Protocol), ACP (Agentic Commerce Protocol)) and documents where
 an external trust oracle would plug in. That gap, between cryptographic identity
-and business entity verification, is exactly where a $6.5M seed company is
-building today. SupplyMind's architecture is a working prototype of the layer
-above theirs.
+and business entity verification, is where the business entity verification
+market is building today. SupplyMind's architecture is a working prototype of
+the transaction layer that consumes those trust signals.
 
 ---
 
@@ -773,7 +970,7 @@ April 27 2026. Linux Foundation Decentralized Trust member. Neutral governance.
 as of May 2026.
 
 **Problem it solves:**
-Cryptographic identity (Phase 7) proves a document was signed by a key. It does
+Cryptographic identity (Phase 6) proves a document was signed by a key. It does
 not prove who owns the key or whether the agent using it is still authorized to
 act. DNSid is the ownership registry: it anchors an agent's identifier to a DNS
 domain, records the owner, and provides revocation. When an agent is compromised
@@ -783,7 +980,7 @@ check before transacting will reject it.
 This is the layer that transforms SupplyMind from autonomous to accountable.
 
 **Dependencies and sequencing:**
-Requires Phase 7 (secp256k1 + KYA) — DNSid anchors the existing cryptographic
+Requires Phase 6 (secp256k1 + KYA (Know Your Agent)) — DNSid anchors the existing cryptographic
 identity to a DNS domain and adds ownership and revocation on top. Phase 9
 (signed mandates) requires DNSid to know who is signing the Intent Mandate.
 Phase 11 (governance dashboard) audits by DNSid handle. Skipping Phase 8 means
@@ -799,8 +996,7 @@ every phase above it has no ownership accountability layer.
 - Okta XAA + ID-JAG (Okta's agent identity framework) is enterprise-grade but
   tightly coupled to the Okta identity ecosystem — not suitable for an
   open, vendor-neutral stack.
-- SupplyMind chose DNSid because it is vendor-neutral, LF Decentralized Trust
-  member, DNS-anchored (reusing existing infrastructure), and specifically
+- DNSid (Domain Name System identity) was the learning target for this phase. DNSid is vendor-neutral, an LF Decentralized Trust member, DNS-anchored (reusing existing infrastructure), and specifically
   designed for agent ownership rather than adapted from human identity patterns.
 
 **Security loopholes to address in build:**
@@ -835,13 +1031,15 @@ Amex, Klarna.
 
 **Problem it solves:**
 The Phase 4 mandate is a runtime policy check in memory. AP2 v0.2.0 replaces it
-with cryptographically signed Intent Mandates (human signs upfront) and Cart
-Mandates (agent signs at purchase time, linked back to Intent Mandate). Creates
-a tamper-proof audit trail from human intent to payment execution.
+with cryptographically signed Intent Mandates (human signs upfront using a
+secp256k1 key -- in production this is a LoginID FIDO2 hardware-backed
+biometric ceremony) and Cart Mandates (agent signs at purchase time, linked
+back to Intent Mandate). Creates a tamper-proof audit trail from human intent
+to payment execution.
 
 **Dependencies and sequencing:**
 Requires Phase 7 (secp256k1) for the signing infrastructure. Requires Phase 8
-(DNSid) for the vendor_dnsid field in Cart Mandates and for the DNSid gate that
+(DNSid, Domain Name System identity) for the vendor_dnsid field in Cart Mandates and for the DNSid gate that
 must pass before a Cart Mandate is issued. Without Phase 9, the governance
 dashboard (Phase 11) has no signed mandate records to audit.
 
@@ -878,7 +1076,7 @@ independently verifiable long after the transaction completes.
 
 ## Phase 10: Seller Authorization Manifest (Done)
 
-**Type:** Novel spec (no existing standard -- borrows AP2 v0.2.0 cryptographic pattern)
+**Type:** Novel spec (no existing standard -- borrows AP2 (Agentic Payment Protocol) v0.2.0 cryptographic pattern)
 **Established by:** SupplyMind Phase 10. Proposed as companion standard to AP2.
 **Maturity:** Experimental. No existing standard; SupplyMind is the reference implementation.
 
@@ -903,7 +1101,9 @@ Two concrete use cases that exist today (before autonomous buyer agents are comm
 
 The Seller Authorization Manifest is the replacement for HTTPS in these contexts:
 a signed document created by the merchant's human operator before the selling agent
-goes live. It states what the agent may sell, at what price ranges, with what
+goes live. In production this signing step would be performed by LoginID FIDO2:
+the operator's private key lives in hardware and a biometric gesture is required
+to authorize the manifest. It states what the agent may sell, at what price ranges, with what
 discount limits. The buyer agent or chat interface verifies the signed offer against
 the manifest before presenting it to the human. Deviation fails at the transaction
 boundary -- before the human confirms, not after money moves.
@@ -919,7 +1119,8 @@ boundary -- before the human confirms, not after money moves.
 **Relationship to AP2:**
 AP2 is buyer-side governance by design. It governs what a buyer agent can spend,
 not what a seller agent can offer. The Seller Authorization Manifest borrows AP2's
-cryptographic pattern (secp256k1-signed document, human operator key, agent
+cryptographic pattern (secp256k1-signed document, human operator key -- in
+production a LoginID FIDO2 hardware-backed biometric ceremony -- agent
 execution key) and applies it to the seller side. This is not AP2 -- it is a
 novel companion spec that fills a gap AP2 does not address.
 
@@ -932,7 +1133,7 @@ both buyer and seller signed artifacts into a single audit view.
 **Merchant friction and deployment strategy:**
 Three-tier deployment: Approach 1 (price buffer policy, no-code, zero ongoing
 friction -- right launch config), Approach 2 (catalog-sync manifest, one-tap
-mobile confirm for mid-market), Approach 3 (ERP/PIM MCP integration, LoginID
+mobile confirm for mid-market), Approach 3 (ERP/PIM MCP (Model Context Protocol) integration, LoginID
 biometric on live system data -- enterprise tier and strongest LoginID
 differentiation). See LoginID-Firmly eval.md for full analysis.
 
@@ -961,7 +1162,7 @@ independently verifiable by any chat interface or buyer agent without a browser.
 
 ## Phase 11: Governance and Audit Dashboard (Done)
 
-**Type:** Application (implements DNSid, AP2, x402, NANDA as data sources)
+**Type:** Application (implements DNSid (Domain Name System identity), AP2 (Agentic Payment Protocol), x402, NANDA (Networked Agents and Decentralized Architecture) as data sources)
 **Maturity:** N/A (SupplyMind-specific implementation).
 
 **Problem it solves:**
@@ -1023,7 +1224,7 @@ sales uplift for ACP-integrated sellers during Cyber Week 2025.
 strong ecosystem traction in B2C.
 
 **Problem it solves:**
-A buyer agent built on GPT-4o speaks ACP, not UCP. SupplyMind sellers currently
+A buyer agent built on GPT-4o speaks ACP, not UCP (Universal Commerce Protocol). SupplyMind sellers currently
 only speak UCP. Adding ACP makes the seller reachable from any commerce AI
 regardless of which LLM powers the buyer. Merchants supporting both see ~40%
 more agentic traffic than single-protocol merchants.
@@ -1031,7 +1232,7 @@ more agentic traffic than single-protocol merchants.
 **Dependencies and sequencing:**
 Requires UCP (Phase 2) to already exist — the protocol router needs a UCP
 handler to route from before an ACP handler can be added alongside it.
-The AP2 mandate engine (Phase 4) sits above both protocols and enforces the
+The AP2 (Agentic Payment Protocol) mandate engine (Phase 4) sits above both protocols and enforces the
 same spending policy regardless of which checkout protocol the buyer used.
 
 **Alternatives considered:**
@@ -1041,12 +1242,11 @@ same spending policy regardless of which checkout protocol the buyer used.
 - ACP only: stronger B2C traction but weaker B2B semantic catalog support.
   UCP's JSON-LD and schema.org vocabulary is better suited to SupplyMind's
   B2B procurement use case.
-- SupplyMind chose both via a protocol router because the cost of a router is
-  low and the cost of protocol lock-in is high in a still-settling ecosystem.
+- Both ACP (Agentic Commerce Protocol) and UCP (Universal Commerce Protocol) were learning targets for this phase, implemented via a protocol router.
 
 **Security loopholes:**
 
-- [Identity] Protocol router must not bypass DNSid gates. A buyer coming in
+- [Identity] Protocol router must not bypass DNSid (Domain Name System identity) gates. A buyer coming in
   via ACP must be subject to the same DNSid ownership verification as a UCP
   buyer. The router must apply identity checks before routing, not after.
 
@@ -1075,9 +1275,133 @@ while keeping the payment governance layer unified.
 
 ---
 
+## Phase 12.5: Universal Cart (Done)
+
+**Type:** Protocol
+**Established by:** Google (2026). Separate from UCP (Universal Commerce Protocol).
+**Maturity:** Experimental. Announced 2026; no reference implementation yet.
+
+**Problem it solves:**
+Every prior phase treats checkout as a stateless event. The buyer agent
+discovers, queries, mandates, and pays in a single session. There is no
+persistent cart object that survives between turns, accumulates items across
+sellers, or hands structured state to the checkout session. For single-item
+procurement this is acceptable. For multi-item, multi-session, or multi-seller
+B2B orders it breaks: the buyer agent must rebuild context from scratch on
+every turn.
+
+Universal Cart adds a durable cart state layer. A cart is created once per
+procurement event, accumulates items across agent turns, is anchored to the
+buyer agent's DID (Decentralized Identifier), and is converted to a UCP checkout session at the checkout
+step.
+
+**What it adds to the stack:**
+Universal Cart is the first protocol in SupplyMind that explicitly models
+transaction state as a first-class object. Previous phases model events
+(mandate created, payment executed, agent registered). Universal Cart models
+a thing that persists and changes over time. This has downstream effects on
+every layer above it:
+
+- AP2 (Agentic Payment Protocol) mandate enforcement gains a full cart manifest (all items, total value,
+  all sellers) rather than enforcing per-item. The mandate can now block a
+  cart whose total exceeds the mandate limit even if each individual item
+  is within bounds.
+- Visa TAP (Trusted Agent Protocol) and Mastercard Agent Pay (Phase 14) gain a cart ID as the
+  transaction anchor rather than a bare payment call. Network credentials
+  can be bound to a specific cart, not just a payment amount.
+- Fraud detection (Phase 15) gains cart history as a signal. Velocity checks
+  can operate on cart add events, not just payment events.
+- Governance audit trail (Phase 11) gains cart lifecycle events alongside
+  mandate and payment events.
+
+**Clerk's four-question lens:**
+
+- Identity: cart is anchored to buyer_did (Phase 7 secp256k1 identity).
+  A cart cannot be checked out by an agent with a different DID than the one
+  that created it. Strengthens Identity.
+- Scoping: AP2 mandate can now enforce against full cart value rather than
+  per-item. Strengthens Scoping.
+- Approvals: NOTIFY-tier human approval now presents a full cart manifest,
+  not a single line item. Strengthens Approvals.
+- Enforcement: no change at this phase. check_mandate() still runs inside
+  the agent process boundary. Phase 14 network credentials begin to address
+  independent enforcement.
+
+**Dependencies and sequencing:**
+Requires Phase 12 (UCP checkout sessions) -- checkout_cart() converts the
+cart to a UCP checkout session. Requires Phase 7 (buyer_did) -- cart is
+identity-anchored. Phase 13 wallet layer gains a cart-triggered checkout
+path (checkout_cart calls the wallet's pay() rather than invoking it
+directly). Phase 14 network credentials should bind to cart_id as the
+transaction anchor.
+
+**Alternatives considered:**
+
+- Session-scoped cart (in-memory, not persistent): simpler but defeats the
+  purpose. If the agent restarts or pauses between turns, the cart is lost.
+  SQLite persistence is the minimum viable durability.
+- Single-seller cart only: simpler model but limits B2B procurement realism.
+  SupplyMind implements multi-seller cart (items carry seller_did) to
+  reflect real procurement where a buyer may source from multiple vendors
+  in one order.
+- Embedding cart state in the AP2 mandate: philosophically wrong. The
+  mandate governs spending policy. The cart is the transaction state.
+  Conflating them makes both harder to audit.
+
+**What was built:**
+
+- `src/cart_server/cart.py`: Cart and CartItem data models, SQLite backend
+  at data/carts.db. Fields: cart_id (UUID), buyer_did, items (product_id,
+  quantity, unit_price, seller_did, seller_endpoint), status
+  (open/checked_out/abandoned), created_at, updated_at.
+- `src/cart_server/server.py`: FastMCP server exposing four tools:
+  add_to_cart, view_cart, remove_from_cart, checkout_cart.
+- Seller agent: four cart endpoints added to FastAPI server:
+  POST /cart/v1/carts, GET /cart/v1/carts/{cart_id},
+  PATCH /cart/v1/carts/{cart_id}, POST /cart/v1/carts/{cart_id}/checkout.
+- Buyer agent: updated to call add_to_cart before checkout rather than
+  going directly to UCP checkout session.
+- Governance audit trail: cart lifecycle events (created, item_added,
+  checked_out) written to logs/audit.jsonl.
+- `tests/test_phase12_5.py`: create cart, add items, view cart, checkout
+  via UCP, verify audit trail entries.
+
+**Security loopholes to address:**
+
+- [Identity] Cart ownership must be verified at checkout. An agent must
+  present a signed proof that it is the buyer_did that created the cart.
+  Without this, any agent that knows a cart_id can check it out.
+
+- [Scoping] Cart total must be computed server-side, not trusted from the
+  client. If the buyer agent sends a checkout request with a tampered total,
+  the seller must recompute from line items.
+
+- [Enforcement] Cart status transitions (open to checked_out) must be atomic.
+  A race condition where two agents check out the same cart is a double-spend
+  risk. SQLite row-level locking or a status check-and-set must be atomic.
+
+**Why this matters:**
+Universal Cart is the protocol that makes multi-turn, multi-item, multi-seller
+agentic procurement possible without rebuilding context from scratch on every
+turn. The industry announcement of Universal Cart as a separate protocol from
+UCP confirms that stateless checkout is a recognized limitation of the current
+agentic commerce stack. Building it before Phase 14 network credentials gives
+every downstream phase a richer transaction object to work with.
+
+**Industry signal:**
+Google's decision to separate Universal Cart from UCP rather than extending
+UCP reflects a clean architectural boundary: UCP is a checkout protocol
+(stateless, single-seller, single-session). Universal Cart is a state
+management protocol (stateful, multi-seller, multi-session). SupplyMind's
+implementation follows this boundary: checkout_cart() converts cart state
+to a UCP checkout session at the handoff point, but neither protocol knows
+about the other's internals.
+
+---
+
 ## Phase 13: Agent Wallet Layer (13a Done -- mock; 13b optional with real APIs)
 
-**Type:** Implementation (Stripe Link Agent Wallet + Coinbase/Base MCP)
+**Type:** Implementation (Stripe Link Agent Wallet + Coinbase/Base MCP (Model Context Protocol))
 **Maturity:** Maturing. Stripe Link and Coinbase wallets are production-grade;
 Base MCP (launched May 26 2026) is early.
 
@@ -1085,13 +1409,13 @@ Base MCP (launched May 26 2026) is early.
 The current payment rails are simulated. Phase 12 introduces real wallet
 infrastructure: Stripe Link for fiat (one-time virtual card per agent task)
 and Coinbase Agentic Wallet for stablecoin (USDC, programmable spending
-policies, non-custodial identity anchored to DNSid).
+policies, non-custodial identity anchored to DNSid (Domain Name System identity)).
 
 **Dependencies and sequencing:**
-Requires AP2 mandates (Phase 4/9) to be in place before real money flows —
-a funded wallet without a spending policy is a liability. Phase 16 (x402 real
-settlement) requires the Coinbase/Base wallet from Phase 13. Skipping Phase 13
-means Phase 16 has no funded wallet to draw from.
+Requires AP2 (Agentic Payment Protocol) mandates (Phase 4/9) to be in place before real money flows —
+a funded wallet without a spending policy is a liability. Real x402 on-chain
+settlement requires the Coinbase/Base wallet provisioned in Phase 13. Skipping
+Phase 13 means there is no funded wallet to draw from.
 
 **Alternatives considered:**
 - Circle Programmable Wallets are the stablecoin wallet alternative to
@@ -1163,9 +1487,9 @@ of the two mock address functions changes.
 
 ---
 
-## Phase 14: Network Credential Layer — Visa TAP + Mastercard Agent Pay (Planned)
+## Phase 14: Network Credential Layer — Visa TAP + Mastercard Agent Pay (Done)
 
-**Type:** Protocol (Visa TAP) + Framework (Mastercard Agent Pay)
+**Type:** Protocol (Visa TAP (Trusted Agent Protocol)) + Framework (Mastercard Agent Pay)
 **Established by:** Visa TAP (October 2025, RFC 9421). Mastercard Agent Pay
 (April 2025) + Verifiable Intent (March 2026, with Google, Fiserv, IBM).
 **Adoption:** Visa TAP live at Adyen, Stripe, Worldpay. Mastercard full US
@@ -1189,7 +1513,7 @@ signed record linking the consumer's identity, their specific instructions,
 and the transaction outcome for audit and dispute resolution.
 
 **Dependencies and sequencing:**
-Requires Phase 8 (DNSid) — Visa TAP and Mastercard Agentic Tokens are bound
+Requires Phase 8 (DNSid, Domain Name System identity) — Visa TAP and Mastercard Agentic Tokens are bound
 to a specific agent identity; DNSid provides the ownership layer that makes
 that binding meaningful. Requires Phase 13 (real wallets) — network credentials
 are meaningless without a real payment instrument behind them.
@@ -1198,7 +1522,7 @@ are meaningless without a real payment instrument behind them.
 - Visa TAP and Mastercard Agent Pay are not mutually exclusive. Full network
   coverage requires both, since issuer acceptance depends on which network
   the cardholder's account runs on.
-- Relying on AP2 Mandates alone (no network credential) is viable for
+- Relying on AP2 (Agentic Payment Protocol) Mandates alone (no network credential) is viable for
   stablecoin-only deployments but is not acceptable to any bank or credit
   union that processes card transactions.
 - SupplyMind implements both because the enterprise compliance stack requires
@@ -1219,22 +1543,101 @@ are meaningless without a real payment instrument behind them.
   consumer approved $1000, there is a conflict that needs a defined resolution
   policy.
 
+**What was built:**
+
+- `src/identity/visa_tap.py`: `issue_tap_credential()` -- signs a credential
+  document (schema: visa-tap:v1.0) binding agent_did, dnsid_handle, merchant_did,
+  cart_id, amount, and expiry to a secp256k1 signature. `verify_tap_credential()`
+  -- checks signature, expiry, and DNSid revocation status.
+  `credential_to_header()` / `credential_from_header()` -- base64 encode/decode
+  for the TAP-Agent-Credential HTTP header.
+
+- `src/identity/mastercard_agent_pay.py`: `issue_agentic_token()` -- issues a
+  scoped Agentic Token (schema: mc-agent-pay:agentic-token:v1.0) bound to agent,
+  merchant, max amount, and consent scope. `verify_agentic_token()` -- checks
+  signature, expiry, merchant scope binding, amount limit, and DNSid revocation.
+  `create_verifiable_intent()` -- signed record linking human instruction, token,
+  cart, amount, and outcome (schema: mc-agent-pay:verifiable-intent:v1.0).
+  `verify_verifiable_intent()` -- cryptographic signature check.
+
+- Seller agent: `_apply_gates()` extended to accept and verify optional
+  TAP-Agent-Credential and MC-Agent-Token-Id headers. Both gates are additive
+  (absent = not verified, present + valid = verified). The task result includes
+  `tap_verified` and `mc_token_verified` fields alongside the existing
+  `buyer_dnsid_verified` and `cart_mandate_verified`.
+
+- Governance dashboard: `GET /governance/network-credentials` -- lists all issued
+  TAP credentials, MC Agentic Tokens, and Verifiable Intents with proof status.
+  `GET /governance/summary` updated with `network_credentials_active` flag.
+
+- Audit log: `tap_credential_issued`, `tap_credential_verified`,
+  `mc_agentic_token_issued`, `mc_verifiable_intent_created` events written to
+  logs/audit.jsonl via the existing event log infrastructure.
+
+- 21 tests: 15 unit (issue, verify, tamper, expiry, revocation, roundtrip for
+  both protocols) + 4 HTTP integration (valid TAP header, invalid TAP header,
+  valid MC token, unknown MC token) + 2 governance integration.
+
+**Trust chain after Phase 14:**
+
+```
+Human biometric (LoginID)      --> signs Intent Mandate (AP2 v0.2.0)
+Intent Mandate                 --> constrains Cart Mandate
+Agent key (Phase 7)            --> signs Cart Mandate + TAP credential + MC token
+DNSid handle (Phase 8)         --> anchors all credentials to domain ownership
+Visa TAP credential            --> network-level agent identity per transaction
+MC Agentic Token               --> scoped payment token (agent + merchant + consent)
+MC Verifiable Intent           --> tamper-resistant outcome record
+Seller (_apply_gates)          --> verifies all gates before any payment
+Governance dashboard           --> aggregates all trust signals in one view
+```
+
+**TAP vs. Mastercard Agent Pay -- analogues and differences:**
+
+The analogous pairs are:
+
+| Visa TAP component | Mastercard Agent Pay component | What it proves |
+|---|---|---|
+| TAP Credential | Agentic Token | Agent was authorized by a human cardholder |
+| Human Authorization Token (HAT) | Verifiable Intent | Human explicitly instructed this purchase |
+| RFC 9421 HTTP Message Signature | Agentic Token signature (Mastercard-signed) | Request was not tampered with in transit |
+
+The structural difference is in *where enforcement lives*:
+
+Visa TAP is a per-request identity proof. The merchant verifies a signed HTTP
+header on every transaction. It answers "is this a legitimate agent?" at the
+request boundary. TAP does not define a standing policy for what the agent is
+allowed to buy -- that is the operator's responsibility to encode in the
+credential at issuance.
+
+Mastercard adds the Agent Commerce Authorization (ACA): a network-level policy
+layer that lets issuers and merchants define permissible categories, merchants,
+and amount limits before any transaction attempt. An agent token can be scoped
+to "office supplies only, max $500, Staples and Amazon only" at the time the
+human grants consent. This is the closest network-level equivalent to AP2's
+Intent Mandate -- spending bounds enforced by the network, not just the seller.
+
+In short: TAP proves identity per request. Mastercard proves identity plus
+enforces spending policy via the network. They are not redundant. An enterprise
+stack needs both: TAP for network-wide agent authentication (Visa rails), MC
+Agent Pay for network-enforced scope limits (Mastercard rails).
+
 **Why this matters:**
 Financial institution deployment requires network-level credentials. A bank
 cannot accept autonomous payments from an agent identified only by a self-issued
-DID and a local mandate. Visa TAP and Mastercard Agent Pay are the credentials
+DID (Decentralized Identifier) and a local mandate. Visa TAP and Mastercard Agent Pay are the credentials
 that existing financial infrastructure recognizes.
 
 ---
 
 ## Phase 15: Fraud and Bot Detection (Planned)
 
-**Type:** Implementation (Stripe Radar + DNSid rate limiting)
+**Type:** Implementation (Stripe Radar + DNSid (Domain Name System identity) rate limiting)
 **Maturity:** Experimental (DNSid-anchored rate limiting is novel).
 Maturing (Stripe Radar is production-grade).
 
 **Problem it solves:**
-MCP traffic increased 50x in one week after Anthropic connector expansion.
+MCP (Model Context Protocol) traffic increased 50x in one week after Anthropic connector expansion.
 Seller agents exposed to the open web receive traffic from legitimate buyer
 agents and from automated scanners, scrapers, and bots.
 
@@ -1274,7 +1677,7 @@ and optionally routes through AWS AgentCore Payments as the managed execution la
 
 **Dependencies and sequencing:**
 Requires Phase 13 (funded wallet on Base) — x402 on Base requires USDC in the
-buyer's Coinbase wallet. Requires Phase 8 (DNSid gates on x402 path) — real
+buyer's Coinbase wallet. Requires Phase 8 (DNSid, Domain Name System identity, gates on x402 path) — real
 settlement should not proceed without ownership verification. Requires Phase 3
 (x402 protocol skeleton) — Phase 16 upgrades the existing path rather than
 building from scratch.
@@ -1287,8 +1690,8 @@ building from scratch.
   rails. Simpler to operate but introduces AWS dependency and preview-stage
   reliability risk.
 - The payment decision tree governs the choice at runtime: micropayments go
-  x402 USDC; small procurement goes AP2 + Stripe Link; large procurement
-  goes AP2 + Visa TAP/MC Agent Pay. The decision is by transaction size, not
+  x402 USDC; small procurement goes AP2 (Agentic Payment Protocol) + Stripe Link; large procurement
+  goes AP2 + Visa TAP (Trusted Agent Protocol)/MC Agent Pay. The decision is by transaction size, not
   protocol preference.
 
 **Why this matters:**
@@ -1304,24 +1707,26 @@ simulation of one.
 
 | # | Name | Type | Established by | Layer | Maturity | Status |
 |---|------|------|---------------|-------|----------|--------|
-| 1 | MCP | Protocol | Anthropic / LF | Agent-to-tool | Production stable | Done |
-| 2 | UCP | Protocol | Google + coalition | Catalog + checkout | Maturing | Done |
-| 3 | A2A | Protocol | Google DeepMind / LF | Agent discovery + tasks | Maturing | Done |
+| 1 | MCP (Model Context Protocol) | Protocol | Anthropic / LF | Agent-to-tool | Production stable | Done |
+| 2 | UCP (Universal Commerce Protocol) | Protocol | Google + coalition | Catalog + checkout | Maturing | Done |
+| 3 | A2A (Agent-to-Agent) | Protocol | Google DeepMind / LF | Agent discovery + tasks | Maturing | Done |
 | 3 | x402 | Protocol | Coinbase / LF | Micro-payment | Maturing | Simulated |
-| 4 | AP2 v0.1 | Protocol | Google | Payment governance | Maturing | Done |
-| 4 | ACF | Framework | Vincent Dorange | Tiered autonomy | Experimental | Done |
-| 4 | MPP | Protocol | Stripe + Tempo | Multi-rail settlement | Experimental | Simulated |
+| 4 | AP2 (Agentic Payment Protocol) v0.1 | Protocol | Google | Payment governance | Maturing | Done |
+| 4 | ACF (Agentic Commerce Framework) | Framework | Vincent Dorange | Tiered autonomy | Experimental | Done |
+| 4 | MPP (Machine Payments Protocol) | Protocol | Stripe + Tempo | Multi-rail settlement | Experimental | Simulated |
 | 5 | (partial) | | | Protocol reflection, 2nd seller | | Partial |
-| 6 | NANDA | Protocol | Project NANDA | Decentralized registry | Experimental | Done (localhost) |
-| 7 | KYA + secp256k1 | Framework + Protocol | W3C + industry | Cryptographic identity | Maturing / Experimental | Done |
-| 8 | DNSid | Protocol | Identity Digital | Ownership + revocation | Experimental | Planned |
-| 9 | AP2 v0.2.0 | Protocol | Google | Signed mandates | Experimental | Planned |
-| 10 | Governance Dashboard | Application | SupplyMind | Audit + oversight | N/A | Planned |
-| 11 | ACP | Protocol | OpenAI + Stripe | Multi-protocol checkout | Maturing | Planned |
-| 12 | Stripe Link + Coinbase | Implementation | Stripe, Coinbase | Agent wallet layer | Maturing | Planned |
-| 13 | Visa TAP + MC Agent Pay | Protocol + Framework | Visa, Mastercard | Network credentials | Maturing | Planned |
-| 14 | Stripe Radar + DNSid | Implementation | Stripe + SupplyMind | Fraud detection | Experimental | Planned |
-| 15 | x402 (LF) + AWS AgentCore | Protocol + Managed infra | LF + AWS | Real settlement | Experimental | Planned |
+| 6 | NANDA (Networked Agents and Decentralized Architecture) | Protocol | Project NANDA | Decentralized registry | Experimental | Done (localhost) |
+| 7 | KYA (Know Your Agent) + secp256k1 | Framework + Protocol | W3C + industry | Cryptographic identity | Maturing / Experimental | Done |
+| 8 | DNSid (Domain Name System identity) | Protocol | Identity Digital | Ownership + revocation | Experimental | Done |
+| 9 | AP2 v0.2.0 | Protocol | Google | Signed mandates | Experimental | Done |
+| 10 | Seller Auth Manifest | Application | SupplyMind | Seller-side governance | N/A | Done |
+| 11 | Governance Dashboard | Application | SupplyMind | Audit + oversight | N/A | Done |
+| 12 | ACP (Agentic Commerce Protocol) | Protocol | OpenAI + Stripe | Multi-protocol checkout | Maturing | Done |
+| 12.5 | Universal Cart | Protocol | Google | Cart state layer | Experimental | Done |
+| 13 | Stripe Link + Coinbase | Implementation | Stripe, Coinbase | Agent wallet layer | Maturing | Done (13a mock) |
+| 14 | Visa TAP (Trusted Agent Protocol) + MC Agent Pay | Protocol + Framework | Visa, Mastercard | Network credentials | Maturing | Done |
+| 15 | Stripe Radar + DNSid | Implementation | Stripe + SupplyMind | Fraud detection | Experimental | Planned |
+| 16 | x402 (LF) + AWS AgentCore | Protocol + Managed infra | LF + AWS | Real settlement | Experimental | Planned |
 
 ---
 
@@ -1333,9 +1738,9 @@ of what remains unresolved.
 
 ### Identity: largely answered
 
-After Phase 8, SupplyMind can answer who an agent is (secp256k1 + KYA), who
-owns it (DNSid), and whether its owner vouches for it (DNSid registry). What
-remains open: identity is not enforced at the MCP tool call level. Individual
+After Phase 8, SupplyMind can answer who an agent is (secp256k1 + KYA (Know Your Agent)), who
+owns it (DNSid, Domain Name System identity), and whether its owner vouches for it (DNSid registry). What
+remains open: identity is not enforced at the MCP (Model Context Protocol) tool call level. Individual
 tool calls carry no signed caller identity. An agent with a valid DNSid can
 call any MCP tool on a server it can reach. Closing this gap requires per-call
 auth at the MCP transport layer — something MCP Auth (Linux Foundation) and
@@ -1343,13 +1748,17 @@ AgentPass (Clerk) are working toward but SupplyMind does not implement.
 
 ### Scoping: partially answered
 
-After Phase 9, SupplyMind can constrain what an agent spends (AP2 mandate),
-against which vendors (approved list + DNSid gate), and within what ACF tier
-thresholds. What remains open: scoping is defined by amount and vendor, not
-by task. An agent operating within its spending mandate can still purchase
-categories of goods not intended by the human. Mission-bound OAuth and
-task-scoped credentials (Clerk AgentPass) would close this gap by binding the
-agent's authorization to a specific task description, not just a spending bound.
+After Phase 9, SupplyMind can constrain what an agent spends via AP2 (Agentic Payment Protocol) mandate,
+against which vendors (approved list + DNSid gate), and within what ACF (Agentic Commerce Framework) tier
+thresholds. Phase 12.5 (Universal Cart) partially extends this: AP2 mandate
+enforcement now operates against the full cart value rather than per-item,
+closing the gap where a cart of many small items could exceed the intended
+total while each individual item passed the per-item check. What remains open:
+scoping is defined by amount and vendor, not by task. An agent operating
+within its spending mandate can still purchase categories of goods not
+intended by the human. Mission-bound OAuth and task-scoped credentials
+(Clerk AgentPass) would close this gap by binding the agent's authorization
+to a specific task description, not just a spending bound.
 
 ### Approvals: partially answered
 
@@ -1388,3 +1797,82 @@ mechanism, and enforcement engine. SupplyMind builds a strong approval mechanism
 enforcement engine — independent real-time verification that the agent is doing
 only what was approved — is the remaining gap. Naming it honestly is the first
 step toward building it.
+
+---
+
+## Strategic Context: ICC, Firmly Connect, and the Identity Layer Gap (June 2026)
+
+### Visa ICC vs. Firmly Connect
+
+Visa Intelligent Commerce Connect (ICC, announced April 8, 2026) is a single
+merchant endpoint that routes between TAP, MPP, ACP, and UCP simultaneously.
+Merchants connect once; ICC handles protocol detection and translation.
+
+Firmly Connect (launched March 2026) does the same thing: no-code merchant
+onboarding, protocol abstraction, single integration point for any agent channel.
+
+Architecturally they are equivalent at the protocol translation layer. In a
+production system, replacing SupplyMind's manual protocol routing in the seller
+agent with either ICC or Firmly Connect would produce the same result: the
+seller agent exposes one endpoint, protocol handling disappears from application
+code, and the buyer agent negotiates protocol with the aggregator rather than
+with the seller directly.
+
+What SupplyMind builds manually across Phases 2-12 — UCP catalog serving, AP2
+mandate verification, ACP checkout handling, x402 micropayment response — is
+exactly what ICC and Firmly Connect abstract away in production. Building it
+manually is the learning value. Skipping it would mean understanding none of
+the protocols underneath.
+
+### The competitive tension
+
+ICC commoditizes the protocol aggregation layer. Visa can bundle it at zero
+marginal cost to merchants who already run on Visa infrastructure. Firmly
+Connect's only differentiator at that layer is network neutrality — it is not
+owned by a network that has a stake in which credential wins.
+
+But network neutrality is a thin moat once ICC is good enough. The durable
+differentiation is the identity layer, which neither ICC nor Firmly Connect
+currently includes.
+
+### The identity layer: what Firmly + LoginID adds
+
+Firmly Connect today is protocol translation only. It does not include:
+
+- Firmly ID: subdomain identity registry for human-owned agents (agent.firmly.ai/[id])
+- DNSid integration: DNS-anchored ownership proof for business-owned agents
+- LoginID FIDO2 passkey binding: ties mandate creation to a biometric hardware event, making mandates legally defensible and non-repudiable
+- AP2 v0.2.0 signed mandate attestation: the human's authorization is cryptographically bound to their LoginID credential
+- Seller Authorization Manifest: merchant-signed scope boundaries verifiable by any buyer agent via DNSid
+
+The proposal (documented in docs/firmly_loginid_deck_final.html) is that Firmly
+and LoginID build this identity layer on top of Firmly Connect. The resulting
+stack answers all four of Clerk's agentic auth questions:
+
+| Question | Answer |
+|----------|--------|
+| Identity | Firmly ID (humans) + DNSid (businesses) + LoginID passkey binding |
+| Scoping | AP2 v0.2.0 signed mandate: amount, vendor, category, time window |
+| Approvals | LoginID FIDO2 event at mandate creation: hardware-attested, non-repudiable |
+| Enforcement | Firmly registry for revocation + Seller Authorization Manifest at session start |
+
+ICC cannot replicate this without building a competing credential ecosystem,
+competing merchant adoption, and a human enrollment network. That is the
+structural barrier the proposal identifies.
+
+### SupplyMind as proof of implementability
+
+Every component of the proposed Firmly + LoginID identity stack has a working
+analog in SupplyMind:
+
+| Proposed component | SupplyMind analog | Phase |
+|---|---|---|
+| DNSid agent ownership anchor | dnsid_registry_seed.py, DNSid gate in payment server | 8 |
+| AP2 v0.2.0 signed mandate | AP2 mandate engine, secp256k1 signing | 9 |
+| Seller Authorization Manifest | seller_manifest.py, DNSid-signed manifest | 10 |
+| Visa TAP credential | visa_tap.py, RFC 9421 Ed25519 headers | 14 |
+| Mastercard Verifiable Intent | mastercard_agent_pay.py, Intent Artifact | 14 |
+
+The identity layer is not theoretical. SupplyMind has built each component
+individually. The proposal asks Firmly and LoginID to integrate them into a
+unified product layer on top of their existing infrastructure.

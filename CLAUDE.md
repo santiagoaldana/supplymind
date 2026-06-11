@@ -1,5 +1,19 @@
 # SupplyMind — CLAUDE.md
 
+## Communication Style
+
+- Be direct and critical. Polite confrontation is expected and valued.
+- When something is wrong, incomplete, or a weak argument, say so clearly
+  and explain why. Do not soften the point into uselessness.
+- Do not validate ideas just because the user proposed them. If the logic
+  has a hole, name the hole.
+- Agreements should be earned. Never open with praise of the question or idea.
+- Never say "honest opinion," "honest answer," "honest assessment," or any
+  variant. Honesty is the baseline, not a special state worth announcing.
+- When the user asks a question that has a better version of itself, ask
+  the better question back before answering the original one.
+- Short, direct responses are preferred over long, padded ones.
+
 ## Project Purpose
 
 SupplyMind is a hands-on learning project to deeply understand how AI agents buy, sell, and transact — by building a working multi-agent B2B autonomous commerce system from scratch.
@@ -36,6 +50,7 @@ SupplyMind/
     buyer_agent/                   # Phase 3+: Claude as buyer, A2A client
     seller_agent/                  # Phase 3+: FastAPI + Claude, A2A + UCP server
     identity/                      # Phase 7: secp256k1, DID, KYA signing
+    cart_server/                   # Phase 12.5: Universal Cart, SQLite-backed
     governance/                    # Phase 10 (planned): audit dashboard
   data/                            # SQLite DBs, seed data
   logs/                            # Tool call traces, run logs
@@ -52,20 +67,21 @@ SupplyMind/
 | 2 | UCP Catalog | UCP (Google), MCP | Done |
 | 3 | Agent Discovery + Micro-payment | A2A (Google), x402 | Done |
 | 4 | Procurement Loop | AP2, ACF, MPP | Done |
-| 5 | Protocol Reflection + Second Seller | A2A, UCP | Partial |
-| 6 | NANDA Discovery | NANDA, W3C VC | Done |
-| 7 | Cryptographic Identity | secp256k1, DID, KYA | Done |
+| 5 | Protocol Reflection + Second Seller | A2A, UCP | Done |
+| 6 | Cryptographic Identity | secp256k1, DID, KYA | Done |
+| 7 | NANDA Discovery | NANDA, W3C VC | Done |
 | 8 | DNSid Ownership Layer | DNSid, PKI, DNS | Done |
 | 9 | AP2 v0.2.0 Mandate Upgrade | AP2 v0.2.0, secp256k1 | Done |
 | 10 | Seller Authorization Manifest | secp256k1, AP2 pattern, DNSid | Done |
 | 11 | Governance Dashboard | DNSid, AP2, x402, NANDA | Done |
 | 12 | Multi-Protocol Checkout | ACP (OpenAI/Stripe), UCP | Done |
+| 12.5 | Universal Cart | Google Universal Cart | Done |
 | 13 | Agent Wallet Layer | Stripe Link, Coinbase/Base MCP | Done (13a mock; 13b optional) |
-| 14 | Network Credential Layer | Visa TAP, Mastercard Agent Pay | Planned |
+| 14 | Network Credential Layer | Visa TAP, Mastercard Agent Pay | Done |
 | 15 | Fraud and Bot Detection | Stripe Radar, DNSid rate limiting | Planned |
 | 16 | Stablecoin Settlement | x402 (LF), AWS AgentCore, USDC/Base | Planned |
 
-**Current phase:** Phase 14 (Network Credential Layer)
+**Current phase:** Phase 15 (Fraud and Bot Detection)
 
 ## Key Protocols
 
@@ -79,6 +95,9 @@ SupplyMind/
 - **ACP:** OpenAI + Stripe. Agentic Commerce Protocol, B2C/B2B checkout.
 - **Visa TAP:** Visa. Trusted Agent Protocol, RFC 9421, cryptographic agent credential.
 - **Mastercard Agent Pay:** Mastercard. Agentic Tokens, Verifiable Intent, network-level agent authorization.
+- **Visa ICC:** Visa Intelligent Commerce Connect. Single merchant endpoint routing between TAP, MPP, ACP, and UCP simultaneously. Announced April 8, 2026. Technically equivalent to Firmly Connect at the protocol translation layer. Does not touch identity, mandate signing, or settlement. Strategic implication: ICC commoditizes the protocol aggregation layer, making Firmly Connect's neutrality the only remaining differentiator at that layer. The identity layer (Firmly ID, DNSid, LoginID) is the moat ICC cannot replicate.
+- **Firmly Connect:** Firmly. No-code merchant onboarding platform abstracting MCP, AP2, ACP, UCP, A2A, KYA, TAP. Launched March 2026. Live: Best Buy, Backcountry. Network-neutral alternative to ICC. Does not yet include the identity layer (Firmly ID, DNSid, LoginID mandate attestation) which is the proposed extension.
+- **Firmly + LoginID Identity Stack (proposed):** Firmly Connect (protocol translation) plus identity layer: Firmly ID subdomain registry for humans, DNSid anchor for businesses, LoginID FIDO2 passkey binding for mandate attestation, AP2 v0.2.0 signed mandates, Seller Authorization Manifest. SupplyMind is the working prototype proving this stack is implementable. This is what differentiates the combined Firmly + LoginID stack from both ICC and Firmly Connect alone.
 
 ## Code Conventions
 

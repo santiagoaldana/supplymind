@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firmly + LoginID: Building the Trust Layer for Agentic Commerce</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --card: #1a2233;
+  --blue: #3b82f6;
+  --teal: #0ea5e9;
+  --amber: #f59e0b;
+  --green: #22c55e;
+  --red: #ef4444;
+  --muted: #8b94a5;
+  --white: #f0f4ff;
+  --border: rgba(59,130,246,0.18);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  color: var(--white);
+  overflow: hidden;
+}
+
+#deck { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+
+.slide {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: none;
+  flex-direction: column;
+  padding: 40px 52px 60px;
+  background: var(--bg);
+}
+.slide.active { display: flex; }
+
+.footer {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 9px 36px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid rgba(139,148,165,0.12);
+  font-size: 13px; color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  z-index: 10;
+}
+
+#nav {
+  position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px; z-index: 1000;
+}
+.nav-btn {
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--blue); border-radius: 6px;
+  padding: 7px 18px; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.nav-btn:hover { background: rgba(59,130,246,0.15); }
+#slide-counter { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; min-width: 56px; text-align: center; }
+
+.slide-title {
+  font-size: clamp(20px, 2.4vw, 30px);
+  font-weight: 700; letter-spacing: -0.03em;
+  margin-bottom: 6px; color: var(--white); line-height: 1.15;
+  flex-shrink: 0;
+}
+.slide-sub { font-size: 15px; color: var(--muted); margin-bottom: 14px; flex-shrink: 0; }
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+}
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; }
+.card.bl { border-left: 4px solid var(--blue); }
+.card.tl { border-left: 4px solid var(--teal); }
+.card.al { border-left: 4px solid var(--amber); }
+.card.gl { border-left: 4px solid var(--green); }
+.card.rl { border-left: 4px solid var(--red); }
+
+.badge {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 9px; border-radius: 20px; margin-right: 7px;
+}
+.badge.buyer { background: rgba(59,130,246,0.15); color: var(--blue); }
+.badge.seller { background: rgba(14,165,233,0.15); color: var(--teal); }
+.badge.network { background: rgba(245,158,11,0.15); color: var(--amber); }
+
+.actor-p { font-size: 20px; color: var(--muted); margin-top: 5px; line-height: 1.55; }
+
+.status-dot { width: 13px; height: 13px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.status-dot.complete { background: var(--green); }
+.status-dot.partial {
+  background: conic-gradient(var(--amber) 180deg, transparent 180deg);
+  border: 1.5px solid var(--amber);
+}
+.status-dot.open { background: transparent; border: 2px solid var(--red); }
+.status-row { display: flex; align-items: center; gap: 8px; margin: 10px 0 5px; }
+.status-lbl { font-size: 13px; font-weight: 700; }
+.status-lbl.complete { color: var(--green); }
+.status-lbl.partial { color: var(--amber); }
+.status-lbl.open { color: var(--red); }
+.remains { font-size: 20px; color: var(--muted); line-height: 1.55; margin-top: 4px; }
+
+.moat {
+  background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.2);
+  border-left: 4px solid var(--green); border-radius: 6px;
+  padding: 10px 14px; margin-top: 10px;
+}
+.moat-lbl { font-size: 11px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.moat-txt { font-size: 20px; color: var(--muted); line-height: 1.55; }
+
+.breadcrumb { display: flex; gap: 5px; position: absolute; top: 40px; right: 52px; }
+.bc { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px; border: 1px solid; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.25; }
+.bc.active { opacity: 1; }
+.bc.identity { border-color: var(--blue); color: var(--blue); }
+.bc.identity.active { background: rgba(59,130,246,0.12); }
+.bc.scoping { border-color: var(--teal); color: var(--teal); }
+.bc.scoping.active { background: rgba(14,165,233,0.12); }
+.bc.approvals { border-color: var(--green); color: var(--green); }
+.bc.approvals.active { background: rgba(34,197,94,0.12); }
+.bc.enforcement { border-color: var(--amber); color: var(--amber); }
+.bc.enforcement.active { background: rgba(245,158,11,0.12); }
+
+.two-col {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  align-items: start;
+}
+.three-col {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;
+  align-items: start;
+}
+
+.prob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.prob-left { display: flex; flex-direction: column; gap: 9px; }
+.prob-right { display: flex; flex-direction: column; gap: 11px; }
+.sol-box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+.sol-name { font-size: 15px; font-weight: 700; color: var(--blue); margin-bottom: 5px; }
+.sol-link { color: var(--blue); text-decoration: underline; text-decoration-color: rgba(59,130,246,0.4); cursor: pointer; }
+.sol-link:hover { text-decoration-color: var(--blue); }
+.sol-link.teal { color: var(--teal); text-decoration-color: rgba(14,165,233,0.4); }
+.sol-link.teal:hover { text-decoration-color: var(--teal); }
+.back-links-area { display: flex; gap: 18px; align-items: center; margin-bottom: 8px; flex-shrink: 0; }
+.back-hub { font-size: 13px; color: var(--muted); cursor: pointer; font-family: 'DM Mono', monospace; }
+.back-hub:hover { color: var(--blue); }
+.back-prob { font-size: 13px; color: var(--amber); cursor: pointer; font-family: 'DM Mono', monospace; font-weight: 600; }
+.back-prob:hover { color: var(--white); }
+.sol-desc { font-size: 20px; color: var(--muted); margin-bottom: 8px; line-height: 1.55; }
+
+/* Title slide */
+#s1 {
+  background: linear-gradient(135deg, #0d1117 0%, #1a3a52 100%);
+  justify-content: center; align-items: flex-start; padding: 80px 100px;
+  position: relative; overflow: hidden;
+}
+#s1::before {
+  content:''; position:absolute; top:-150px; right:-150px;
+  width:500px; height:500px;
+  background:radial-gradient(circle,rgba(59,130,246,0.1) 0%,transparent 70%);
+  pointer-events:none;
+}
+.eyebrow { font-size: 11px; letter-spacing: 0.12em; color: var(--blue); font-weight: 600; text-transform: uppercase; padding: 3px 10px; border-radius: 4px; border: 1px solid rgba(59,130,246,0.3); display: inline-block; margin-bottom: 20px; }
+.t1 { font-size: clamp(28px, 3.6vw, 52px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.08; max-width: 820px; margin-bottom: 22px; }
+.accent-line { width: 52px; height: 3px; background: linear-gradient(90deg,var(--blue),var(--teal)); border-radius: 2px; margin-bottom: 28px; }
+.author { font-size: 16px; color: var(--white); font-weight: 500; }
+
+/* Today slide */
+.co-header { font-size: 15px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.co-header.blue { color: var(--blue); }
+.co-header.teal { color: var(--teal); }
+.fi { display: flex; align-items: flex-start; gap: 8px; font-size: 20px; color: var(--muted); line-height: 1.55; margin-bottom: 10px; }
+.fi .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 8px; }
+.fi .dot.blue { background: var(--blue); }
+.fi .dot.teal { background: var(--teal); }
+.fn { font-size: 16px; color: rgba(139,148,165,0.6); font-style: italic; margin-top: 8px; flex-shrink: 0; }
+
+/* Glossary slides */
+.gloss-title { font-size: clamp(22px,3vw,38px); font-weight: 700; margin-bottom: 4px; flex-shrink: 0; }
+.gloss-tag { font-size: 15px; color: var(--blue); font-weight: 500; margin-bottom: 6px; flex-shrink: 0; }
+.stack-row {
+  display: flex; align-items: flex-start; gap: 18px; padding: 16px 18px;
+  border-left: 4px solid var(--blue); background: var(--card);
+  border-radius: 0 6px 6px 0; margin-bottom: 10px;
+}
+.stack-row.teal { border-color: var(--teal); }
+.stack-row.amber { border-color: var(--amber); }
+.stack-row.green { border-color: var(--green); }
+.stack-lbl { font-size: 14px; font-weight: 700; color: var(--blue); min-width: 170px; flex-shrink: 0; padding-top: 2px; }
+.stack-lbl.teal { color: var(--teal); }
+.stack-lbl.amber { color: var(--amber); }
+.stack-lbl.green { color: var(--green); }
+.stack-desc { font-size: 20px; color: var(--muted); line-height: 1.6; }
+.back-link { font-size: 13px; color: var(--muted); text-align: right; margin-bottom: 8px; cursor: pointer; font-family: 'DM Mono', monospace; flex-shrink: 0; }
+.back-link:hover { color: var(--blue); }
+
+/* Clerk's Framework */
+.clerks-grid {
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+  gap: 14px;
+  max-width: 960px; width: 100%;
+  margin: 0 auto;
+}
+.clerks-card {
+  background: var(--card); border-radius: 10px; padding: 28px 24px;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; border: 1px solid;
+}
+.clerks-card.ic { border-color: rgba(59,130,246,0.3); }
+.clerks-card.sc { border-color: rgba(14,165,233,0.3); }
+.clerks-card.ac { border-color: rgba(34,197,94,0.3); }
+.clerks-card.ec { border-color: rgba(245,158,11,0.3); }
+.cq-name { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+.cq-name.blue { color: var(--blue); }
+.cq-name.teal { color: var(--teal); }
+.cq-name.green { color: var(--green); }
+.cq-name.amber { color: var(--amber); }
+.cq-desc { font-size: 20px; color: var(--muted); line-height: 1.55; }
+.clerks-tagline { margin-top: 14px; font-size: 16px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); padding-top: 10px; font-style: italic; flex-shrink: 0; }
+
+/* Problem overview */
+.pg-header { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 10px; border-radius: 4px; margin-bottom: 6px; display: inline-block; }
+.pg-header.blue { background: rgba(59,130,246,0.1); color: var(--blue); }
+.pg-header.teal { background: rgba(14,165,233,0.1); color: var(--teal); }
+.pg-header.green { background: rgba(34,197,94,0.1); color: var(--green); }
+.pg-header.amber { background: rgba(245,158,11,0.1); color: var(--amber); }
+.pi { font-size: 18px; color: var(--muted); padding: 6px 10px; background: var(--card); border-radius: 4px; border-left: 3px solid; line-height: 1.45; margin-bottom: 6px; }
+.pi.blue { border-color: rgba(59,130,246,0.3); }
+.pi.teal { border-color: rgba(14,165,233,0.3); }
+.pi.green { border-color: rgba(34,197,94,0.3); }
+.pi.amber { border-color: rgba(245,158,11,0.3); }
+.pi .num { color: var(--white); font-weight: 600; margin-right: 6px; }
+
+/* Matrix */
+.matrix-scroll { overflow-y: auto; flex: 1; }
+.mx { width: 100%; border-collapse: collapse; font-size: 14px; }
+.mx th { text-align: center; padding: 8px 8px 10px; color: var(--blue); font-weight: 700; border-bottom: 2px solid var(--border); font-size: 13px; line-height: 1.3; }
+.mx th.pc { text-align: left; color: var(--muted); font-weight: 500; }
+.mx td { padding: 6px 8px; border-bottom: 1px solid rgba(59,130,246,0.05); text-align: center; vertical-align: middle; }
+.mx td.pc { text-align: left; color: var(--muted); font-size: 13px; }
+.mx tr.gr td { font-size: 12px; font-weight: 700; color: var(--blue); text-align: left; letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 8px; background: rgba(59,130,246,0.05); }
+.mx tr.gr.teal td { color: var(--teal); background: rgba(14,165,233,0.05); }
+.mx tr.gr.green td { color: var(--green); background: rgba(34,197,94,0.05); }
+.mx tr.gr.amber td { color: var(--amber); background: rgba(245,158,11,0.05); }
+.mx tr.ef td { background: rgba(255,255,255,0.02); font-size: 13px; color: var(--muted); border-top: 2px solid var(--border); }
+.mc { display: inline-flex; justify-content: center; align-items: center; }
+.mc .status-dot { width: 22px; height: 22px; }
+.mx-note { font-size: 16px; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+/* Hub slide */
+.hub-grid { display: grid; grid-template-columns: repeat(3,1fr); grid-template-rows: 1fr 1fr; gap: 16px; }
+.hub-card {
+  background: var(--card); border-radius: 8px; padding: 22px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  border: 1px solid var(--border); cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.hub-card:hover { background: #1e2a40; }
+.hub-card.blue { border-color: rgba(59,130,246,0.35); }
+.hub-card.blue:hover { border-color: var(--blue); }
+.hub-card.teal { border-color: rgba(14,165,233,0.35); }
+.hub-card.teal:hover { border-color: var(--teal); }
+.hub-card.green { border-color: rgba(34,197,94,0.35); }
+.hub-card.green:hover { border-color: var(--green); }
+.hub-card.amber { border-color: rgba(245,158,11,0.35); }
+.hub-card.amber:hover { border-color: var(--amber); }
+.hub-card.red { border-color: rgba(239,68,68,0.35); }
+.hub-card.red:hover { border-color: var(--red); }
+.hub-card.muted { border-color: rgba(139,148,165,0.25); }
+.hub-card.muted:hover { border-color: var(--muted); }
+.hub-concept { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.hub-concept.blue { color: var(--blue); }
+.hub-concept.teal { color: var(--teal); }
+.hub-concept.green { color: var(--green); }
+.hub-concept.amber { color: var(--amber); }
+.hub-concept.red { color: var(--red); }
+.hub-concept.muted { color: var(--muted); }
+.hub-desc { font-size: 20px; color: var(--muted); line-height: 1.55; flex: 1; }
+.hub-link { font-size: 12px; font-weight: 600; letter-spacing: 0.05em; margin-top: 16px; text-transform: uppercase; }
+.hub-link.blue { color: var(--blue); }
+.hub-link.teal { color: var(--teal); }
+.hub-link.green { color: var(--green); }
+.hub-link.amber { color: var(--amber); }
+.hub-link.red { color: var(--red); }
+.hub-link.muted { color: var(--muted); }
+.transition-intro { font-size: 20px; color: var(--muted); margin-bottom: 18px; line-height: 1.65; flex-shrink: 0; }
+
+/* Mastercard slide */
+.mc-opening { font-size: 20px; color: var(--muted); line-height: 1.65; margin-bottom: 18px; padding: 16px 20px; background: rgba(59,130,246,0.06); border-left: 4px solid var(--blue); border-radius: 0 6px 6px 0; flex-shrink: 0; }
+.mc-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; align-items: stretch; }
+.mc-card { background: var(--card); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; border: 1px solid var(--border); height: 100%; box-sizing: border-box; }
+.mc-card.blue { border-top: 3px solid var(--blue); }
+.mc-card.amber { border-top: 3px solid var(--amber); }
+.mc-card.green { border-top: 3px solid var(--green); }
+.mc-card.teal { border-top: 3px solid var(--teal); }
+.mc-card.red { border-top: 3px solid var(--red); }
+.mc-label { font-size: 18px; font-weight: 700; margin-bottom: 10px; line-height: 1.35; }
+.mc-label.blue { color: var(--blue); }
+.mc-label.amber { color: var(--amber); }
+.mc-label.green { color: var(--green); }
+.mc-label.teal { color: var(--teal); }
+.mc-label.red { color: var(--red); }
+.mc-text { font-size: 16px; color: var(--muted); line-height: 1.6; }
+
+/* Three markets / big cards */
+.big-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 22px; display: flex; flex-direction: column; }
+.bc-name { font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+.bc-desc { font-size: 20px; color: var(--muted); line-height: 1.6; flex: 1; }
+.bc-tag { font-size: 11px; font-weight: 600; color: var(--blue); margin-top: 16px; text-transform: uppercase; letter-spacing: 0.06em; }
+.bc-who { font-size: 16px; color: var(--muted); opacity: 0.75; margin-bottom: 10px; font-style: italic; }
+.bc-section-lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 12px; margin-bottom: 5px; }
+.bc-bullet { font-size: 20px; color: var(--muted); line-height: 1.55; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.bc-bullet:last-of-type { border-bottom: none; }
+.bc-requires { font-size: 16px; color: var(--muted); opacity: 0.65; margin-top: 12px; font-style: italic; line-height: 1.45; }
+
+/* Summary slide */
+.final-col { background: var(--card); border-radius: 8px; padding: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; }
+.fc-header { font-size: 20px; font-weight: 700; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.fc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.final-item { font-size: 20px; color: var(--muted); padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); line-height: 1.55; }
+.final-item:last-child { border-bottom: none; }
+.final-tagline { margin-top: 14px; font-size: 16px; color: var(--muted); text-align: center; border-top: 1px solid var(--border); padding-top: 12px; line-height: 1.65; font-style: italic; flex-shrink: 0; }
+
+/* Appendix divider */
+.appendix-divider {
+  justify-content: center; align-items: center; text-align: center;
+  background: linear-gradient(135deg, #0d1117 0%, #111a2a 100%);
+}
+.appendix-title { font-size: 48px; font-weight: 700; letter-spacing: -0.04em; color: var(--muted); margin-bottom: 14px; }
+.appendix-sub { font-size: 20px; color: rgba(139,148,165,0.5); max-width: 540px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<!-- S1: TITLE -->
+<div class="slide active" id="s1">
+  <div class="eyebrow">Strategic Proposal</div>
+  <div class="accent-line"></div>
+  <div class="t1">Firmly + LoginID:<br>Building the Trust Layer<br>for Agentic Commerce</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-top:auto;">
+    <span class="author">Santiago Aldana</span>
+    <span style="margin-left:auto;font-size:13px;color:var(--muted);letter-spacing:0.08em;background:rgba(139,148,165,0.08);border:1px solid rgba(139,148,165,0.18);padding:4px 12px;border-radius:4px;">Confidential</span>
+  </div>
+</div>
+
+<!-- S2: TODAY -->
+<div class="slide" id="s2">
+  <div class="slide-title">Firmly + LoginID Today</div>
+  <div class="slide-sub">Our understanding</div>
+  <div class="content">
+    <div class="two-col" style="align-items:stretch;">
+      <div class="card bl" style="display:flex;flex-direction:column;">
+        <div class="co-header blue">Firmly</div>
+        <div class="fi" style="margin:0 0 10px;"><span class="dot blue"></span><span>Agentic commerce platform: protocol abstraction across UCP, AP2 v1.0, ACF, ACP, MCP, A2A, KYA, and TAP</span></div>
+        <div class="fi" style="margin:0 0 10px;"><span class="dot blue"></span><span>Zero-engineering merchant onboarding via Firmly Connect &mdash; Best Buy, Backcountry live</span></div>
+        <div class="fi" style="margin:0 0 10px;"><span class="dot blue"></span><span>Agent Reputation Manager: behavior scoring across merchants to reduce fraud</span></div>
+        <div class="fi" style="margin:0 0 10px;"><span class="dot blue"></span><span>Agent Control Center: merchant dashboard to approve or restrict agent and channel access</span></div>
+        <div class="fi" style="margin:0;"><span class="dot blue"></span><span>Selected by Mastercard for Start Path Emerging Fintech program</span></div>
+      </div>
+      <div class="card tl" style="display:flex;flex-direction:column;">
+        <div class="co-header teal">LoginID</div>
+        <div class="fi" style="margin:0 0 10px;"><span class="dot teal"></span><span>Passkey authentication and transaction confirmation &mdash; FIDO2 / WebAuthn native</span></div>
+        <div class="fi" style="margin:0 0 10px;"><span class="dot teal"></span><span>Embedded checkout auth with no redirect &mdash; preserves conversion flow</span></div>
+        <div class="fi" style="margin:0 0 10px;"><span class="dot teal"></span><span>Non-repudiation for high-value transactions &mdash; cryptographic proof of authorization</span></div>
+        <div class="fi" style="margin:0;"><span class="dot teal"></span><span>FIDO / EMVCo certified &mdash; recognized by the standards bodies that matter to issuers</span></div>
+      </div>
+    </div>
+    <div class="fn" style="margin-top:auto;">* Based on best understanding of public documentation. Not confirmed in Firmly's public disclosures.</div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S3: CLERK'S FRAMEWORK -->
+<div class="slide" id="s4">
+  <div class="slide-title">Four Questions Every Agentic Transaction Must Answer</div>
+  <div class="content">
+    <div class="clerks-grid">
+      <div class="clerks-card ic">
+        <div class="cq-name blue">Identity</div>
+        <div class="cq-desc">Who is this agent and who owns it?<br><br>Without identity, reputation, accountability, and revocation are all impossible. An agent with no verifiable owner is indistinguishable from a rogue bot.</div>
+      </div>
+      <div class="clerks-card sc">
+        <div class="cq-name teal">Scoping</div>
+        <div class="cq-desc">What is this agent permitted to do?<br><br>Without scope, an authorized agent is indistinguishable from a rogue one. Permission without boundaries is not permission &mdash; it is a blank check.</div>
+      </div>
+      <div class="clerks-card ac">
+        <div class="cq-name green">Approvals</div>
+        <div class="cq-desc">Who authorized this, and is that proof verifiable?<br><br>Without verifiable approval, any agent can claim it was authorized. The claim is only as strong as the cryptographic proof behind it.</div>
+      </div>
+      <div class="clerks-card ec">
+        <div class="cq-name amber">Enforcement</div>
+        <div class="cq-desc">Is the authorization actually being checked at transaction time?<br><br>Without enforcement, identity, scope, and approvals are policy, not protection. The check must happen at every transaction.</div>
+      </div>
+    </div>
+    <div class="clerks-tagline">"A system that answers all four is trustworthy. A system that skips any one is a liability."</div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S4: PROBLEM OVERVIEW -->
+<div class="slide" id="s5">
+  <div class="slide-title">10 Problems in Agentic Commerce Today</div>
+  <div class="content">
+    <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:16px;max-width:1100px;width:100%;margin:0 auto;">
+      <div style="background:var(--card);border:1px solid rgba(59,130,246,0.2);border-top:3px solid var(--blue);border-radius:8px;padding:18px 20px;">
+        <div class="pg-header blue" style="margin-bottom:10px;">Identity</div>
+        <div class="pi blue"><span class="num">1</span>Individual humans have no stable identity anchor</div>
+        <div class="pi blue"><span class="num">2</span>Neither buyer nor seller agents can be tied to a verified owner</div>
+        <div class="pi blue"><span class="num">3</span>Agent discovery depends on a single intermediary</div>
+        <div class="pi blue"><span class="num">4</span>Legitimate agents blocked at perimeter</div>
+        <div class="pi blue" style="margin-bottom:0;"><span class="num">5</span>No way to verify a seller agent is legitimate</div>
+      </div>
+      <div style="background:var(--card);border:1px solid rgba(14,165,233,0.2);border-top:3px solid var(--teal);border-radius:8px;padding:18px 20px;">
+        <div class="pg-header teal" style="margin-bottom:10px;">Scoping</div>
+        <div class="pi teal"><span class="num">6</span>Agent can act beyond authorized scope</div>
+        <div class="pi teal" style="margin-bottom:0;"><span class="num">7</span>Buyer agents consume valuable data at zero cost</div>
+      </div>
+      <div style="background:var(--card);border:1px solid rgba(34,197,94,0.2);border-top:3px solid var(--green);border-radius:8px;padding:18px 20px;">
+        <div class="pg-header green" style="margin-bottom:10px;">Approvals</div>
+        <div class="pi green" style="margin-bottom:0;"><span class="num">8</span>No audit trail linking human to agent to transaction</div>
+      </div>
+      <div style="background:var(--card);border:1px solid rgba(245,158,11,0.2);border-top:3px solid var(--amber);border-radius:8px;padding:18px 20px;">
+        <div class="pg-header amber" style="margin-bottom:10px;">Enforcement</div>
+        <div class="pi amber"><span class="num">9</span>No real-time revocation mechanism</div>
+        <div class="pi amber" style="margin-bottom:0;"><span class="num">10</span>No standardized receipt for B2B reconciliation</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S5: HUB -->
+<div class="slide" id="s6">
+  <div class="slide-title">Six building blocks underpin this proposal</div>
+  <div class="transition-intro">Together, Firmly and LoginID already solve the checkout layer. What follows introduces the trust infrastructure that sits underneath it. These six building blocks appear throughout the proposal.</div>
+  <div class="content">
+    <div class="hub-grid">
+      <div class="hub-card blue" onclick="goTo(22)">
+        <div>
+          <div class="hub-concept blue">NANDA</div>
+          <div class="hub-desc">Open agent registry from MIT. Any agent can register and be discovered without a proprietary intermediary. Provides existence &mdash; not trustworthiness. The foundation Firmly builds a verified layer on top of.</div>
+        </div>
+        <div class="hub-link blue">Discovery &mdash; Explore &rarr;</div>
+      </div>
+      <div class="hub-card teal" onclick="goTo(23)">
+        <div>
+          <div class="hub-concept teal">Business Agent Identity</div>
+          <div class="hub-desc">DNSid + LoginID. A business that owns a domain proves ownership of its agent via DNSid (Identity Digital, operator of 300+ TLD registries). LoginID passkey binds the credential. Enables ownership proof via DNS-anchored identity. Revocation runs through Firmly's registry &mdash; instant signal, no DNS delay. No Firmly required for identity; Firmly required for real-time revocation.</div>
+        </div>
+        <div class="hub-link teal">Business Identity &mdash; Explore &rarr;</div>
+      </div>
+      <div class="hub-card green" onclick="goTo(24)">
+        <div>
+          <div class="hub-concept green">Human Agent Identity</div>
+          <div class="hub-desc">Firmly ID + DNSid + LoginID. Firmly issues a DNS subdomain for human-owned agents (agent.firmly.ai/[id]). LoginID passkey binds it. Enables ownership proof via DNS-anchored identity for individuals who have no domain of their own. Revocation is immediate via Firmly's registry &mdash; not DNS propagation.</div>
+        </div>
+        <div class="hub-link green">Human Identity &mdash; Explore &rarr;</div>
+      </div>
+      <div class="hub-card amber" onclick="goTo(25)">
+        <div>
+          <div class="hub-concept amber">AP2 v0.2.0</div>
+          <div class="hub-desc">Agentic Payment Protocol, implemented by Firmly on the seller side. Humans sign a spending mandate upfront. The seller agent verifies it independently. Every payment is traceable to a signed human authorization. Buyer agent can be from any platform.</div>
+        </div>
+        <div class="hub-link amber">Scope Enforcement &mdash; Explore &rarr;</div>
+      </div>
+      <div class="hub-card red" onclick="goTo(26)">
+        <div>
+          <div class="hub-concept red">x402</div>
+          <div class="hub-desc">HTTP-native micropayment rail, implemented by Firmly on the seller side. Seller agents charge for catalog access and data queries. Monetizes pre-transaction interactions and protects proprietary data from scrapers. Settlement defaults to USDC. Buyer agent can be from any platform.</div>
+        </div>
+        <div class="hub-link red">Micropayments &mdash; Explore &rarr;</div>
+      </div>
+      <div class="hub-card muted" onclick="goTo(27)">
+        <div>
+          <div class="hub-concept muted">Seller Authorization Manifest</div>
+          <div class="hub-desc">Merchant-signed document defining what the seller agent is authorized to offer &mdash; categories, price boundaries, policies, validity window. Implemented by Firmly on the seller side. Any buyer agent can verify it independently via DNSid. Signs authority, not inventory.</div>
+        </div>
+        <div class="hub-link muted">Seller Trust &mdash; Explore &rarr;</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S6: P1 -->
+<div class="slide" id="s6">
+  <div class="breadcrumb"><span class="bc identity active">Identity</span><span class="bc scoping">Scoping</span><span class="bc approvals">Approvals</span><span class="bc enforcement">Enforcement</span></div>
+  <div class="slide-title">Problem 1: Individual humans have no stable identity anchor</div>
+  <div class="content">
+    <div class="prob-grid">
+      <div class="prob-left">
+        <div class="card bl"><div class="actor-p"><span class="badge buyer">Buyer</span>Individual humans have no verifiable identity to anchor agents to. When a human delegates to an agent, there is no credential, no subdomain, no cryptographic proof that this agent was authorized by a specific person. The delegation is invisible.</div></div>
+        <div class="card tl"><div class="actor-p"><span class="badge seller">Seller</span>A seller agent has no way to verify that a human stands behind the buyer agent it is transacting with. The counterparty could be a legitimate delegated agent or an anonymous bot &mdash; the credential gap makes them indistinguishable.</div></div>
+        <div class="card al"><div class="actor-p"><span class="badge network">Network</span>Card networks require a human accountable party behind every transaction. Agentic commerce breaks that assumption. When an agent transacts, the human who authorized it is invisible to the network. Fraud liability has no human to attach to.</div></div>
+      </div>
+      <div class="prob-right">
+        <div class="sol-box">
+          <div class="sol-name"><span class="sol-link" onclick="goTo(24,current)">Firmly ID</span></div>
+          <div class="sol-desc">Subdomain identity for humans. Passkey-bound via LoginID. W3C DID underneath for portability. Human controls scope, agents, and revocation.</div>
+          <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete</span></div>
+          <div class="remains">Applies to humans who enroll. LoginID solves enrollment.</div>
+        </div>
+        <div class="moat">
+          <div class="moat-lbl">Firmly's Moat</div>
+          <div class="moat-txt">The moat is the two-sided network effect: more identified humans attract more merchants, more merchants attract more humans. Each side grows the value of the other. Unlike a protocol, this flywheel cannot be replicated by copying the spec.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S7: P2 -->
+<div class="slide" id="s7">
+  <div class="breadcrumb"><span class="bc identity active">Identity</span><span class="bc scoping">Scoping</span><span class="bc approvals">Approvals</span><span class="bc enforcement">Enforcement</span></div>
+  <div class="slide-title">Problem 2: Neither buyer nor seller agents can be tied to a verified owner</div>
+  <div class="content">
+    <div class="prob-grid">
+      <div class="prob-left">
+        <div class="card bl"><div class="actor-p"><span class="badge buyer">Buyer</span>A buying agent &mdash; whether corporate or individually owned &mdash; has no verifiable link to the human ultimately responsible for it. For corporate agents, no standard binds the agent to the business and through it to a human. For individual agents, no mechanism exists at all.</div></div>
+        <div class="card tl"><div class="actor-p"><span class="badge seller">Seller</span>A selling agent faces the same gap. Whether deployed by a business or an individual, there is no credential proving a human owner stands behind it. Both sides of the transaction are unanchored.</div></div>
+        <div class="card al"><div class="actor-p"><span class="badge network">Network</span>Agent Pay requires accountability at the human level, not just the entity level. Without an ownership chain from agent to human &mdash; on both the buy and sell side &mdash; there is no basis for authorization, dispute resolution, or fraud liability.</div></div>
+      </div>
+      <div class="prob-right">
+        <div class="sol-box">
+          <div class="sol-name"><span class="sol-link" onclick="goTo(23,current)">DNSid</span> + <span class="sol-link" onclick="goTo(24,current)">LoginID + Firmly ID</span></div>
+          <div class="sol-desc">For corporate agents: DNSid anchors the agent to the business domain, LoginID binds it to the human responsible within that business. For human-owned agents: Firmly creates a DNS subdomain first, then LoginID binds it to the individual via passkey &mdash; KYA at the personal level, no domain ownership required.</div>
+          <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete</span></div>
+          <div class="remains">Applies to agents whose owners enroll through Firmly. Agents from owners outside Firmly remain unanchored.</div>
+        </div>
+        <div class="moat">
+          <div class="moat-lbl">Firmly's Moat</div>
+          <div class="moat-txt">The flywheel runs on accumulated data on human-agent relationships: scope patterns, trust signals, revocation history. A later entrant with the same protocol has none of that.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S8: P3 -->
+<div class="slide" id="s8">
+  <div class="breadcrumb"><span class="bc identity active">Identity</span><span class="bc scoping">Scoping</span><span class="bc approvals">Approvals</span><span class="bc enforcement">Enforcement</span></div>
+  <div class="slide-title">Problem 3: Agent discovery depends on a single intermediary</div>
+  <div class="content">
+    <div class="prob-grid">
+      <div class="prob-left">
+        <div class="card bl"><div class="actor-p"><span class="badge buyer">Buyer</span>Firmly-powered merchants are only reachable through channels that have a direct Firmly partnership (Perplexity, TikTok, Facebook). A buyer agent not operating through one of those channels cannot find them. As autonomous buyer agents grow, this channel dependency becomes the ceiling on Firmly's merchant reach.</div></div>
+        <div class="card tl"><div class="actor-p"><span class="badge seller">Seller</span>Firmly-powered merchants are only reachable through channels that have a direct partnership with Firmly. A merchant not yet in Perplexity, TikTok, or another integrated channel is invisible to buyer agents operating through those platforms. There is no open endpoint a buyer agent can query independently.</div></div>
+      </div>
+      <div class="prob-right">
+        <div class="sol-box">
+          <div class="sol-name"><span class="sol-link" onclick="goTo(22,current)">NANDA</span> + Firmly Curated Layer</div>
+          <div class="sol-desc">NANDA is an open registry &mdash; any agent can register and be discovered without a channel partnership. Firmly registering its merchant catalog in NANDA means any autonomous buyer agent, on any platform, configured to query the registry can find and transact with Firmly-powered merchants directly. The channel dependency disappears for agents built to use it.</div>
+          <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Open Discovery</span></div>
+          <div class="remains">NANDA only works for buyer agents explicitly configured to query it. Channel partnerships (Perplexity, TikTok, Facebook) remain necessary for human-in-the-loop shopping. The proposal accelerates the shift toward autonomous buyer agents who bypass shopping interfaces entirely.</div>
+        </div>
+        <div class="moat">
+          <div class="moat-lbl">Firmly's Moat</div>
+          <div class="moat-txt">The merchant network behind the credential is the compounding asset. Each verified merchant makes the credential more valuable to every buyer agent. Stripe did not win by owning the card rails. It won by becoming the trusted layer everyone built on top of open rails.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S9: P4 -->
+<div class="slide" id="s9">
+  <div class="breadcrumb"><span class="bc identity active">Identity</span><span class="bc scoping">Scoping</span><span class="bc approvals">Approvals</span><span class="bc enforcement">Enforcement</span></div>
+  <div class="slide-title">Problem 4: Legitimate agents are blocked at the perimeter</div>
+  <div class="content">
+    <div class="prob-grid">
+      <div class="prob-left">
+        <div class="card bl"><div class="actor-p"><span class="badge buyer">Buyer</span>Legitimate buyer agents are blocked by perimeter bot defense tools (Akamai, F5, Cloudflare). AI agents fail behavioral fingerprinting by design: no mouse movement, no browser fingerprint, datacenter IPs.</div></div>
+        <div class="card tl"><div class="actor-p"><span class="badge seller">Seller</span>Bot defense creates false negatives &mdash; blocking legitimate agent-driven revenue while stopping scrapers. Merchants lose sales they never see.</div></div>
+        <div class="card al"><div class="actor-p"><span class="badge network">Network</span>A verified agent credential standard that perimeter vendors adopt becomes infrastructure for the entire ecosystem.</div></div>
+      </div>
+      <div class="prob-right">
+        <div class="sol-box">
+          <div class="sol-name">Perimeter Vendor Partnerships</div>
+          <div class="sol-desc">Perimeter vendors (Akamai, F5, Cloudflare) verify the Firmly credential at the edge. Legitimate agents present their credential and pass through. Unregistered agents face standard friction. Merchants stop losing agentic revenue to false positives. Skyfire established this model with F5 &mdash; Firmly's passkey-bound credential is a stronger trust signal.</div>
+          <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete</span></div>
+          <div class="remains">Once perimeter partnerships are live, the problem is fully solved. In Firmly's current model, buyers enter through AI chat or social channels &mdash; perimeter tools do not block these flows. Urgency increases as autonomous buyer agents proliferate and hit merchant endpoints directly.</div>
+        </div>
+        <div class="moat">
+          <div class="moat-lbl">Firmly's Moat</div>
+          <div class="moat-txt">Perimeter vendors become the distribution channel. Every merchant running Akamai, F5, or Cloudflare has a direct incentive to onboard to Firmly without Firmly selling to them individually.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S10: P5 -->
+<div class="slide" id="s10">
+  <div class="breadcrumb"><span class="bc identity active">Identity</span><span class="bc scoping">Scoping</span><span class="bc approvals">Approvals</span><span class="bc enforcement">Enforcement</span></div>
+  <div class="slide-title">Problem 5: No way to verify a seller agent is legitimate</div>
+  <div class="content">
+    <div class="prob-grid">
+      <div class="prob-left">
+        <div class="card bl"><div class="actor-p"><span class="badge buyer">Buyer</span>Whether buying through a social channel (TikTok, Instagram), an AI chat (Perplexity, Gemini), or an autonomous agent, there is no signal that the seller agent is authorized by the actual merchant. A rogue seller agent can execute an agent-in-the-middle attack &mdash; appearing legitimate while misrepresenting pricing, redirecting payments, or injecting instructions that manipulate the buyer agent's decisions. HTTPS solved man-in-the-middle on the web. No equivalent exists for seller agents.</div></div>
+        <div class="card tl"><div class="actor-p"><span class="badge seller">Seller</span>Legitimate merchants have no standard way to publish a verifiable authorization for their agent. Any endpoint can claim to represent a merchant. Without a signed credential, there is nothing for a buyer to verify.</div></div>
+        <div class="card al"><div class="actor-p"><span class="badge network">Network</span>Fraudulent seller agents could generate card transactions for goods never delivered, with no authorization trail to dispute. The network carries the loss with no cryptographic evidence of who authorized the seller agent.</div></div>
+      </div>
+      <div class="prob-right">
+        <div class="sol-box">
+          <div class="sol-name"><span class="sol-link" onclick="goTo(27,current)">Seller Authorization Manifest</span></div>
+          <div class="sol-desc">The Seller Authorization Manifest is the HTTPS of agentic commerce. The merchant signs what their agent is authorized to offer &mdash; catalog boundaries, price ranges, validity window &mdash; using their DNSid key. Any buyer, human or agent, verifies it before interacting. Eliminates the agent-in-the-middle attack surface. Firmly defines the visual trust signal at the point of interaction &mdash; the lock icon for agentic commerce.</div>
+          <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Agent Layer</span></div>
+          <div class="status-row"><span class="status-dot open"></span><span class="status-lbl open">Network layer resolved in P9 &mdash; Audit Trail</span></div>
+          <div class="remains">Applies to merchants who implement the manifest. Broader adoption determines how universal the trust signal becomes.<br><br>Future opportunity: extend to include machine-readable purchase policies for cryptographic buyer agent acknowledgment.</div>
+        </div>
+        <div class="moat">
+          <div class="moat-lbl">Firmly's Moat</div>
+          <div class="moat-txt">Firmly becomes the trust anchor for seller agent authorization. A buyer agent that trusts Firmly-verified manifests will prefer Firmly-connected merchants &mdash; creating a pull effect that brings merchants to the platform.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S11: P6 -->
+<div class="slide" id="s11">
+  <div class="breadcrumb"><span class="bc identity">Identity</span><span class="bc scoping active">Scoping</span><span class="bc approvals">Approvals</span><span class="bc enforcement">Enforcement</span></div>
+  <div class="slide-title">Problem 6: Buying agent can act beyond what the human authorized</div>
+  <div class="content">
+    <div class="prob-grid">
+      <div class="prob-left">
+        <div class="card bl"><div class="actor-p"><span class="badge buyer">Buyer</span>Human sets scope verbally or via app UI, but the agent carries no cryptographically enforceable mandate. The agent could overspend, buy from unauthorized sellers, or act after the authorization window closes.</div></div>
+        <div class="card tl"><div class="actor-p"><span class="badge seller">Seller</span>Seller agent has no way to independently verify the buyer agent's scope. Must trust the buyer agent's own assertion about what it is allowed to do.</div></div>
+        <div class="card al"><div class="actor-p"><span class="badge network">Network</span>Chargebacks from out-of-scope agent purchases land on issuers with no audit trail showing whether the human authorized the specific transaction.</div></div>
+      </div>
+      <div class="prob-right">
+        <div class="sol-box">
+          <div class="sol-name"><span class="sol-link" onclick="goTo(25,current)">AP2 v0.2.0</span> + <span class="sol-link" onclick="goTo(24,current)">LoginID</span> Signed Mandates + Google Universal Cart</div>
+          <div class="sol-desc">Human signs the mandate upfront via a FIDO2 passkey &mdash; an open standard. LoginID adds the KYA layer on top: the signer is a verified human, not just a device owner. The signature is cryptographically bound to a verified person, not just a device or session. Approved sellers, dollar limits, categories, and time window are enforced at the seller layer. Any buyer agent can carry and present the mandate &mdash; Firmly's enforcement is at the seller layer, not the buyer layer. Every payment traces back to the signed mandate. Google Universal Cart (announced May 2026) aggregates purchases across sellers in a single agentic session, coupled with AP2 mandates. Complements Firmly's seller-layer enforcement with cross-seller spend visibility.</div>
+          <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Seller Layer</span></div>
+          <div class="status-row"><span class="status-dot open"></span><span class="status-lbl open">Network layer resolved in P9 &mdash; Audit Trail</span></div>
+          <div class="remains">Cart aggregation across sellers is partially addressed by Google Universal Cart + AP2 &mdash; session-level cumulative caps are not yet explicitly confirmed. Agent interpretation drift from human intent remains an open limitation of current agentic systems.</div>
+        </div>
+        <div class="moat">
+          <div class="moat-lbl">Firmly's Moat</div>
+          <div class="moat-txt">Merchants accept more agent-driven orders when scope is cryptographically enforced. More merchant acceptance attracts more buyers. More verified transaction volume attracts more merchants. The flywheel runs on trust, not on enrollment.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S12: P7 -->
+<div class="slide" id="s12">
+  <div class="breadcrumb"><span class="bc identity">Identity</span><span class="bc scoping active">Scoping</span><span class="bc approvals">Approvals</span><span class="bc enforcement">Enforcement</span></div>
+  <div class="slide-title">Problem 7: Buyer agents consume valuable data at zero cost</div>
+  <div class="content">
+    <div class="prob-grid">
+      <div class="prob-left">
+        <div class="card bl"><div class="actor-p"><span class="badge buyer">Buyer</span>Because no payment mechanism exists for agent data access, providers have no incentive to expose their most valuable data. The richest catalog details, real-time pricing, and proprietary datasets stay locked. Buyer agents operate on whatever is freely available &mdash; which is rarely the best information.</div></div>
+        <div class="card tl"><div class="actor-p"><span class="badge seller">Seller</span>Serving an agent catalog query costs compute, exposes proprietary pricing and inventory data, and provides competitive intelligence to anyone who asks. There is no mechanism to charge for it, gate it, or recover the cost. Scrapers and competitors benefit equally with paying customers.</div></div>
+        <div class="card al"><div class="actor-p"><span class="badge network">Network</span>There is no payment infrastructure for sub-cent, high-frequency agent data transactions. Card rails require minimum transaction sizes and interchange fees that make micropayments for individual API calls economically unviable. The interaction layer between agents has no settlement mechanism.</div></div>
+      </div>
+      <div class="prob-right">
+        <div class="sol-box">
+          <div class="sol-name"><span class="sol-link" onclick="goTo(26,current)">x402</span></div>
+          <div class="sol-desc">x402 is an HTTP-native payment protocol. Any data provider can return HTTP 402 for agent queries, requiring a USDC micropayment before serving the response. Applies to catalog data, financial data, health records, legal documents &mdash; any proprietary data served via HTTP. Buyer agents that pay get access. Scrapers face friction.</div>
+          <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Technical Mechanism</span></div>
+          <div class="remains">x402 bypasses card interchange for micro-interactions. This is a separate rail &mdash; not a replacement for card payments on the final transaction.</div>
+        </div>
+        <div class="moat">
+          <div class="moat-lbl">Firmly's Moat</div>
+          <div class="moat-txt">x402 differentiates Firmly's seller agent stack with two levers: new revenue from catalog query monetization, and a friction barrier that blocks malign agents from scraping proprietary pricing and catalog data at zero cost.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S13: P8 (was P9) -->
+<div class="slide" id="s13">
+  <div class="breadcrumb"><span class="bc identity">Identity</span><span class="bc scoping">Scoping</span><span class="bc approvals active">Approvals</span><span class="bc enforcement">Enforcement</span></div>
+  <div class="slide-title">Problem 8: No cryptographic audit trail linking human to agent to transaction</div>
+  <div class="content">
+    <div class="prob-grid">
+      <div class="prob-left">
+        <div class="card bl"><div class="actor-p"><span class="badge buyer">Buyer</span>If the human later claims they did not authorize a specific transaction, there is no cryptographic proof linking their identity to the agent to the exact purchase.</div></div>
+        <div class="card tl"><div class="actor-p"><span class="badge seller">Seller</span>Merchant has no verifiable evidence to contest a chargeback initiated by a human claiming agent actions were unauthorized. Exposes merchants to fraudulent dispute abuse.</div></div>
+        <div class="card al"><div class="actor-p"><span class="badge network">Network</span>Issuers resolve disputes without visibility into the authorization chain above the card transaction. A cryptographic audit trail would reduce dispute resolution costs and false chargebacks.</div></div>
+      </div>
+      <div class="prob-right">
+        <div class="sol-box">
+          <div class="sol-name"><span class="sol-link" onclick="goTo(25,current)">AP2 v0.2.0</span> + <span class="sol-link" onclick="goTo(27,current)">Seller Authorization Manifest</span></div>
+          <div class="sol-desc">Together they create a non-repudiable chain: human signed the mandate, agent acted within it, seller verified the manifest, transaction executed.</div>
+          <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Agent Layer</span></div>
+          <div class="status-row"><span class="status-dot open"></span><span class="status-lbl open">Issuer adoption is a business decision, not a technical gate</span></div>
+          <div class="remains">The audit trail is cryptographically complete and self-contained. Issuers can verify the mandate and manifest independently without implementing AP2 as a protocol. The barrier is adoption willingness, not technical dependency.</div>
+        </div>
+        <div class="moat">
+          <div class="moat-lbl">Firmly's Moat</div>
+          <div class="moat-txt">Holding both sides of the authorization chain, buyer mandate and seller manifest, enables dispute resolution that neither side alone can provide. No single-sided solution can produce this trail.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S14: P9 -->
+<div class="slide" id="s14">
+  <div class="breadcrumb"><span class="bc identity">Identity</span><span class="bc scoping">Scoping</span><span class="bc approvals">Approvals</span><span class="bc enforcement active">Enforcement</span></div>
+  <div class="slide-title">Problem 9: Agent credential cannot be revoked in real time</div>
+  <div class="content">
+    <div class="prob-grid">
+      <div class="prob-left">
+        <div class="card bl"><div class="actor-p"><span class="badge buyer">Buyer</span>If a human loses a device, suspects a compromised agent, or wants to cancel an ongoing procurement, there is no mechanism to revoke the agent's credential in real time across all merchants.</div></div>
+        <div class="card tl"><div class="actor-p"><span class="badge seller">Seller</span>A revoked agent credential is not propagated to the seller. The seller continues to accept transactions from a credential the human has already cancelled.</div></div>
+        <div class="card al"><div class="actor-p"><span class="badge network">Network</span>A stolen or compromised agent credential could generate fraudulent transactions until detected. If the buyer agent is Firmly's, revocation is enforced before any transaction is initiated &mdash; the credential is never presented. The fraud window only persists when neither the buyer agent nor the merchant has Firmly integration.</div></div>
+      </div>
+      <div class="prob-right">
+        <div class="sol-box">
+          <div class="sol-name"><span class="sol-link" onclick="goTo(24,current)">Firmly ID</span> Dashboard + Registry</div>
+          <div class="sol-desc">Firmly's registry is the revocation layer for both business and human-owned agents. The human revokes via the Firmly ID dashboard &mdash; instant at the registry. Any Firmly buyer agent checks its credential status before acting and stops immediately. Any Firmly-integrated merchant checks the registry at transaction time and rejects a revoked credential. DNSid provides the identity anchor; Firmly controls the revocation signal.</div>
+          <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Credential Layer</span></div>
+          <div class="status-row"><span class="status-dot open"></span><span class="status-lbl open">Real-time propagation to merchants and issuers requires registry integration</span></div>
+          <div class="remains">Revocation initiated by the human is immediate at Firmly's registry. Propagation depends on merchants and issuers querying the registry before accepting transactions. Without integration, a revoked credential remains valid at the point of sale until the registry is checked.</div>
+        </div>
+        <div class="moat">
+          <div class="moat-lbl">Firmly's Moat</div>
+          <div class="moat-txt">Buyer agents that integrate Firmly's registry check get instant revocation &mdash; no DNS delay, no fraud window. The more buyer agents adopt the registry check, the more valuable the credential becomes to merchants, and the more merchants adopt, the more valuable it is to buyer agents. A network partner integrating the registry at the authorization layer closes the last propagation gap and creates a structural barrier no competitor can replicate without rebuilding both the registry and the merchant network from scratch.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S16: P11 -->
+<div class="slide" id="s15">
+  <div class="breadcrumb"><span class="bc identity">Identity</span><span class="bc scoping">Scoping</span><span class="bc approvals">Approvals</span><span class="bc enforcement active">Enforcement</span></div>
+  <div class="slide-title">Problem 10: No standardized agent receipt for B2B reconciliation</div>
+  <div class="content">
+    <div class="prob-grid">
+      <div class="prob-left">
+        <div class="card bl"><div class="actor-p"><span class="badge buyer">Buyer</span>Business buyer agents place orders but generate no structured receipt that the company's ERP can consume automatically. Reconciliation remains manual &mdash; a problem that scales negatively with agent volume.</div></div>
+        <div class="card tl"><div class="actor-p"><span class="badge seller">Seller</span>Cannot guarantee the buyer's systems will correctly record the transaction, leading to disputes and delayed payment. No shared standard for what a machine-readable receipt looks like.</div></div>
+        <div class="card al"><div class="actor-p"><span class="badge network">Network</span>The card network processes the payment but receives no agent context &mdash; no mandate reference, no agent ID, no authorization chain. Disputes are resolved against a transaction that looks identical to a human-initiated one. A structured agent receipt gives the network the metadata to distinguish agent transactions, apply appropriate liability rules, and offer dispute resolution products that do not exist today.</div></div>
+      </div>
+      <div class="prob-right">
+        <div class="sol-box">
+          <div class="sol-name">Firmly-Defined Receipt Format</div>
+          <div class="sol-desc">Firmly holds the AP2 signed mandate and cart data at transaction completion. A structured receipt &mdash; buyer agent, seller agent, items, mandate reference, merchant signature &mdash; can be defined and generated by Firmly without external dependency. Merchants adopt it because manual reconciliation at scale is expensive.</div>
+          <div class="status-row"><span class="status-dot partial"></span><span class="status-lbl partial">Partial &mdash; Firmly Buyer and Seller Pairs Only</span></div>
+          <div class="remains">Firmly defines the receipt format first. Merchants adopt it because manual reconciliation at scale is expensive. Industry-wide standardization through UCP or AP2 would accelerate adoption but is not required &mdash; Firmly does not need a standard to ship v1; it needs enough merchants on both sides to make the format the de facto one.</div>
+        </div>
+        <div class="moat">
+          <div class="moat-lbl">Firmly's Moat</div>
+          <div class="moat-txt">Firmly holds the mandate, the cart, and the receipt for every transaction it touches. No third party can reconstruct that chain. A competitor building a receipt format has the format &mdash; they do not have the mandate history, the agent behavior data, or the cross-merchant transaction record. The moat is data completeness, not just switching cost.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S18: SOLUTION COVERAGE MATRIX -->
+<div class="slide" id="s18">
+  <div class="slide-title">Problem Coverage by Building Block</div>
+  <div class="content" style="justify-content:flex-start;">
+    <div class="matrix-scroll">
+      <table class="mx">
+        <thead>
+          <tr>
+            <th class="pc" style="width:30%"># Problem</th>
+            <th colspan="6" style="text-align:left;color:var(--muted);font-weight:400;font-size:13px;padding-bottom:2px;">Building Blocks</th>
+          </tr>
+          <tr>
+            <th class="pc" style="width:30%"></th>
+            <th><span class="sol-link" onclick="goTo(22,current)" style="cursor:pointer;">NANDA</span></th>
+            <th><span class="sol-link" onclick="goTo(23,current)" style="cursor:pointer;">Business Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">DNSid + LoginID</span></th>
+            <th><span class="sol-link" onclick="goTo(24,current)" style="cursor:pointer;">Human Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Firmly ID + DNSid + LoginID</span></th>
+            <th><span class="sol-link" onclick="goTo(25,current)" style="cursor:pointer;">AP2 v0.2.0</span></th>
+            <th><span class="sol-link" onclick="goTo(26,current)" style="cursor:pointer;">x402</span></th>
+            <th><span class="sol-link" onclick="goTo(27,current)" style="cursor:pointer;">Seller Auth Manifest</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Seller-signed scope boundaries</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="gr"><td colspan="7">IDENTITY</td></tr>
+          <tr><td class="pc">1. Individual humans have no stable identity anchor</td><td></td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td></td><td></td><td></td></tr>
+          <tr><td class="pc">2. Neither buyer nor seller agents can be tied to a verified owner</td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td></td><td></td><td></td></tr>
+          <tr><td class="pc">3. Agent discovery depends on a single intermediary</td><td><div class="mc"><span class="status-dot complete"></span></div></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td class="pc">4. Legitimate agents blocked at the perimeter</td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td></td><td></td><td></td></tr>
+          <tr><td class="pc">5. No way to verify a seller agent is legitimate</td><td></td><td></td><td></td><td></td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td></tr>
+          <tr class="gr teal"><td colspan="7">SCOPING</td></tr>
+          <tr><td class="pc">6. Buying agent can act beyond what the human authorized</td><td></td><td></td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td></td><td></td></tr>
+          <tr><td class="pc">7. Buyer agents consume valuable data at zero cost</td><td></td><td></td><td></td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td></td></tr>
+          <tr class="gr green"><td colspan="7">APPROVALS</td></tr>
+          <tr><td class="pc">8. No audit trail linking human to agent to transaction</td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td></tr>
+          <tr class="gr amber"><td colspan="7">ENFORCEMENT</td></tr>
+          <tr><td class="pc">9. Agent credential cannot be revoked in real time</td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td></td><td></td><td></td></tr>
+          <tr><td class="pc">10. No standardized agent receipt for B2B reconciliation</td><td></td><td></td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td><td></td><td><div class="mc"><span class="status-dot complete"></span></div></td></tr>
+        </tbody>
+      </table>
+      <div class="mx-note">Each dot marks a building block that directly addresses this problem. See individual problem slides for coverage gaps and moat strength.</div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S19: WHY MASTERCARD -->
+<div class="slide" id="s19">
+  <div class="slide-title">Why Mastercard Needs This Stack</div>
+  <div class="mc-opening">Mastercard launched Agent Pay, but the value is locked behind bank implementation cycles. Firmly and LoginID are the production stack that unlocks it today. The same case applies to Visa TAP &mdash; the network that moves first sets the standard. Visa's ICC solves protocol translation for merchants &mdash; the same layer as Firmly Connect. What ICC does not touch is the identity layer: who the agent is, who authorized it, and whether that credential can be revoked. That is the gap Firmly and LoginID own.</div>
+  <div class="mc-grid">
+    <div class="mc-card amber">
+      <div class="mc-label amber">A Production Stack, Ready Today</div>
+      <div class="mc-text"><strong>Already built. Already live at the merchant layer.</strong> Signed mandates and seller authorization at the point of transaction &mdash; no bank implementation cycles required.</div>
+    </div>
+    <div class="mc-card blue">
+      <div class="mc-label blue">First Mover on Agent Identity at the Issuer Level</div>
+      <div class="mc-text"><strong>Integrate rather than build.</strong> The network that defines the agent credential standard at the issuer layer sets the format every competitor has to comply with or displace.</div>
+    </div>
+    <div class="mc-card green">
+      <div class="mc-label green">A Fraud Product for Issuers</div>
+      <div class="mc-text"><strong>Non-repudiable trail from human intent to transaction.</strong> A cryptographic audit trail for dispute resolution &mdash; a product Mastercard can take to every issuer in their network today.</div>
+    </div>
+    <div class="mc-card teal">
+      <div class="mc-label teal">Agent Identity That Travels to the Issuer</div>
+      <div class="mc-text"><strong>DNS-anchored for businesses. Passkey-bound for humans.</strong> Everything needed to verify who an agent is and who approved it &mdash; ready to extend to the issuer layer without building identity infrastructure from scratch.</div>
+    </div>
+    <div class="mc-card red">
+      <div class="mc-label red">A Structural Barrier Once Integrated</div>
+      <div class="mc-text"><strong>Credential verification and revocation at the authorization layer.</strong> Replicating it requires a competing credential ecosystem, competing merchant adoption, and a second network willing to start from scratch.</div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S20: THREE MARKETS -->
+<div class="slide" id="s20">
+  <div class="slide-title">The Same Stack Opens Three Additional Markets</div>
+  <div class="content" style="justify-content:flex-start;gap:16px;">
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <div style="background:rgba(59,130,246,0.12);padding:20px 18px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--border);">
+        <div style="font-size:18px;font-weight:700;color:var(--blue);">Buying Agents</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px;">Demand side</div>
+      </div>
+      <div style="padding:20px 24px;">
+        <div style="font-size:18px;color:var(--white);line-height:1.6;">Every AI platform whose agent transacts on a human or corporate behalf needs verified identity and scoped mandates. Firmly is that layer &mdash; on the demand side, not just the merchant side.</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <div style="background:rgba(14,165,233,0.12);padding:20px 18px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--border);">
+        <div style="font-size:18px;font-weight:700;color:var(--teal);">Open Data</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px;">New vertical</div>
+      </div>
+      <div style="padding:20px 24px;">
+        <div style="font-size:18px;color:var(--white);line-height:1.6;">Financial institutions, health systems, and legal data providers granting agents scoped access to customer data. AP2 defines what the agent can access and for how long. x402 charges per query.</div>
+        <div style="font-size:16px;color:var(--muted);margin-top:10px;font-style:italic;">Ex: a bank agent pulls transaction history on a customer's behalf within a signed, time-bound mandate.</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <div style="background:rgba(245,158,11,0.12);padding:20px 18px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--border);">
+        <div style="font-size:18px;font-weight:700;color:var(--amber);">Corporate Task Delegation</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px;">Enterprise</div>
+      </div>
+      <div style="padding:20px 24px;">
+        <div style="font-size:18px;color:var(--white);line-height:1.6;">Enterprises authorizing third-party agents to access internal systems within defined boundaries. The Seller Authorization Manifest serves as a Signed Authorization Manifest &mdash; the same building block, repurposed for enterprise access scope rather than merchant offer scope.</div>
+        <div style="font-size:16px;color:var(--muted);margin-top:10px;font-style:italic;">Ex: an IT department grants an AI security agent read access to network logs within defined system boundaries.</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S21: MARKET ENABLEMENT MATRIX -->
+<div class="slide" id="s21">
+  <div class="slide-title">Building Blocks by Additional Market</div>
+  <div class="content" style="justify-content:center;">
+    <div style="width:100%;">
+      <table class="mx" style="font-size:18px;">
+        <thead>
+          <tr>
+            <th class="pc" style="width:25%">Market</th>
+            <th colspan="6" style="text-align:left;color:var(--muted);font-weight:400;font-size:13px;padding-bottom:2px;">Building Blocks</th>
+          </tr>
+          <tr>
+            <th class="pc" style="width:25%"></th>
+            <th><span class="sol-link" onclick="goTo(22,current)" style="cursor:pointer;">NANDA</span></th>
+            <th><span class="sol-link" onclick="goTo(23,current)" style="cursor:pointer;">Business Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">DNSid + LoginID</span></th>
+            <th><span class="sol-link" onclick="goTo(24,current)" style="cursor:pointer;">Human Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Firmly ID + DNSid + LoginID</span></th>
+            <th><span class="sol-link" onclick="goTo(25,current)" style="cursor:pointer;">AP2 v0.2.0</span></th>
+            <th><span class="sol-link" onclick="goTo(26,current)" style="cursor:pointer;">x402</span></th>
+            <th><span class="sol-link" onclick="goTo(27,current)" style="cursor:pointer;">Seller Authorization Manifest</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Seller-signed scope boundaries</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="height:60px;">
+            <td class="pc" style="font-weight:600;color:var(--white);">Buying Agents<br><span style="font-weight:400;font-size:14px;color:var(--muted);">Demand side</span></td>
+            <td></td>
+            <td></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+          </tr>
+          <tr style="height:60px;">
+            <td class="pc" style="font-weight:600;color:var(--white);">Open Data<br><span style="font-weight:400;font-size:14px;color:var(--muted);">New vertical</span></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+          </tr>
+          <tr style="height:60px;">
+            <td class="pc" style="font-weight:600;color:var(--white);">Corporate Task Delegation<br><span style="font-weight:400;font-size:14px;color:var(--muted);">Enterprise</span></td>
+            <td></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+            <td></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+            <td></td>
+            <td><div class="mc"><span class="status-dot complete"></span></div></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="mx-note">Each dot marks a building block that directly enables this market. See the previous slide for market details.</div>
+    </div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- S22: SUMMARY -->
+<div class="slide" id="s22">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-shrink:0;">
+    <div style="width:40px;height:3px;background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:2px;"></div>
+    <span style="font-size:32px;font-weight:700;color:var(--white);letter-spacing:-0.02em;">Summary</span>
+  </div>
+  <div class="content">
+    <div class="three-col">
+      <div class="final-col">
+        <div class="fc-header"><span class="fc-dot" style="background:var(--green)"></span><span style="color:var(--green);">What We Solve</span></div>
+        <div class="final-item">Agent identity, ownership, and revocation &mdash; businesses and humans</div>
+        <div class="final-item">Merchant discoverability and buyer agent access &mdash; expanding the network on both sides</div>
+        <div class="final-item">Seller agent trust verification</div>
+        <div class="final-item">Buyer scope enforcement &mdash; what the agent can spend, where, and for how long</div>
+        <div class="final-item">Seller authorization boundaries &mdash; what the agent can offer and at what price</div>
+        <div class="final-item">Seller data and catalog access monetized at the interaction layer</div>
+        <div class="final-item">Audit trail for dispute resolution</div>
+      </div>
+      <div class="final-col">
+        <div class="fc-header"><span class="fc-dot" style="background:var(--blue)"></span><span style="color:var(--blue);">Why This Stack Accelerates Firmly and LoginID</span></div>
+        <div class="final-item">Merchant adoption builds the credential network today &mdash; every merchant onboarded is a node that buyer agents need to reach</div>
+        <div class="final-item">The stack is ready for buying agents before buying agents are ready &mdash; no dependency on Perplexity, Gemini, or OpenAI to move first</div>
+        <div class="final-item">Three additional markets are unlocked by the same infrastructure &mdash; no rebuild required</div>
+        <div class="final-item">A network partner compresses the timeline and closes the last propagation gap &mdash; but the stack grows with or without it</div>
+        <div class="final-item">LoginID enters agentic commerce as the embedded KYA layer &mdash; passkey binding is the credential foundation</div>
+      </div>
+      <div class="final-col">
+        <div class="fc-header"><span class="fc-dot" style="background:var(--amber)"></span><span style="color:var(--amber);">How We Execute</span></div>
+        <div class="final-item">Firmly builds Firmly ID registry and consumer-facing onboarding UX</div>
+        <div class="final-item">LoginID provides passkey binding &mdash; FIDO-certified, non-redirect, embedded</div>
+        <div class="final-item">Business agent identity anchored to DNS via the open DNSid standard</div>
+        <div class="final-item">Joint: Mastercard Agent Pay integration</div>
+        <div class="final-item">Agent framework partnerships to embed the stack where agents are built &mdash; CrewAI and Relevance AI as starting partners</div>
+        <div class="final-item">Perimeter vendor partnerships to ensure verified agents are not blocked at the merchant door &mdash; F5, Akamai, Cloudflare</div>
+      </div>
+    </div>
+    <div class="final-tagline">"Agentic commerce requires identity, scoping, approvals, and enforcement. This stack reinforces all four."</div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Santiago Aldana</span></div>
+</div>
+
+<!-- APPENDIX DIVIDER -->
+<div class="slide appendix-divider" id="s23">
+  <div class="appendix-title">Appendix</div>
+  <div class="appendix-sub">Concept glossary. Select from the hub on slide 3 or navigate with arrow keys.</div>
+</div>
+
+<!-- A1: NANDA -->
+<div class="slide" id="s24">
+  <div class="gloss-title">NANDA</div>
+  <div class="gloss-tag">Open Agent Registry &mdash; Existence Without Trust</div>
+  <div class="back-links-area">
+    <span class="back-hub" onclick="goTo(4)">Back to concepts hub &uarr;</span>
+    <span class="back-prob" onclick="callerSlide !== null ? goTo(callerSlide) : null" style="display:none;"></span>
+  </div>
+  <div class="content" style="justify-content:flex-start;">
+    <div class="stack-row"><span class="stack-lbl">What it is</span><span class="stack-desc">NANDA is a MIT project &mdash; part of MIT's work on decentralized agent infrastructure. It was built to solve a specific gap: as AI agents proliferate, there is no shared directory where agents can find each other without going through a proprietary platform. NANDA is the open alternative. Any agent, anywhere, can register and appear in the registry without a central gatekeeper controlling access.</span></div>
+    <div class="stack-row teal"><span class="stack-lbl teal">What it provides</span><span class="stack-desc">Existence &mdash; confirmation that an agent is registered and reachable. A buyer agent can find a seller agent's endpoint and initiate contact. What NANDA cannot tell you is whether that agent is authorized to sell, who owns it, or whether it is safe to send money to. The endpoint exists. The trust must come from somewhere else.</span></div>
+    <div class="stack-row amber"><span class="stack-lbl amber">The gap</span><span class="stack-desc">Any agent can register. A bot, a scraper, and a legitimate Backcountry selling agent look identical in raw NANDA listings. The registry provides no quality or trust signal. A buyer agent has no basis from NANDA alone to decide whether to trust a listing enough to transact &mdash; and that gap is exactly what Firmly and LoginID are positioned to fill.</span></div>
+    <div class="stack-row green"><span class="stack-lbl green">Firmly + LoginID layer</span><span class="stack-desc">Firmly adds a curated, verified layer on top of raw NANDA. A Firmly-verified listing means the agent behind it has been checked against a real merchant with accountability &mdash; and LoginID passkey binding ties that credential to a verified human owner. The model is analogous to a curated app store sitting on top of an open ecosystem &mdash; the open layer solves discovery, Firmly and LoginID solve trust. A buyer agent that trusts Firmly-verified listings can proceed with confidence that raw NANDA alone cannot provide.</span></div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Appendix</span></div>
+</div>
+
+<!-- A2: BUSINESS AGENT IDENTITY (DNSid) -->
+<div class="slide" id="s25">
+  <div class="gloss-title">Business Agent Identity</div>
+  <div class="gloss-tag">DNSid + LoginID &mdash; DNS-Anchored Agent Ownership for Businesses</div>
+  <div class="back-links-area">
+    <span class="back-hub" onclick="goTo(4)">Back to concepts hub &uarr;</span>
+    <span class="back-prob" onclick="callerSlide !== null ? goTo(callerSlide) : null" style="display:none;"></span>
+  </div>
+  <div class="content" style="justify-content:flex-start;">
+    <div class="stack-row"><span class="stack-lbl">Identity Digital</span><span class="stack-desc">Identity Digital is one of the largest domain registry operators in the world &mdash; they operate registries for over 300 top-level domains, including .info and a large family of generic extensions. They are not a startup. Their institutional weight behind DNSid means the standard has the backing of existing DNS infrastructure operators, not just a whitepaper. DNSid is an open standard that Identity Digital governs and maintains &mdash; any party can implement it, it is not a proprietary Identity Digital product.</span></div>
+    <div class="stack-row teal"><span class="stack-lbl teal">DNSid mechanism</span><span class="stack-desc">Anchors agent ownership to a DNS domain. A business that owns a domain can publish a cryptographic record proving it owns a specific agent. No central authority needs to vouch for the relationship &mdash; the proof is as decentralized as DNS itself. Any verifier can check it independently, with no call back to Identity Digital or any other intermediary.</span></div>
+    <div class="stack-row green"><span class="stack-lbl green">Revocation via DNS</span><span class="stack-desc">DNSid supports revocation by updating the DNS record. Propagation runs through DNS infrastructure &mdash; typically minutes to hours depending on TTL. No single database to corrupt, no single point of failure. This is DNSid's native revocation path. However, Firmly does not rely on DNS propagation for revocation speed. Firmly's registry is the authoritative revocation layer &mdash; when a credential is revoked, the signal is immediate at the registry. DNSid provides the identity anchor; Firmly controls when and whether an agent credential is accepted.</span></div>
+    <div class="stack-row amber"><span class="stack-lbl amber">Limitation</span><span class="stack-desc">Requires a domain. Works for businesses and organizations that own and control a domain. Does not solve the individual human case &mdash; a consumer with no domain has no DNSid anchor. That is the gap Human Agent Identity is designed to fill, extending the same trust model to people who are not businesses.</span></div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Appendix</span></div>
+</div>
+
+<!-- A3: HUMAN AGENT IDENTITY (Firmly ID) -->
+<div class="slide" id="s26">
+  <div class="gloss-title">Human Agent Identity</div>
+  <div class="gloss-tag">Firmly ID + DNSid + LoginID &mdash; The Identity Layer for Human-Owned Agents</div>
+  <div class="back-links-area">
+    <span class="back-hub" onclick="goTo(4)">Back to concepts hub &uarr;</span>
+    <span class="back-prob" onclick="callerSlide !== null ? goTo(callerSlide) : null" style="display:none;"></span>
+  </div>
+  <div class="content" style="justify-content:flex-start;">
+    <div class="stack-row"><span class="stack-lbl">What it is</span><span class="stack-desc">A Firmly-issued subdomain identity registry for human-owned agents: <span style="font-family:'DM Mono',monospace;color:var(--blue);font-size:16px;">agent.firmly.ai/[user-id]</span>. Passkey-bound via LoginID. Every human who enrolls gets a stable, verifiable agent identity without needing to own a domain or understand cryptography. DNSid solves the business case; Firmly ID solves the human case.</span></div>
+    <div class="stack-row teal"><span class="stack-lbl teal">Human control</span><span class="stack-desc">Humans control which agents are authorized, the spending scope assigned to each agent, and revocation via a dashboard. The human is the authority &mdash; Firmly is the registry layer. If a human wants to cancel an agent's access, they do it from a dashboard. The change propagates immediately within Firmly's network.</span></div>
+    <div class="stack-row green"><span class="stack-lbl green">Portability</span><span class="stack-desc">W3C DID underneath. If the human leaves Firmly, their identity credential survives because the underlying standard is open. LoginID holds the passkey binding independently of Firmly's platform. Portability reduces lock-in risk and makes the credential more valuable to merchants who do not want to accept credentials that disappear when a platform relationship ends.</span></div>
+    <div class="stack-row amber"><span class="stack-lbl amber">Product requirement</span><span class="stack-desc">Consumer-grade onboarding is a distinct product problem from the identity infrastructure. Target: completable in under 3 minutes, passkey-first via LoginID, no domain required, no cryptography knowledge expected from the user. The identity layer can be technically sound and still fail if enrollment is not this simple.</span></div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Appendix</span></div>
+</div>
+
+<!-- A4: AP2 -->
+<div class="slide" id="s27">
+  <div class="gloss-title">AP2 v0.2.0</div>
+  <div class="gloss-tag">Agentic Payment Protocol &mdash; Cryptographic Scope Enforcement</div>
+  <div class="back-links-area">
+    <span class="back-hub" onclick="goTo(4)">Back to concepts hub &uarr;</span>
+    <span class="back-prob" onclick="callerSlide !== null ? goTo(callerSlide) : null" style="display:none;"></span>
+  </div>
+  <div class="content" style="justify-content:flex-start;">
+    <div class="stack-row"><span class="stack-lbl">What v1.0 had</span><span class="stack-desc">The concept of a spending mandate. A human could instruct an agent with a budget and a list of approved sellers. The problem: the mandate lived as a data structure in memory that the agent could modify. There was no cryptographic enforcement. The mandate was a convention that any sufficiently motivated agent could bypass &mdash; policy, not protection.</span></div>
+    <div class="stack-row teal"><span class="stack-lbl teal">What v0.2.0 adds</span><span class="stack-desc">Signed Intent Mandates and Cart Mandates. The human signs the mandate upfront with a private key &mdash; approved sellers, dollar limits, categories, time window. The agent signs the cart at checkout. Both signatures are cryptographically verifiable by the seller agent independently, with no assertion required from the buyer agent about what it is allowed to do.</span></div>
+    <div class="stack-row green"><span class="stack-lbl green">The chain</span><span class="stack-desc">A non-repudiable chain from human intent to payment execution: human signature covers the mandate, agent signature covers the cart, seller verifies both before completing the transaction. Every payment is traceable back to a signed human authorization. An agent cannot claim scope it was not granted because the grant is cryptographic, not conversational.</span></div>
+    <div class="stack-row amber"><span class="stack-lbl amber">The gap</span><span class="stack-desc">The signed mandate is visible to the seller agent. It does not travel to the issuer unless the issuer implements AP2 on their side. Network-level enforcement &mdash; where an issuer can independently verify the mandate before authorizing a card transaction &mdash; requires issuer adoption. That is the partnership conversation with a network partner like Mastercard.</span></div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Appendix</span></div>
+</div>
+
+<!-- A5: x402 -->
+<div class="slide" id="s28">
+  <div class="gloss-title">x402</div>
+  <div class="gloss-tag">HTTP-Native Micropayment Rail &mdash; Monetizing Pre-Transaction Interactions</div>
+  <div class="back-links-area">
+    <span class="back-hub" onclick="goTo(4)">Back to concepts hub &uarr;</span>
+    <span class="back-prob" onclick="callerSlide !== null ? goTo(callerSlide) : null" style="display:none;"></span>
+  </div>
+  <div class="content" style="justify-content:flex-start;">
+    <div class="stack-row"><span class="stack-lbl">The mechanism</span><span class="stack-desc">When a buyer agent queries a seller agent's catalog or API, the seller returns HTTP 402 (Payment Required). The buyer agent pays a USDC micropayment &mdash; typically fractions of a cent &mdash; before the catalog query is fulfilled. The interaction is HTTP-native: no new protocol layer, no SDK required beyond the payment response handler. It fits into existing web infrastructure without modification.</span></div>
+    <div class="stack-row teal"><span class="stack-lbl teal">What it solves</span><span class="stack-desc">Today, seller agents provide catalog access, query responses, and pricing data at zero cost and zero friction. A competitor's buying agent can scrape a merchant's entire pricing structure for nothing. x402 introduces protective friction: unregistered or malicious agents face a cost at every query. Registered buyer agents pay a small fee that is less than the value of the data they receive.</span></div>
+    <div class="stack-row amber"><span class="stack-lbl amber">Network note</span><span class="stack-desc">x402 settles in USDC for micro-interactions — catalog queries, data access, pre-transaction commerce. The final purchase transaction continues to run on card infrastructure. These are complementary rails, not competing ones. A network partner integrating at the final transaction layer is unaffected by x402 at the pre-transaction layer.</span></div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Appendix</span></div>
+</div>
+
+<!-- A6: SELLER AUTH MANIFEST -->
+<div class="slide" id="s29">
+  <div class="gloss-title">Seller Authorization Manifest</div>
+  <div class="gloss-tag">Merchant-Signed Authorization Boundaries &mdash; Not the Catalog</div>
+  <div class="back-links-area">
+    <span class="back-hub" onclick="goTo(4)">Back to concepts hub &uarr;</span>
+    <span class="back-prob" onclick="callerSlide !== null ? goTo(callerSlide) : null" style="display:none;"></span>
+  </div>
+  <div class="content" style="justify-content:flex-start;">
+    <div class="stack-row"><span class="stack-lbl">What it is</span><span class="stack-desc">A merchant-signed policy document &mdash; not a live catalog or a price feed. Think of it as the merchant's authorization letter to their agent: which categories the agent can sell from, which price ceiling it cannot exceed, which geographies and payment methods apply, valid from date X to date Y. It does not need to be updated every time inventory changes. The manifest defines the authorization envelope; the live catalog fills the content inside that envelope.</span></div>
+    <div class="stack-row teal"><span class="stack-lbl teal">The SSL analogy</span><span class="stack-desc">An SSL certificate does not list every file on a server. It says "this server is who it claims to be, and anything it serves is covered by this trust anchor." The Seller Authorization Manifest works the same way: "this agent is authorized by this merchant, within these boundaries." The buyer agent verifies it once at session start &mdash; like a browser checking SSL on page load &mdash; and then interacts with the live catalog knowing the counterparty is a legitimately authorized seller.</span></div>
+    <div class="stack-row green"><span class="stack-lbl green">Why it matters</span><span class="stack-desc">A buyer agent with no manifest has no way to distinguish a legitimate seller agent from a rogue one. The manifest is what turns an anonymous endpoint into a verifiable counterparty. Without it, trust is delegated entirely to the counterparty's own assertions &mdash; which is no trust at all. The manifest is signed with the merchant's DNSid key and verifiable by any party independently, with no call back to Firmly required.</span></div>
+    <div class="stack-row amber"><span class="stack-lbl amber">The gap</span><span class="stack-desc">The manifest establishes trust at the agent-to-agent layer. At the network level, issuers can technically consume it today &mdash; the data is available. Whether they do is a business adoption decision, not a technical gate. A network partner surfacing the manifest to issuers as part of their authorization flow is the partnership conversation, not a prerequisite for the manifest to be useful at the merchant layer.</span></div>
+  </div>
+  <div class="footer"><span>Confidential &mdash; Appendix</span></div>
+</div>
+
+</div><!-- /#deck -->
+
+<div id="nav">
+  <button class="nav-btn" onclick="prev()">&#8592;</button>
+  <span id="slide-counter"></span>
+  <button class="nav-btn" onclick="next()">&#8594;</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+const mainTotal = 20;
+let current = 0;
+let callerSlide = null;
+
+function isProblemSlide(idx) { return idx >= 5 && idx <= 14; }
+function isAppendixGlossary(idx) { return idx >= 21 && idx <= 26; }
+
+function updateAppendixBackLinks() {
+  const backProbs = document.querySelectorAll('.back-prob');
+  backProbs.forEach(el => {
+    if (callerSlide !== null) {
+      el.textContent = 'Back to Problem ' + (callerSlide - 4) + ' ↓';
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+
+function goTo(idx, fromProblem) {
+  if (fromProblem !== undefined && isProblemSlide(fromProblem)) {
+    callerSlide = fromProblem;
+  } else if (!isAppendixGlossary(idx)) {
+    callerSlide = null;
+  }
+  slides[current].classList.remove('active');
+  current = idx;
+  slides[current].classList.add('active');
+  updateCounter();
+  updateAppendixBackLinks();
+}
+
+function updateCounter() {
+  const counter = document.getElementById('slide-counter');
+  if (current === 0) {
+    counter.textContent = '';
+  } else if (isAppendixGlossary(current)) {
+    counter.textContent = 'A' + (current - 22) + ' / A6';
+  } else if (current === 22) {
+    counter.textContent = 'Appendix';
+  } else {
+    counter.textContent = (current + 1) + ' / ' + mainTotal;
+  }
+}
+
+function next() {
+  if (current < total - 1) {
+    if (!isAppendixGlossary(current + 1)) callerSlide = null;
+    slides[current].classList.remove('active');
+    current++;
+    slides[current].classList.add('active');
+    updateCounter();
+    updateAppendixBackLinks();
+  }
+}
+
+function prev() {
+  if (current > 0) {
+    if (!isAppendixGlossary(current - 1)) callerSlide = null;
+    slides[current].classList.remove('active');
+    current--;
+    slides[current].classList.add('active');
+    updateCounter();
+    updateAppendixBackLinks();
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next();
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prev();
+});
+
+updateCounter();
+</script>
+</body>
+</html>
