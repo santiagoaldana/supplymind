@@ -1876,3 +1876,62 @@ analog in SupplyMind:
 The identity layer is not theoretical. SupplyMind has built each component
 individually. The proposal asks Firmly and LoginID to integrate them into a
 unified product layer on top of their existing infrastructure.
+
+---
+
+## KYA (Know Your Agent) Vendor Landscape (June 2026)
+
+The Firmly + LoginID identity stack assumes a business identity verification
+layer underneath DNSid: before an agent can anchor its identity to a domain,
+the business that owns that domain should be verifiable as a legitimate, active
+legal entity. This is the KYB-to-KYA gap.
+
+Several players are now competing to fill it. Maturity and geographic coverage
+vary significantly.
+
+### Players and status
+
+| Vendor | Maturity | Geography | KYA status |
+|---|---|---|---|
+| Experian | Production | Global | Announced "Agent Trust" (2026): explicit KYA product extending their KYB/KYC infrastructure into AI agent identity verification |
+| Sumsub | Production | Global | Integrated AI agent verification into their KYA framework (2026). Combines traditional KYC/KYB with agent identity products |
+| LexisNexis / Nexis Solutions | Production | Global | Integrated D&B data (August 2025). 600M+ global entities. Deploying agentic AI internally. No explicit KYA product yet |
+| Alloy | Production | Global | Command-center KYC/KYB/AML platform. Announced elevated KYB processes (2026). Modular architecture supports agent verification expansion. No explicit KYA product |
+| Jumio | Production | Global | High-assurance identity proofing for regulated industries. Expanding into autonomous systems. No explicit KYA product |
+| Persona | Growth | Global | Modular AI-driven verification. Strong in startup/AI ecosystem. Positioned for autonomous agent architectures but no explicit KYA product |
+| Vove ID | Growth | Global | Launched KYB platform (2025) with real-time risk assessment and sub-60-second verification. "AI Compliance Agent" framing |
+| Baselayer | Early | US only | KYB-to-KYA roadmap explicit. UUID for every US business from 120M government records. Live MCP server with Natural. KYA on 18-24 month roadmap |
+
+### Relevance to SupplyMind and the Firmly + LoginID proposal
+
+- **Experian and Sumsub** are the only established players with explicit KYA products
+  today. Either could be a candidate for the business verification layer beneath
+  DNSid without waiting for a new player to mature.
+- **LexisNexis** has the largest entity dataset (600M+) and D&B integration. If
+  they ship a KYA product, they become the default enterprise choice.
+- **Baselayer** has the most explicit alignment with the SupplyMind architecture
+  (UUID-per-business, MCP server, KYA roadmap) but is US-only and early. High
+  risk for production use before 2027.
+- **The gap no player currently fills:** DNS-anchored agent identity. Existing KYB
+  platforms verify the business; none currently sign or anchor a credential to the
+  business's DNS record in a way that is independently verifiable by a buyer agent
+  at transaction time. That is the layer DNSid provides and what differentiates
+  the proposed stack.
+
+### Clerk's four questions applied to the KYA gap
+
+| Question | KYA player's role | What remains unaddressed |
+|---|---|---|
+| Identity | Verifies the business is real and not flagged | Does not prove the agent belongs to that business |
+| Scoping | Out of scope for KYB vendors | AP2 mandate handles this |
+| Approvals | Out of scope | LoginID FIDO2 handles this |
+| Enforcement | Out of scope | Firmly registry revocation handles this |
+
+KYA vendors answer the first question only. The full answer requires the complete stack.
+
+### SupplyMind Phase 15 relevance
+
+Baselayer and Experian both maintain fraud consortium data (cross-business fraud
+signal aggregation). This is directly relevant to Phase 15 (Fraud and Bot
+Detection). A production implementation would query one of these APIs before
+accepting a new buyer agent credential, not rely solely on Stripe Radar.
