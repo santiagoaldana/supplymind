@@ -446,42 +446,42 @@ html, body {
   <div class="transition-intro">Together, Firmly and LoginID already solve the checkout layer. What follows introduces the trust infrastructure that sits underneath it. These six building blocks appear throughout the proposal.</div>
   <div class="content">
     <div class="hub-grid">
-      <div class="hub-card blue" onclick="goTo(22)">
+      <div class="hub-card blue" onclick="goTo(21)">
         <div>
           <div class="hub-concept blue">NANDA</div>
           <div class="hub-desc">Open agent registry from MIT. Any agent can register and be discovered without a proprietary intermediary. Provides existence &mdash; not trustworthiness. The foundation Firmly builds a verified layer on top of.</div>
         </div>
         <div class="hub-link blue">Discovery &mdash; Explore &rarr;</div>
       </div>
-      <div class="hub-card teal" onclick="goTo(23)">
+      <div class="hub-card teal" onclick="goTo(22)">
         <div>
           <div class="hub-concept teal">Business Agent Identity</div>
           <div class="hub-desc">DNSid + LoginID. A business that owns a domain proves ownership of its agent via DNSid (Identity Digital, operator of 300+ TLD registries). LoginID passkey binds the credential. Enables ownership proof via DNS-anchored identity. Revocation runs through Firmly's registry &mdash; instant signal, no DNS delay. No Firmly required for identity; Firmly required for real-time revocation.</div>
         </div>
         <div class="hub-link teal">Business Identity &mdash; Explore &rarr;</div>
       </div>
-      <div class="hub-card green" onclick="goTo(24)">
+      <div class="hub-card green" onclick="goTo(23)">
         <div>
           <div class="hub-concept green">Human Agent Identity</div>
           <div class="hub-desc">Firmly ID + DNSid + LoginID. Firmly issues a DNS subdomain for human-owned agents (agent.firmly.ai/[id]). LoginID passkey binds it. Enables ownership proof via DNS-anchored identity for individuals who have no domain of their own. Revocation is immediate via Firmly's registry &mdash; not DNS propagation.</div>
         </div>
         <div class="hub-link green">Human Identity &mdash; Explore &rarr;</div>
       </div>
-      <div class="hub-card amber" onclick="goTo(25)">
+      <div class="hub-card amber" onclick="goTo(24)">
         <div>
           <div class="hub-concept amber">AP2 v0.2.0</div>
           <div class="hub-desc">Agentic Payment Protocol, implemented by Firmly on the seller side. Humans sign a spending mandate upfront. The seller agent verifies it independently. Every payment is traceable to a signed human authorization. Buyer agent can be from any platform.</div>
         </div>
         <div class="hub-link amber">Scope Enforcement &mdash; Explore &rarr;</div>
       </div>
-      <div class="hub-card red" onclick="goTo(26)">
+      <div class="hub-card red" onclick="goTo(25)">
         <div>
           <div class="hub-concept red">x402</div>
           <div class="hub-desc">HTTP-native micropayment rail, implemented by Firmly on the seller side. Seller agents charge for catalog access and data queries. Monetizes pre-transaction interactions and protects proprietary data from scrapers. Settlement defaults to USDC. Buyer agent can be from any platform.</div>
         </div>
         <div class="hub-link red">Micropayments &mdash; Explore &rarr;</div>
       </div>
-      <div class="hub-card muted" onclick="goTo(27)">
+      <div class="hub-card muted" onclick="goTo(26)">
         <div>
           <div class="hub-concept muted">Seller Authorization Manifest</div>
           <div class="hub-desc">Merchant-signed document defining what the seller agent is authorized to offer &mdash; categories, price boundaries, policies, validity window. Implemented by Firmly on the seller side. Any buyer agent can verify it independently via DNSid. Signs authority, not inventory.</div>
@@ -506,7 +506,7 @@ html, body {
       </div>
       <div class="prob-right">
         <div class="sol-box">
-          <div class="sol-name"><span class="sol-link" onclick="goTo(24,current)">Firmly ID</span></div>
+          <div class="sol-name"><span class="sol-link" onclick="goTo(23,current)">Firmly ID</span></div>
           <div class="sol-desc">Subdomain identity for humans. Passkey-bound via LoginID. W3C DID underneath for portability. Human controls scope, agents, and revocation.</div>
           <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete</span></div>
           <div class="remains">Applies to humans who enroll. LoginID solves enrollment.</div>
@@ -534,7 +534,7 @@ html, body {
       </div>
       <div class="prob-right">
         <div class="sol-box">
-          <div class="sol-name"><span class="sol-link" onclick="goTo(23,current)">DNSid</span> + <span class="sol-link" onclick="goTo(24,current)">LoginID + Firmly ID</span></div>
+          <div class="sol-name"><span class="sol-link" onclick="goTo(22,current)">DNSid</span> + <span class="sol-link" onclick="goTo(23,current)">LoginID + Firmly ID</span></div>
           <div class="sol-desc">For corporate agents: DNSid anchors the agent to the business domain, LoginID binds it to the human responsible within that business. For human-owned agents: Firmly creates a DNS subdomain first, then LoginID binds it to the individual via passkey &mdash; KYA at the personal level, no domain ownership required.</div>
           <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete</span></div>
           <div class="remains">Applies to agents whose owners enroll through Firmly. Agents from owners outside Firmly remain unanchored.</div>
@@ -561,7 +561,7 @@ html, body {
       </div>
       <div class="prob-right">
         <div class="sol-box">
-          <div class="sol-name"><span class="sol-link" onclick="goTo(22,current)">NANDA</span> + Firmly Curated Layer</div>
+          <div class="sol-name"><span class="sol-link" onclick="goTo(21,current)">NANDA</span> + Firmly Curated Layer</div>
           <div class="sol-desc">NANDA is an open registry &mdash; any agent can register and be discovered without a channel partnership. Firmly registering its merchant catalog in NANDA means any autonomous buyer agent, on any platform, configured to query the registry can find and transact with Firmly-powered merchants directly. The channel dependency disappears for agents built to use it.</div>
           <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Open Discovery</span></div>
           <div class="remains">NANDA only works for buyer agents explicitly configured to query it. Channel partnerships (Perplexity, TikTok, Facebook) remain necessary for human-in-the-loop shopping. The proposal accelerates the shift toward autonomous buyer agents who bypass shopping interfaces entirely.</div>
@@ -617,7 +617,7 @@ html, body {
       </div>
       <div class="prob-right">
         <div class="sol-box">
-          <div class="sol-name"><span class="sol-link" onclick="goTo(27,current)">Seller Authorization Manifest</span></div>
+          <div class="sol-name"><span class="sol-link" onclick="goTo(26,current)">Seller Authorization Manifest</span></div>
           <div class="sol-desc">The Seller Authorization Manifest is the HTTPS of agentic commerce. The merchant signs what their agent is authorized to offer &mdash; catalog boundaries, price ranges, validity window &mdash; using their DNSid key. Any buyer, human or agent, verifies it before interacting. Eliminates the agent-in-the-middle attack surface. Firmly defines the visual trust signal at the point of interaction &mdash; the lock icon for agentic commerce.</div>
           <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Agent Layer</span></div>
           <div class="status-row"><span class="status-dot open"></span><span class="status-lbl open">Network layer resolved in P9 &mdash; Audit Trail</span></div>
@@ -646,7 +646,7 @@ html, body {
       </div>
       <div class="prob-right">
         <div class="sol-box">
-          <div class="sol-name"><span class="sol-link" onclick="goTo(25,current)">AP2 v0.2.0</span> + <span class="sol-link" onclick="goTo(24,current)">LoginID</span> Signed Mandates + Google Universal Cart</div>
+          <div class="sol-name"><span class="sol-link" onclick="goTo(24,current)">AP2 v0.2.0</span> + <span class="sol-link" onclick="goTo(23,current)">LoginID</span> Signed Mandates + Google Universal Cart</div>
           <div class="sol-desc">Human signs the mandate upfront via a FIDO2 passkey &mdash; an open standard. LoginID adds the KYA layer on top: the signer is a verified human, not just a device owner. The signature is cryptographically bound to a verified person, not just a device or session. Approved sellers, dollar limits, categories, and time window are enforced at the seller layer. Any buyer agent can carry and present the mandate &mdash; Firmly's enforcement is at the seller layer, not the buyer layer. Every payment traces back to the signed mandate. Google Universal Cart (announced May 2026) aggregates purchases across sellers in a single agentic session, coupled with AP2 mandates. Complements Firmly's seller-layer enforcement with cross-seller spend visibility.</div>
           <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Seller Layer</span></div>
           <div class="status-row"><span class="status-dot open"></span><span class="status-lbl open">Network layer resolved in P9 &mdash; Audit Trail</span></div>
@@ -675,7 +675,7 @@ html, body {
       </div>
       <div class="prob-right">
         <div class="sol-box">
-          <div class="sol-name"><span class="sol-link" onclick="goTo(26,current)">x402</span></div>
+          <div class="sol-name"><span class="sol-link" onclick="goTo(25,current)">x402</span></div>
           <div class="sol-desc">x402 is an HTTP-native payment protocol. Any data provider can return HTTP 402 for agent queries, requiring a USDC micropayment before serving the response. Applies to catalog data, financial data, health records, legal documents &mdash; any proprietary data served via HTTP. Buyer agents that pay get access. Scrapers face friction.</div>
           <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Technical Mechanism</span></div>
           <div class="remains">x402 bypasses card interchange for micro-interactions. This is a separate rail &mdash; not a replacement for card payments on the final transaction.</div>
@@ -703,7 +703,7 @@ html, body {
       </div>
       <div class="prob-right">
         <div class="sol-box">
-          <div class="sol-name"><span class="sol-link" onclick="goTo(25,current)">AP2 v0.2.0</span> + <span class="sol-link" onclick="goTo(27,current)">Seller Authorization Manifest</span></div>
+          <div class="sol-name"><span class="sol-link" onclick="goTo(24,current)">AP2 v0.2.0</span> + <span class="sol-link" onclick="goTo(26,current)">Seller Authorization Manifest</span></div>
           <div class="sol-desc">Together they create a non-repudiable chain: human signed the mandate, agent acted within it, seller verified the manifest, transaction executed.</div>
           <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Agent Layer</span></div>
           <div class="status-row"><span class="status-dot open"></span><span class="status-lbl open">Issuer adoption is a business decision, not a technical gate</span></div>
@@ -732,7 +732,7 @@ html, body {
       </div>
       <div class="prob-right">
         <div class="sol-box">
-          <div class="sol-name"><span class="sol-link" onclick="goTo(24,current)">Firmly ID</span> Dashboard + Registry</div>
+          <div class="sol-name"><span class="sol-link" onclick="goTo(23,current)">Firmly ID</span> Dashboard + Registry</div>
           <div class="sol-desc">Firmly's registry is the revocation layer for both business and human-owned agents. The human revokes via the Firmly ID dashboard &mdash; instant at the registry. Any Firmly buyer agent checks its credential status before acting and stops immediately. Any Firmly-integrated merchant checks the registry at transaction time and rejects a revoked credential. DNSid provides the identity anchor; Firmly controls the revocation signal.</div>
           <div class="status-row"><span class="status-dot complete"></span><span class="status-lbl complete">Complete &mdash; Credential Layer</span></div>
           <div class="status-row"><span class="status-dot open"></span><span class="status-lbl open">Real-time propagation to merchants and issuers requires registry integration</span></div>
@@ -789,12 +789,12 @@ html, body {
           </tr>
           <tr>
             <th class="pc" style="width:30%"></th>
-            <th><span class="sol-link" onclick="goTo(22,current)" style="cursor:pointer;">NANDA</span></th>
-            <th><span class="sol-link" onclick="goTo(23,current)" style="cursor:pointer;">Business Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">DNSid + LoginID</span></th>
-            <th><span class="sol-link" onclick="goTo(24,current)" style="cursor:pointer;">Human Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Firmly ID + DNSid + LoginID</span></th>
-            <th><span class="sol-link" onclick="goTo(25,current)" style="cursor:pointer;">AP2 v0.2.0</span></th>
-            <th><span class="sol-link" onclick="goTo(26,current)" style="cursor:pointer;">x402</span></th>
-            <th><span class="sol-link" onclick="goTo(27,current)" style="cursor:pointer;">Seller Auth Manifest</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Seller-signed scope boundaries</span></th>
+            <th><span class="sol-link" onclick="goTo(21,current)" style="cursor:pointer;">NANDA</span></th>
+            <th><span class="sol-link" onclick="goTo(22,current)" style="cursor:pointer;">Business Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">DNSid + LoginID</span></th>
+            <th><span class="sol-link" onclick="goTo(23,current)" style="cursor:pointer;">Human Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Firmly ID + DNSid + LoginID</span></th>
+            <th><span class="sol-link" onclick="goTo(24,current)" style="cursor:pointer;">AP2 v0.2.0</span></th>
+            <th><span class="sol-link" onclick="goTo(25,current)" style="cursor:pointer;">x402</span></th>
+            <th><span class="sol-link" onclick="goTo(26,current)" style="cursor:pointer;">Seller Auth Manifest</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Seller-signed scope boundaries</span></th>
           </tr>
         </thead>
         <tbody>
@@ -899,12 +899,12 @@ html, body {
           </tr>
           <tr>
             <th class="pc" style="width:25%"></th>
-            <th><span class="sol-link" onclick="goTo(22,current)" style="cursor:pointer;">NANDA</span></th>
-            <th><span class="sol-link" onclick="goTo(23,current)" style="cursor:pointer;">Business Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">DNSid + LoginID</span></th>
-            <th><span class="sol-link" onclick="goTo(24,current)" style="cursor:pointer;">Human Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Firmly ID + DNSid + LoginID</span></th>
-            <th><span class="sol-link" onclick="goTo(25,current)" style="cursor:pointer;">AP2 v0.2.0</span></th>
-            <th><span class="sol-link" onclick="goTo(26,current)" style="cursor:pointer;">x402</span></th>
-            <th><span class="sol-link" onclick="goTo(27,current)" style="cursor:pointer;">Seller Authorization Manifest</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Seller-signed scope boundaries</span></th>
+            <th><span class="sol-link" onclick="goTo(21,current)" style="cursor:pointer;">NANDA</span></th>
+            <th><span class="sol-link" onclick="goTo(22,current)" style="cursor:pointer;">Business Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">DNSid + LoginID</span></th>
+            <th><span class="sol-link" onclick="goTo(23,current)" style="cursor:pointer;">Human Agent Identity</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Firmly ID + DNSid + LoginID</span></th>
+            <th><span class="sol-link" onclick="goTo(24,current)" style="cursor:pointer;">AP2 v0.2.0</span></th>
+            <th><span class="sol-link" onclick="goTo(25,current)" style="cursor:pointer;">x402</span></th>
+            <th><span class="sol-link" onclick="goTo(26,current)" style="cursor:pointer;">Seller Authorization Manifest</span><br><span style="font-weight:400;font-size:13px;color:var(--muted);">Seller-signed scope boundaries</span></th>
           </tr>
         </thead>
         <tbody>
@@ -1139,8 +1139,8 @@ function updateCounter() {
   if (current === 0) {
     counter.textContent = '';
   } else if (isAppendixGlossary(current)) {
-    counter.textContent = 'A' + (current - 22) + ' / A6';
-  } else if (current === 22) {
+    counter.textContent = 'A' + (current - 20) + ' / A6';
+  } else if (current === 20) {
     counter.textContent = 'Appendix';
   } else {
     counter.textContent = (current + 1) + ' / ' + mainTotal;
