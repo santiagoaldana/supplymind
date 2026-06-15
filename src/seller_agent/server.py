@@ -57,6 +57,8 @@ from src.seller_agent.ucp_profile import generate_ucp_profile
 from src.identity.dnsid import resolve_dnsid
 from src.identity.dnsid_registry_seed import seed as seed_dnsid_registry
 from src.identity.signed_mandate import verify_cart_mandate
+from src.identity.visa_tap import verify_tap_credential, credential_from_header
+from src.identity.mastercard_agent_pay import verify_agentic_token, AGENTIC_TOKENS
 from src.identity.seller_manifest import (
     create_seller_manifest,
     create_signed_offer,
@@ -67,6 +69,8 @@ from src.seller_agent.protocol_router import normalize_acp, normalize_ucp_task, 
 from src.governance.event_log import log_event
 from src.payment_server.wallet import execute_payment, get_wallets_by_owner, list_wallets
 from src.payment_server.wallet_seed import seed as seed_wallets
+from src.fraud.rate_limiter import check_rate_limit
+from src.fraud.sardine_client import score_transaction
 
 # CLI args: --port, --well-known-dir, --name
 # Defaults match Phase 3 behavior so all existing tests still work.
@@ -75,11 +79,13 @@ _parser.add_argument("--port",             type=int,  default=8080)
 _parser.add_argument("--well-known-dir",   type=str,  default=None)
 _parser.add_argument("--name",             type=str,  default="SupplyMind Seller Agent")
 _parser.add_argument("--price-multiplier", type=float, default=1.0)
+_parser.add_argument("--dnsid-handle",     type=str,  default=None)
 _args, _ = _parser.parse_known_args()
 
 SERVER_PORT   = _args.port
 SERVER_NAME   = _args.name
 PRICE_MULT    = _args.price_multiplier
+DNSID_HANDLE  = _args.dnsid_handle
 
 _default_well_known = Path(__file__).parent / "well_known"
 WELL_KNOWN      = Path(_args.well_known_dir) if _args.well_known_dir else _default_well_known
@@ -243,13 +249,58 @@ def _process_order(order_lines: list[OrderLine]) -> tuple[list[dict], float, lis
 
 # ── Shared order execution (Phase 12: protocol router feeds this) ─────────────
 
-def _apply_gates(order: NormalizedOrder) -> tuple[bool, bool, Optional[str]]:
+def _apply_gates(
+    order: NormalizedOrder,
+    tap_header: Optional[str] = None,
+    mc_token_id: Optional[str] = None,
+    client_ip: str = "unknown",
+) -> tuple[bool, bool, Optional[str], bool, bool]:
     """
-    Apply DNSid and Cart Mandate gates to a normalized order.
-    Returns (buyer_dnsid_verified, cart_mandate_verified, operator_id).
+    Apply fraud, DNSid, Cart Mandate, Visa TAP, and Mastercard Agent Pay gates.
+    Returns (buyer_dnsid_verified, cart_mandate_verified, operator_id,
+             tap_verified, mc_token_verified).
     Raises HTTPException 403 on gate failure.
-    Security invariant: gates run before any order processing, regardless of protocol.
+    Security invariant: all gates run before any order processing.
     """
+    # Phase 15: rate limit gate (DNSid-anchored)
+    rate_result = check_rate_limit(order.buyer_dnsid, client_ip=client_ip)
+    if not rate_result.allowed:
+        log_event("Enforcement", "rate_limit_blocked", order.buyer_id, "fraud",
+                  f"identity={rate_result.identity} reason={rate_result.reason}")
+        raise HTTPException(status_code=429, detail=f"Rate limit exceeded: {rate_result.reason}")
+
+    # Phase 15: Sardine fraud scoring gate
+    order_value = sum(
+        l.get("quantity", 1) * l.get("unit_price", 0.0)
+        for l in order.order_lines
+    ) if order.order_lines and isinstance(order.order_lines[0], dict) else 0.0
+    total_quantity = sum(
+        l.get("quantity", 1) for l in order.order_lines
+    ) if order.order_lines and isinstance(order.order_lines[0], dict) else 1
+
+    dnsid_status = "unknown"
+    if order.buyer_dnsid:
+        dnsid_record = resolve_dnsid(order.buyer_dnsid)
+        dnsid_status = dnsid_record.get("status", "unknown")
+
+    sardine = score_transaction(
+        agent_dnsid=order.buyer_dnsid,
+        dnsid_status=dnsid_status,
+        order_value_usd=order_value,
+        quantity=total_quantity,
+        request_count_per_minute=rate_result.request_count,
+        buyer_id=order.buyer_id,
+        client_ip=client_ip,
+    )
+    log_event("Enforcement", "fraud_score", order.buyer_id, "sardine",
+              f"score={sardine.score} level={sardine.level} decision={sardine.decision} "
+              f"mock={sardine.mock} signals={sardine.signals}")
+    if sardine.decision == "block":
+        raise HTTPException(
+            status_code=403,
+            detail=f"Transaction blocked by fraud detection: score={sardine.score} signals={sardine.signals}",
+        )
+
     buyer_dnsid_verified = False
     if order.buyer_dnsid:
         dnsid_record = resolve_dnsid(order.buyer_dnsid)
@@ -272,15 +323,47 @@ def _apply_gates(order: NormalizedOrder) -> tuple[bool, bool, Optional[str]]:
         cart_mandate_verified = True
         operator_id           = verification.get("operator_id")
 
-    return buyer_dnsid_verified, cart_mandate_verified, operator_id
+    # Visa TAP gate (optional -- present = verified, absent = not verified)
+    tap_verified = False
+    if tap_header:
+        try:
+            credential = credential_from_header(tap_header)
+            valid, reason = verify_tap_credential(credential)
+            if not valid:
+                raise HTTPException(status_code=403, detail=f"Visa TAP credential invalid: {reason}")
+            tap_verified = True
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=403, detail=f"Visa TAP header malformed: {e}")
+
+    # Mastercard Agent Pay gate (optional -- present = verified, absent = not verified)
+    mc_token_verified = False
+    if mc_token_id:
+        token = AGENTIC_TOKENS.get(mc_token_id)
+        if not token:
+            raise HTTPException(status_code=403, detail=f"MC Agentic Token {mc_token_id} not found")
+        subtotal = sum(i.get("quantity", 1) for i in order.order_lines) * 10.0  # conservative estimate
+        valid, reason = verify_agentic_token(token, "did:web:localhost:8080", subtotal)
+        if not valid:
+            raise HTTPException(status_code=403, detail=f"MC Agentic Token invalid: {reason}")
+        mc_token_verified = True
+
+    return buyer_dnsid_verified, cart_mandate_verified, operator_id, tap_verified, mc_token_verified
 
 
-def _build_task_result(order: NormalizedOrder) -> JSONResponse:
+def _build_task_result(
+    order: NormalizedOrder,
+    tap_header: Optional[str] = None,
+    mc_token_id: Optional[str] = None,
+    client_ip: str = "unknown",
+) -> JSONResponse:
     """
     Execute an order from any protocol and return a task result.
     Called by both UCP (/tasks/send) and ACP (/acp/v1/checkout) endpoints.
     """
-    buyer_dnsid_verified, cart_mandate_verified, operator_id = _apply_gates(order)
+    buyer_dnsid_verified, cart_mandate_verified, operator_id, tap_verified, mc_token_verified = \
+        _apply_gates(order, tap_header=tap_header, mc_token_id=mc_token_id, client_ip=client_ip)
 
     task_id    = str(uuid.uuid4())
     created_at = _now()
@@ -347,12 +430,17 @@ def _build_task_result(order: NormalizedOrder) -> JSONResponse:
         "buyer_dnsid_verified":  buyer_dnsid_verified,
         "cart_mandate_verified": cart_mandate_verified,
         "operator_id":           operator_id,
+        "tap_verified":          tap_verified,
+        "mc_token_verified":     mc_token_verified,
         "protocol_of_record":    order.protocol,
     }
 
     TASKS[task_id] = task
     log_event("Enforcement", "transaction_completed", order.buyer_id,
-              order.protocol, f"task_id={task_id} subtotal=${subtotal} protocol={order.protocol} dnsid_verified={buyer_dnsid_verified} mandate_verified={cart_mandate_verified}")
+              order.protocol,
+              f"task_id={task_id} subtotal=${subtotal} protocol={order.protocol} "
+              f"dnsid={buyer_dnsid_verified} mandate={cart_mandate_verified} "
+              f"tap={tap_verified} mc={mc_token_verified}")
     return JSONResponse(content=task, status_code=201)
 
 
@@ -360,16 +448,21 @@ def _build_task_result(order: NormalizedOrder) -> JSONResponse:
 
 @app.post("/tasks/send", status_code=201)
 async def send_task(
+    request: Request,
     task_req: PurchaseTaskRequest,
-    x_agent_dnsid: Optional[str] = Header(default=None, alias="X-Agent-DNSid"),
+    x_agent_dnsid:    Optional[str] = Header(default=None, alias="X-Agent-DNSid"),
+    tap_credential:   Optional[str] = Header(default=None, alias="TAP-Agent-Credential"),
+    mc_token_id:      Optional[str] = Header(default=None, alias="MC-Agent-Token-Id"),
 ):
     """
     A2A + UCP Protocol: receive a purchase task from a Buyer Agent.
-    Phase 12: normalized through protocol router before processing.
-    DNSid and Cart Mandate gates enforced before order execution.
+    Phase 14: Visa TAP (TAP-Agent-Credential) and MC Agent Pay (MC-Agent-Token-Id)
+    headers accepted and verified alongside existing DNSid and Cart Mandate gates.
+    Phase 15: Sardine fraud scoring and DNSid rate limiting applied before all other gates.
     """
+    client_ip = request.client.host if request.client else "unknown"
     order = normalize_ucp_task(task_req.model_dump(), buyer_dnsid=x_agent_dnsid)
-    return _build_task_result(order)
+    return _build_task_result(order, tap_header=tap_credential, mc_token_id=mc_token_id, client_ip=client_ip)
 
 
 # ── ACP Checkout Endpoint (Phase 12) ─────────────────────────────────────────
@@ -398,18 +491,21 @@ class AcpCheckoutRequest(BaseModel):
 
 @app.post("/acp/v1/checkout", status_code=201)
 async def acp_checkout(
+    request: Request,
     req: AcpCheckoutRequest,
-    x_agent_dnsid: Optional[str] = Header(default=None, alias="X-Agent-DNSid"),
+    x_agent_dnsid:  Optional[str] = Header(default=None, alias="X-Agent-DNSid"),
+    tap_credential: Optional[str] = Header(default=None, alias="TAP-Agent-Credential"),
+    mc_token_id:    Optional[str] = Header(default=None, alias="MC-Agent-Token-Id"),
 ):
     """
     ACP Protocol: Agentic Commerce Protocol checkout endpoint.
-    Accepts purchases from GPT-4o and other ACP-compatible buyer agents.
-    Phase 12: same DNSid and Cart Mandate gates as UCP /tasks/send.
-    Protocol-of-record is 'acp' in all result fields and governance audit trail.
+    Phase 14: Visa TAP and MC Agent Pay gates applied alongside DNSid/Cart Mandate.
+    Phase 15: Sardine fraud scoring and DNSid rate limiting applied before all other gates.
     """
+    client_ip = request.client.host if request.client else "unknown"
     payload = req.model_dump()
     order   = normalize_acp(payload, buyer_dnsid=x_agent_dnsid)
-    return _build_task_result(order)
+    return _build_task_result(order, tap_header=tap_credential, mc_token_id=mc_token_id, client_ip=client_ip)
 
 
 @app.get("/tasks")
@@ -755,6 +851,69 @@ async def get_ucp_order(order_id: str):
     if not order:
         raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
     return JSONResponse(content=order)
+
+
+# ── Universal Cart (Phase 12.5) ───────────────────────────────────────────────
+
+from src.cart_server.cart import create_cart, add_item, remove_item, get_cart, checkout_cart as _checkout_cart
+from src.governance.event_log import log_event as _log_cart_event
+
+
+@app.post("/cart/v1/carts", status_code=201)
+async def cart_create(request: Request):
+    body = await request.json()
+    buyer_did = body.get("buyer_did", "unknown")
+    cart = create_cart(buyer_did)
+    _log_cart_event("Scoping", "cart_created", cart["cart_id"], buyer_did,
+                    f"cart created via HTTP for buyer_did={buyer_did}")
+    return JSONResponse(content=cart, status_code=201)
+
+
+@app.get("/cart/v1/carts/{cart_id}")
+async def cart_get(cart_id: str):
+    try:
+        return JSONResponse(content=get_cart(cart_id))
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.patch("/cart/v1/carts/{cart_id}")
+async def cart_update(cart_id: str, request: Request):
+    body = await request.json()
+    action = body.get("action")
+    try:
+        if action == "add":
+            cart = add_item(
+                cart_id,
+                product_id=body["product_id"],
+                quantity=int(body["quantity"]),
+                unit_price=float(body["unit_price"]),
+                seller_did=body.get("seller_did", "unknown"),
+                seller_endpoint=body.get("seller_endpoint", ""),
+            )
+            _log_cart_event("Scoping", "cart_item_added", cart_id,
+                            body.get("seller_did", "unknown"),
+                            f"product={body['product_id']} qty={body['quantity']} added")
+        elif action == "remove":
+            cart = remove_item(cart_id, body["item_id"])
+        else:
+            raise HTTPException(status_code=400, detail="action must be 'add' or 'remove'")
+        return JSONResponse(content=cart)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/cart/v1/carts/{cart_id}/checkout", status_code=200)
+async def cart_checkout(cart_id: str, request: Request):
+    body = await request.json()
+    buyer_did = body.get("buyer_did", "")
+    try:
+        result = _checkout_cart(cart_id, buyer_did)
+        _log_cart_event("Approvals", "cart_checked_out", cart_id, buyer_did,
+                        f"cart {cart_id} checked out, total={result['total_usd']} USD")
+        return JSONResponse(content=result)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ── Index ─────────────────────────────────────────────────────────────────────
