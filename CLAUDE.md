@@ -78,10 +78,16 @@ SupplyMind/
 | 12.5 | Universal Cart | Google Universal Cart | Done |
 | 13 | Agent Wallet Layer | Stripe Link, Coinbase/Base MCP | Done (13a mock; 13b optional) |
 | 14 | Network Credential Layer | Visa TAP, Mastercard Agent Pay | Done |
-| 15 | Fraud and Bot Detection | Stripe Radar, DNSid rate limiting | Planned |
-| 16 | Stablecoin Settlement | x402 (LF), AWS AgentCore, USDC/Base | Planned |
+| 15 | Fraud and Bot Detection | Sardine, DNSid rate limiting | Planned |
+| 16 | Open Agent Micropayments | x402, USDC/Base, on-chain credentials (Base testnet) | Planned |
+| 17 | Production Agent Infrastructure | AWS AgentCore, Google Agent Engine, Azure AI Foundry, Cloudflare Workers AI, OpenClaw (self-hosted) | Planned |
 
 **Current phase:** Phase 15 (Fraud and Bot Detection)
+
+## Prototype Reminders
+
+- **Phase 16 AP4M pattern (added June 15 2026):** Mastercard AP4M (launched June 10 2026) introduces a transaction model not yet in SupplyMind: AI agents making sub-cent payments per request with no human in the loop (API call fees, per-query data licensing, compute billing). Phase 16 replicates this as an open protocol: x402 per-request pricing on seller endpoints, buyer agent continuous payment loop, secp256k1 credentials anchored on Base testnet (public registry contract), USDC settlement. This is architecturally equivalent to AP4M but permissionless: no Mastercard enrollment, no network liability guarantee, bilateral trust via on-chain verification. The missing element vs AP4M is not technical but commercial: Mastercard's fraud coverage and chargeback system.
+- **Phase 17 infrastructure comparison (added June 15 2026):** Evaluate production agent hosting options against SupplyMind's actual requirements (MCP tool access, A2A discovery, x402 payment headers, secp256k1 signing). OpenClaw is the highest-compatibility option: open-source, self-hosted, A2A v0.3.0 and MCP native, 347k GitHub stars as of April 2026. Compare against managed cloud options (AWS AgentCore, Google Agent Engine, Azure AI Foundry, Cloudflare Workers AI) on protocol fit, data sovereignty, cost, and operational complexity. Do this phase last so evaluation criteria are grounded in what the full stack actually needs.
 
 ## Key Protocols
 
@@ -95,6 +101,8 @@ SupplyMind/
 - **ACP:** OpenAI + Stripe. Agentic Commerce Protocol, B2C/B2B checkout.
 - **Visa TAP:** Visa. Trusted Agent Protocol, RFC 9421, cryptographic agent credential.
 - **Mastercard Agent Pay:** Mastercard. Agentic Tokens, Verifiable Intent, network-level agent authorization.
+- **AP4M:** Mastercard. Agent Pay for Machines (launched June 10 2026). Second-generation agentic payments for machine-to-machine transactions with no human in the loop. Four layers: Credentialing (on-chain: Polygon, Solana, Base), Permissioning (Agentic Tokens + Verifiable Intent), Transacting (card + bank rails, machine speed), Settling (fiat + USDC, RLUSD, PYUSD). Sub-cent micropayments at high frequency. 31 crypto-native partners including Coinbase, Ripple, Stripe, Cloudflare. Phase 16 replicates this pattern as an open protocol via x402 + Base testnet.
+- **OpenClaw:** Open-source self-hosted AI agent framework. A2A v0.3.0 and MCP native. 347k GitHub stars as of April 2026. Local-first runtime with persistent memory, sandboxed execution, cryptographic skill verification. Evaluated in Phase 17 as the highest protocol-compatibility hosting option for SupplyMind.
 - **Visa ICC:** Visa Intelligent Commerce Connect. Single merchant endpoint routing between TAP, MPP, ACP, and UCP simultaneously. Announced April 8, 2026. Technically equivalent to Firmly Connect at the protocol translation layer. Does not touch identity, mandate signing, or settlement. Strategic implication: ICC commoditizes the protocol aggregation layer, making Firmly Connect's neutrality the only remaining differentiator at that layer. The identity layer (Firmly ID, DNSid, LoginID) is the moat ICC cannot replicate.
 - **Firmly Connect:** Firmly. No-code merchant onboarding platform abstracting MCP, AP2, ACP, UCP, A2A, KYA, TAP. Launched March 2026. Live: Best Buy, Backcountry. Network-neutral alternative to ICC. Does not yet include the identity layer (Firmly ID, DNSid, LoginID mandate attestation) which is the proposed extension.
 - **Firmly + LoginID Identity Stack (proposed):** Firmly Connect (protocol translation) plus identity layer: Firmly ID subdomain registry for humans, DNSid anchor for businesses, LoginID FIDO2 passkey binding for mandate attestation, AP2 v0.2.0 signed mandates, Seller Authorization Manifest. SupplyMind is the working prototype proving this stack is implementable. This is what differentiates the combined Firmly + LoginID stack from both ICC and Firmly Connect alone.
